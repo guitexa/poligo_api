@@ -1,11 +1,20 @@
 import { createGlobalStyle } from 'styled-components';
 
+import Background from '../assets/bg.png';
+
 export default createGlobalStyle`
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     outline: 0;
+  }
+
+  #root {
+    background: url(${Background}) no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    width: 100vw;
   }
 
   body {
