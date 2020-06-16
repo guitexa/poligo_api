@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaUser, FaLock } from 'react-icons/fa';
+import { FiUser, FiLock } from 'react-icons/fi';
 
 import Logo from '../../assets/logo.svg';
 
@@ -13,10 +13,10 @@ const SignIn: React.FC = () => {
       <Content>
         <img src={Logo} alt="Logo Poligo" />
         <div>
-          <Input name="name" icon={FaUser} placeholder="Usuário" />
+          <Input name="name" icon={FiUser} placeholder="Usuário" />
           <Input
             name="password"
-            icon={FaLock}
+            icon={FiLock}
             type="password"
             placeholder="Senha"
           />
