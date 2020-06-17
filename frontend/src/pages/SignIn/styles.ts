@@ -1,5 +1,4 @@
 import styled, { keyframes } from 'styled-components';
-import { shade } from 'polished';
 
 export const Container = styled.div`
   width: 100vw;
@@ -21,51 +20,58 @@ const enterEffect = keyframes`
 `;
 
 export const Content = styled.div`
-  background-color: #ffffff50;
-  padding: 40px 35px;
-  border-radius: 5px;
-  border: 1px solid #ffffff80;
-
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   animation: ${enterEffect} 1s;
 
-  img {
-    width: 250px;
-  }
-
   > div {
-    display: flex;
-    flex-direction: column;
-    margin: 30px 10px 0 10px;
-    justify-content: center;
-    align-items: center;
-    flex: 1;
+    padding: 40px 35px;
+    background-color: #ffffff50;
+    border-radius: 5px;
+    border: 1px solid #ffffff80;
 
-    a {
-      margin-top: 3px;
-      color: #00000080;
-      font-size: 12px;
-      text-decoration: none;
-      align-self: flex-start;
-      transition: all 0.2s;
-
-      &:hover {
-        color: #000;
-      }
+    img {
+      width: 250px;
     }
 
-    button {
-      background-color: #0181ca;
-      color: #fff;
-      margin-top: 25px;
-      border-radius: 3px;
-      border: none;
-      padding: 8px 60px;
-      font-size: 18px;
-      transition: all 0.2s;
+    form {
+      display: flex;
+      flex-direction: column;
+      margin: 30px 10px 0 10px;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
 
-      &:hover {
-        background-color: ${shade(0.3, '#0181ca')};
+      a {
+        margin-top: 3px;
+        color: #00000060;
+        font-size: 14px;
+        text-decoration: none;
+        align-self: flex-start;
+        transition: all 0.2s;
+
+        &:hover {
+          color: #00000099;
+        }
       }
+    }
+  }
+
+  > a {
+    display: flex;
+    margin-top: 15px;
+    align-items: center;
+    color: #ffffff90;
+    text-decoration: none;
+    transition: all 0.2s;
+
+    &:hover {
+      color: #fff;
+    }
+
+    svg {
+      margin-right: 5px;
     }
   }
 `;

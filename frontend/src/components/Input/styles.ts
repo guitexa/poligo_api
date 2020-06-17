@@ -9,7 +9,7 @@ export const Container = styled.div`
 
   svg {
     margin: 0 10px 0 12px;
-    color: #ccc;
+    color: #aaa;
   }
 
   input {
@@ -19,7 +19,7 @@ export const Container = styled.div`
     flex: 1;
 
     &::placeholder {
-      color: #ccc;
+      color: #aaa;
     }
   }
 
