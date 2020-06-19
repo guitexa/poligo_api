@@ -1,13 +1,18 @@
 import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+
+import { ToastProvider } from './hooks/toast';
+import Router from './routes';
 
 import GlobalStyles from './styles/global';
-import SignIn from './pages/SignIn';
 
 const App: React.FC = () => (
-  <>
+  <BrowserRouter>
     <GlobalStyles />
-    <SignIn />
-  </>
+    <ToastProvider>
+      <Router />
+    </ToastProvider>
+  </BrowserRouter>
 );
 
 export default App;
