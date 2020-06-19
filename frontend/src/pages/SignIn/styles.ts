@@ -26,16 +26,26 @@ export const Content = styled.div`
   animation: ${enterEffect} 1s;
 
   > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 40px 35px;
-    background-color: #ffffff50;
     border-radius: 5px;
-    border: 1px solid #ffffff80;
+    transition: all 0.5s;
+    background-color: #ffffff15;
+    border: 1px solid #ffffff50;
+
+    &:hover {
+      background-color: #ffffff30;
+      border: 1px solid #ffffff60;
+    }
 
     img {
       width: 250px;
     }
 
     form {
+      width: 250px;
       display: flex;
       flex-direction: column;
       margin: 30px 10px 0 10px;
