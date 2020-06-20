@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert, { AlertProps } from '@material-ui/lab/Alert';
+import Slide from '@material-ui/core/Slide';
+import { TransitionProps } from '@material-ui/core/transitions';
 
 import { useToast } from '../../hooks/toast';
 
@@ -12,8 +14,12 @@ interface ToastContent {
   };
 }
 
-function Alert(props: AlertProps) {
-  return <MuiAlert elevation={0} variant="filled" {...props} />;
+const Alert = forwardRef((props: AlertProps, ref) => (
+  <MuiAlert elevation={0} variant="filled" {...props} ref={ref} />
+));
+
+function SlideTransition(props: TransitionProps) {
+  return <Slide {...props} direction="left" />;
 }
 
 const MaterialToast: React.FC<ToastContent> = ({ open, toastContent }) => {
@@ -29,6 +35,7 @@ const MaterialToast: React.FC<ToastContent> = ({ open, toastContent }) => {
         open={open}
         autoHideDuration={2500}
         onClose={handleClose}
+        TransitionComponent={SlideTransition}
       >
         <Alert severity={toastContent.type}>{toastContent.description}</Alert>
       </Snackbar>
