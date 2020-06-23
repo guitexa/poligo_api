@@ -1,15 +1,16 @@
 import React from 'react';
 import { FiPower } from 'react-icons/fi';
-import { useHistory } from 'react-router-dom';
 
 import MaterialTooltip from '../../components/MaterialTooltip';
+
+import { useAuth } from '../../hooks/auth';
 
 import Logo from '../../assets/logo.svg';
 
 import { Container, Content } from './styles';
 
 const Dashboard: React.FC = () => {
-  const history = useHistory();
+  const { signOut } = useAuth();
 
   return (
     <Container>
@@ -19,7 +20,7 @@ const Dashboard: React.FC = () => {
         </div>
       </Content>
 
-      <button onClick={() => history.push('/')}>
+      <button onClick={signOut}>
         <MaterialTooltip title="Sair" arrow placement="right">
           <FiPower size={30} />
         </MaterialTooltip>
