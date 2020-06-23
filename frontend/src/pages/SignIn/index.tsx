@@ -6,7 +6,7 @@ import { Form } from '@unform/web';
 import * as Yup from 'yup';
 
 import { useToast } from '../../hooks/toast';
-import api from '../../service/api';
+import { useAuth } from '../../hooks/auth';
 import getValidationErrors from '../../utils/getValidationErrors';
 
 import Logo from '../../assets/logo.svg';
@@ -25,6 +25,7 @@ const SignIn: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
 
   const { addToast } = useToast();
+  const { signIn } = useAuth();
 
   const history = useHistory();
 
@@ -44,7 +45,10 @@ const SignIn: React.FC = () => {
           abortEarly: false,
         });
 
-        await api.post('/sessions', data);
+        await signIn({
+          email: data.email,
+          password: data.password,
+        });
 
         addToast({
           type: 'success',
@@ -67,7 +71,7 @@ const SignIn: React.FC = () => {
         });
       }
     },
-    [history, addToast]
+    [history, addToast, signIn]
   );
 
   return (
