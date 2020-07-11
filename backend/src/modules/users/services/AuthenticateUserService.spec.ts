@@ -2,7 +2,7 @@ import AppError from '@shared/errors/AppError';
 
 import FakeUsersRepository from '../repositories/fakes/FakeUsersRepository';
 import FakeHashProvider from '../providers/HashProvider/fakes/FakeHashProvider';
-import AuthUserService from './AuthUserService';
+import AuthenticateUserService from './AuthenticateUserService';
 import CreateUserServices from './CreateUserServices';
 
 describe('AuthenticateUser', () => {
@@ -21,9 +21,12 @@ describe('AuthenticateUser', () => {
       password: '123456',
     });
 
-    const authUser = new AuthUserService(fakeUsersRepository, fakeHashProvider);
+    const AuthenticateUser = new AuthenticateUserService(
+      fakeUsersRepository,
+      fakeHashProvider,
+    );
 
-    const response = await authUser.execute({
+    const response = await AuthenticateUser.execute({
       email: 'janedoe@mail.com',
       password: '123456',
     });
@@ -36,10 +39,13 @@ describe('AuthenticateUser', () => {
     const fakeUsersRepository = new FakeUsersRepository();
     const fakeHashProvider = new FakeHashProvider();
 
-    const authUser = new AuthUserService(fakeUsersRepository, fakeHashProvider);
+    const AuthenticateUser = new AuthenticateUserService(
+      fakeUsersRepository,
+      fakeHashProvider,
+    );
 
     expect(
-      authUser.execute({
+      AuthenticateUser.execute({
         email: 'janedoe@mail.com',
         password: '123456',
       }),
@@ -61,10 +67,13 @@ describe('AuthenticateUser', () => {
       password: '123456',
     });
 
-    const authUser = new AuthUserService(fakeUsersRepository, fakeHashProvider);
+    const AuthenticateUser = new AuthenticateUserService(
+      fakeUsersRepository,
+      fakeHashProvider,
+    );
 
     expect(
-      authUser.execute({
+      AuthenticateUser.execute({
         email: 'janedoe@mail.com',
         password: 'wrong-password',
       }),

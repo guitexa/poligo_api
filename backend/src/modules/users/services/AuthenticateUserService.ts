@@ -19,7 +19,7 @@ interface Response {
 }
 
 @injectable()
-export default class AuthUserService {
+export default class AuthenticateUserService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
