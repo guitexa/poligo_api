@@ -18,7 +18,7 @@ const Alert = forwardRef((props: AlertProps, ref) => (
   <MuiAlert elevation={0} variant="filled" {...props} ref={ref} />
 ));
 
-function SlideTransition(props: TransitionProps) {
+function SlideTransition(props: TransitionProps): JSX.Element {
   return <Slide {...props} direction="left" />;
 }
 

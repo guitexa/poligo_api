@@ -16,11 +16,11 @@ const Dashboard: React.FC = () => {
     <Container>
       <Content>
         <div>
-          <img src={Logo} />
+          <img src={Logo} alt="Logomarca" />
         </div>
       </Content>
 
-      <button onClick={signOut}>
+      <button type="button" onClick={signOut}>
         <MaterialTooltip title="Sair" arrow placement="right">
           <FiPower size={30} />
         </MaterialTooltip>

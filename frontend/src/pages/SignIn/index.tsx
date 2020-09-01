@@ -87,11 +87,11 @@ const SignIn: React.FC = () => {
               type="password"
               placeholder="Senha"
             />
-            <a href="">Esqueceu sua senha?</a>
+            <a href="/">Esqueceu sua senha?</a>
             <Button>Entrar</Button>
           </Form>
         </div>
-        <Link to="/signup">
+        <Link to="/SignUp">
           <FiLogIn size={20} />
           Criar conta
         </Link>
