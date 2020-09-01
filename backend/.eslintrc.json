@@ -2,7 +2,7 @@
   "env": {
     "es6": true,
     "node": true,
-    "test": true
+    "jest": true
   },
   "extends": [
     "airbnb-base",
@@ -23,14 +23,15 @@
   "rules": {
     "prettier/prettier": "error",
     "class-methods-use-this": "off",
-    "@typescript-eslint/camelcase": "off",
-    "no-useless-constructor": "off",
+    "camelcase": "off",
+    "import/no-duplicates": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
         "argsIgnorePattern": "_"
       }
     ],
+    "no-useless-constructor": "off",
     "import/extensions": [
       "error",
       "ignorePackages",
