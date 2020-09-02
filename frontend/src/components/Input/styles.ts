@@ -17,28 +17,29 @@ export const Container = styled.div<InputProps>`
   border: 1px solid ${({ isFocused }) => (isFocused ? '#222' : '#fff')};
   transition: all 0.2s;
 
+  & + div {
+    margin-top: 10px;
+  }
+
   > svg {
     margin: 10px 14px;
     color: ${({ isFocused, isFilled }) =>
-      isFocused || isFilled ? '#222' : '#ccc'};
+      isFocused || isFilled ? '#222' : '#888'};
     transition: all 0.2s;
   }
 
   input {
     width: 100%;
-    color: #333;
+    min-width: 50px;
+    color: #222;
     background-color: transparent;
     flex: 1;
     padding: 10px 0;
     border: none;
 
     &::placeholder {
-      color: #ccc;
+      color: #333;
     }
-  }
-
-  & + div {
-    margin-top: 10px;
   }
 `;
 

@@ -5,11 +5,12 @@ interface User {
   id: string;
   name: string;
   email: string;
-  avatar_url: string;
 }
 
-interface AuthState {
+interface TokenState {
   token: string;
+}
+interface UserState {
   user: User;
 }
 
@@ -18,49 +19,84 @@ interface SignInCredencials {
   password: string;
 }
 
+interface SignInMailCredencials {
+  email: string;
+}
+
 interface AuthContextData {
   user: User;
+  token: string;
   signIn(credentials: SignInCredencials): Promise<void>;
+  signInMail(email: SignInMailCredencials): Promise<void>;
   signOut(): void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC = ({ children }) => {
-  const [data, setData] = useState<AuthState>(() => {
+  const [dataToken, setDataToken] = useState<TokenState>(() => {
     const token = localStorage.getItem('@Poligo:token');
-    const user = localStorage.getItem('@Poligo:user');
 
-    if (token && user) {
-      return { token, user: JSON.parse(user) };
+    if (token) {
+      return { token };
     }
 
-    return {} as AuthState;
+    return {} as TokenState;
+  });
+
+  const [dataUser, setDataUser] = useState<UserState>(() => {
+    const user = localStorage.getItem('@Poligo:user');
+
+    if (user) {
+      return { user: JSON.parse(user) };
+    }
+
+    return {} as UserState;
   });
 
   const signIn = useCallback(async ({ email, password }) => {
-    const response = await api.post('sessions', {
+    const response = await api.post('/sessions-password', {
       email,
       password,
     });
 
-    const { token, user } = response.data;
+    const { token } = response.data;
 
     localStorage.setItem('@Poligo:token', token);
+
+    setDataToken({ token });
+  }, []);
+
+  const signInMail = useCallback(async ({ email }) => {
+    const response = await api.post('/sessions-mail', {
+      email,
+    });
+
+    const user = response.data;
+
     localStorage.setItem('@Poligo:user', JSON.stringify(user));
 
-    setData({ token, user });
+    setDataUser({ user });
   }, []);
 
   const signOut = useCallback(() => {
     localStorage.removeItem('@Poligo:token');
     localStorage.removeItem('@Poligo:user');
 
-    setData({} as AuthState);
+    setDataToken({} as TokenState);
+    setDataUser({} as UserState);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user: data.user, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user: dataUser.user,
+        token: dataToken.token,
+        signIn,
+        signInMail,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -68,10 +104,6 @@ export const AuthProvider: React.FC = ({ children }) => {
 
 export function useAuth(): AuthContextData {
   const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
 
   return context;
 }

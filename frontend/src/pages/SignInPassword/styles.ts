@@ -11,15 +11,16 @@ export const Container = styled.div`
 const enterEffect = keyframes`
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateX(30px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 `;
 
 export const Content = styled.div`
+  margin-top: 35px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -48,10 +49,17 @@ export const Content = styled.div`
       width: 250px;
       display: flex;
       flex-direction: column;
-      margin: 30px 10px 0 10px;
+      margin: 25px 10px 0 10px;
       justify-content: center;
       align-items: center;
       flex: 1;
+
+      span {
+        color: #222;
+        font-size: 16px;
+        margin-bottom: 6px;
+        align-self: flex-start;
+      }
 
       a {
         margin-top: 3px;
@@ -70,7 +78,9 @@ export const Content = styled.div`
 
   > a {
     display: flex;
-    margin-top: 15px;
+    margin-top: 8px;
+    justify-content: center;
+    align-self: flex-start;
     align-items: center;
     color: #ffffff90;
     text-decoration: none;
