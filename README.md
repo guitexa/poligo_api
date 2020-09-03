@@ -50,8 +50,8 @@ docker run --name poligo_postgres -e POSTGRES_PASSWORD=poligo -p 5574:5432 -d po
 > Install DBeaver to create a PostgreSQL database
 > https://dbeaver.io/
 
-```json
-// On DBeaver create a new PostgreSQL database with the following data
+```sh
+# On DBeaver create a new PostgreSQL database with the following data
   host: localhost
   port: 5574
   database: postgres
@@ -74,8 +74,8 @@ yarn dev:server
 
 > On Insomnia, import workspace from ./backend/insomnia.config.json
 
-```json
-// To create a new account, go to Users > Create and send a JSON like this
+```sh
+# To create a new account, go to Users > Create and send a JSON like this
 {
   "name": "Guilherme",
   "email": "mail@mail.com",
