@@ -34,6 +34,10 @@ This is a private project. The purpose is use it to improve business on [WR Medi
 
 ## ⚙️ Install and Usage
 
+> [Install Node.js](https://nodejs.org/)
+
+> [Install Yarn Package Manager](https://classic.yarnpkg.com/)
+
 ```sh
 # Install all dependencies with Yarn
 yarn
