@@ -30,7 +30,7 @@
 
 ## 📜 About the project
 
-This is a private project, the purpose is use it to improve business on WR Medicina e Segurança do Trabalho. However, this project can be commercialized to all occupational safety and health clinicals on Brazil.
+This is a private project. The purpose is use it to improve business on [WR Medicina e Segurança do Trabalho](https://www.wrseg.com.br/). However, this project can be commercialized to all occupational safety and health clinicals on Brazil.
 
 ## ⚙️ Install and Usage
 
