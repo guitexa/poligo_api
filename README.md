@@ -36,14 +36,14 @@ This is a private project, the purpose is use it to improve business on WR Medic
 
 ```sh
 # Install all dependencies with Yarn
-yarn
+  yarn
 ```
 
 > [Install Docker Desktop to create a PostgreSQL container](https://docs.docker.com/)
 
 ```sh
 # On Docker Terminal, run the following command to create a container
-docker run --name poligo_postgres -e POSTGRES_PASSWORD=poligo -p 5574:5432 -d postgres
+  docker run --name poligo_postgres -e POSTGRES_PASSWORD=poligo -p 5574:5432 -d postgres
 ```
 
 > [Install DBeaver to create a PostgreSQL database](https://dbeaver.io/)
@@ -59,12 +59,12 @@ docker run --name poligo_postgres -e POSTGRES_PASSWORD=poligo -p 5574:5432 -d po
 
 ```sh
 # On /backend run this command to create tables on database
-yarn typeorm migration:run
+  yarn typeorm migration:run
 ```
 
 ```sh
 # On /backend run with Yarn
-yarn dev:server
+  yarn dev:server
 ```
 
 > 🚧 For now, the option to create an account is disabled on frontend, you can create a new account to test using [Insomnia](https://insomnia.rest/).
@@ -82,7 +82,7 @@ yarn dev:server
 
 ```sh
 # On /frontend run with Yarn
-yarn start
+  yarn start
 ```
 
 <br />
