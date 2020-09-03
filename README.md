@@ -39,16 +39,14 @@ This is a private project, the purpose is use it to improve business on WR Medic
 yarn
 ```
 
-> Install Docker Desktop to create a PostgreSQL container
-> https://docs.docker.com/
+> [Install Docker Desktop to create a PostgreSQL container](https://docs.docker.com/)
 
 ```sh
 # On Docker Terminal, run the following command to create a container
 docker run --name poligo_postgres -e POSTGRES_PASSWORD=poligo -p 5574:5432 -d postgres
 ```
 
-> Install DBeaver to create a PostgreSQL database
-> https://dbeaver.io/
+> [Install DBeaver to create a PostgreSQL database](https://dbeaver.io/)
 
 ```sh
 # On DBeaver create a new PostgreSQL database with the following data
@@ -69,8 +67,7 @@ yarn typeorm migration:run
 yarn dev:server
 ```
 
-> 🚧 For now, the option to create an account is disabled on frontend, you can create a new account to test using Insomnia.
-> https://insomnia.rest/
+> 🚧 For now, the option to create an account is disabled on frontend, you can create a new account to test using [Insomnia](https://insomnia.rest/).
 
 > On Insomnia, import workspace from ./backend/insomnia.config.json
 
