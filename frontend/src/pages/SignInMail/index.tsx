@@ -1,5 +1,4 @@
 import React, { useRef, useCallback, useState } from 'react';
-import { useHistory } from 'react-router-dom';
 import { FiMail } from 'react-icons/fi';
 import { FormHandles } from '@unform/core';
 import { Form } from '@unform/web';
@@ -29,8 +28,6 @@ const SignInMail: React.FC = () => {
   const { addToast } = useToast();
   const { signInMail } = useAuth();
 
-  const history = useHistory();
-
   const handleSubmit = useCallback(
     async (data: SignInFormData) => {
       try {
@@ -49,8 +46,6 @@ const SignInMail: React.FC = () => {
         await signInMail({
           email: data.email,
         });
-
-        history.push('/Login');
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
@@ -66,7 +61,7 @@ const SignInMail: React.FC = () => {
         });
       }
     },
-    [history, addToast, signInMail]
+    [addToast, signInMail]
   );
 
   return (

@@ -1,5 +1,5 @@
 import React, { useRef, useCallback, useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FiLock, FiArrowLeft } from 'react-icons/fi';
 import { FormHandles } from '@unform/core';
 import { Form } from '@unform/web';
@@ -29,8 +29,6 @@ const SignInPassword: React.FC = () => {
   const { addToast } = useToast();
   const { user, signIn, signOut } = useAuth();
 
-  const history = useHistory();
-
   const handleSubmit = useCallback(
     async (data: SignInFormData) => {
       try {
@@ -53,8 +51,6 @@ const SignInPassword: React.FC = () => {
           type: 'success',
           description: 'Usuário logado com sucesso!',
         });
-
-        history.push('/Dashboard');
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
@@ -70,7 +66,7 @@ const SignInPassword: React.FC = () => {
         });
       }
     },
-    [signIn, user, addToast, history]
+    [signIn, user, addToast]
   );
 
   return (
