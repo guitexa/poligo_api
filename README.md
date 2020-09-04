@@ -71,18 +71,7 @@ yarn typeorm migration:run
 yarn dev:server
 ```
 
-> 🚧 For now, the option to create an account is disabled on frontend, you can create a new account to test using [Insomnia](https://insomnia.rest/).
-
-> On Insomnia, import workspace from [./backend/insomnia.config.json](https://github.com/guitexa/Poligo/blob/master/backend/insomnia.config.json)
-
-```sh
-# To create a new account, go to Users > Create and send a JSON like this
-{
-  "name": "Guilherme",
-  "email": "mail@mail.com",
-  "password": "123456"
-}
-```
+> 🚧 For now, the option to create an account is disabled because it will be an admin function, but you can create a new account on this url [localhost:3000/SignUp](localhost:3000/SignUp).
 
 ```sh
 # On /frontend run this command to start frontend
