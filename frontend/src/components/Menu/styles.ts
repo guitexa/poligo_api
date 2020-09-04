@@ -34,47 +34,74 @@ export const Container = styled.div`
   }
 
   #billing {
-    background: #d9b420;
+    background: #c9a100;
 
     &:hover {
-      background: ${shade(0.1, '#d9b420')};
+      background: ${shade(0.1, '#c9a100')};
+    }
+  }
+
+  #exit {
+    background: #111;
+
+    &:hover {
+      background: #000;
     }
   }
 
   #sub-menu {
-    width: calc(182px + 40px);
+    width: 220px;
     position: absolute;
-    top: 50px;
+    top: 51px;
     left: 0;
-    /* opacity: 0;
-    visibility: hidden; */
+    opacity: 0;
+    visibility: hidden;
     transition: 0.2s all;
 
     a {
       display: inline-flex;
-      padding: 10px 20px;
+      padding: 10px 15px;
       text-decoration: none;
-      color: #f2f2f2;
-      margin-top: 1px;
-
-      & + a {
-        margin-top: 2px;
-      }
+      color: #fff;
+      transition: 0.2s all;
 
       img {
-        width: 50px;
+        width: 40px;
       }
 
       div {
+        margin-left: 12px;
+
+        .title {
+          font-size: 16px;
+        }
+
+        .text {
+          font-size: 10px;
+          line-height: 11px;
+        }
+      }
+    }
+
+    button {
+      display: inline-flex;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: #fff;
+      align-items: center;
+      position: initial;
+      opacity: initial;
+      outline: none;
+      border: none;
+
+      img {
+        margin-left: 5px;
+        width: 20px;
+      }
+
+      .title {
+        font-size: 16px;
         margin-left: 20px;
-
-        strong {
-          font-size: 15px;
-        }
-
-        p {
-          font-size: 12px;
-        }
       }
     }
   }
