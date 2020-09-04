@@ -73,7 +73,7 @@ yarn dev:server
 
 > 🚧 For now, the option to create an account is disabled on frontend, you can create a new account to test using [Insomnia](https://insomnia.rest/).
 
-> On Insomnia, import workspace from ./backend/insomnia.config.json
+> On Insomnia, import workspace from []./backend/insomnia.config.json](https://github.com/guitexa/Poligo/blob/master/backend/insomnia.config.json)
 
 ```sh
 # To create a new account, go to Users > Create and send a JSON like this
