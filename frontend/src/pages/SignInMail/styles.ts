@@ -1,6 +1,10 @@
 import styled, { keyframes } from 'styled-components';
 
+import Background from '../../assets/bg.png';
+
 export const Container = styled.div`
+  background: url(${Background}) no-repeat center center fixed;
+  background-size: cover;
   width: 100vw;
   height: 100vh;
   display: flex;

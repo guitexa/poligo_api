@@ -9,7 +9,7 @@ const MaterialTooltip: React.FC<TooltipProps> = ({ children, ...rest }) => {
     },
     tooltip: {
       backgroundColor: theme.palette.common.black,
-      fontSize: 12,
+      fontSize: 9,
       fontWeight: 'lighter',
     },
   }));

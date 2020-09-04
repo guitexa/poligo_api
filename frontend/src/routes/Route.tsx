@@ -36,7 +36,7 @@ const Route: React.FC<RouteProps> = ({
               pathname: isPrivate
                 ? '/'
                 : isMailFilled
-                ? '/Dashboard'
+                ? '/Comercial'
                 : '/Login',
               state: { from: location },
             }}
