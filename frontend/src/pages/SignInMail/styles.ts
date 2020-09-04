@@ -29,7 +29,7 @@ export const Content = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px 35px;
+    padding: 40px 25px;
     border-radius: 5px;
     transition: all 0.5s;
     background-color: #ffffff15;
@@ -45,10 +45,10 @@ export const Content = styled.div`
     }
 
     form {
-      width: 250px;
+      width: 240px;
       display: flex;
       flex-direction: column;
-      margin: 30px 10px 0 10px;
+      margin: 35px 10px 0 10px;
       justify-content: center;
       align-items: center;
       flex: 1;
@@ -62,7 +62,7 @@ export const Content = styled.div`
         transition: all 0.2s;
 
         &:hover {
-          color: #111;
+          color: #222;
         }
       }
     }

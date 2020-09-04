@@ -30,7 +30,7 @@ export const Content = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px 35px;
+    padding: 40px 25px;
     border-radius: 5px;
     transition: all 0.5s;
     background-color: #ffffff15;
@@ -46,10 +46,10 @@ export const Content = styled.div`
     }
 
     form {
-      width: 250px;
+      width: 240px;
       display: flex;
       flex-direction: column;
-      margin: 25px 10px 0 10px;
+      margin: 30px 10px 0 10px;
       justify-content: center;
       align-items: center;
       flex: 1;
@@ -63,14 +63,14 @@ export const Content = styled.div`
 
       a {
         margin-top: 3px;
-        color: #00000060;
+        color: #00000090;
         font-size: 14px;
         text-decoration: none;
         align-self: flex-start;
         transition: all 0.2s;
 
         &:hover {
-          color: #00000099;
+          color: #222;
         }
       }
     }
