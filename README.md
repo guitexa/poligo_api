@@ -71,7 +71,7 @@ yarn typeorm migration:run
 yarn dev:server
 ```
 
-> 🚧 For now, the option to create an account is disabled because it will be an admin function, but you can create a new account on this url [localhost:3000/SignUp](localhost:3000/SignUp).
+> 🚧 For now, the option to create an account is disabled because it will be an admin function, but you can create a new account on this url [http://localhost:3000/SignUp](http://localhost:3000/SignUp)
 
 ```sh
 # On /frontend run this command to start frontend
