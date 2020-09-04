@@ -67,7 +67,7 @@ yarn typeorm migration:run
 ```
 
 ```sh
-# On /backend run with Yarn
+# On /backend run this command to start server
 yarn dev:server
 ```
 
@@ -85,7 +85,7 @@ yarn dev:server
 ```
 
 ```sh
-# On /frontend run with Yarn
+# On /frontend run this command to start frontend
 yarn start
 ```
 
