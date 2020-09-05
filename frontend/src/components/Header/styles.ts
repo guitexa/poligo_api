@@ -15,6 +15,15 @@ export const Container = styled.div<ContainerProps>`
   top: 0;
   display: flex;
   align-items: center;
+  padding-right: 20px;
+  justify-content: space-between;
+  z-index: 99999;
+`;
+
+export const Content = styled.div`
+  width: 100%;
+  display: flex;
+  align-items: center;
 `;
 
 export const Menu = styled.div`
@@ -23,6 +32,7 @@ export const Menu = styled.div`
   background: url(${Logotipo}) no-repeat center center;
   background-size: 40px 40px;
   cursor: pointer;
+  z-index: 99999;
 
   &:hover {
     #sub-menu {
@@ -136,4 +146,5 @@ export const Cover = styled.div`
   width: 100vw;
   height: 100vh;
   background: #00000099;
+  z-index: 9999;
 `;
