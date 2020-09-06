@@ -11,7 +11,7 @@ const Comercial: React.FC = () => {
   return (
     <Container>
       <Header title="Comercial" color="#004A82">
-        <HeaderButtonAdd icon={ContractIcon} color="#004A82" />
+        <HeaderButtonAdd icon={ContractIcon} color="#004A82" link="/Order" />
       </Header>
       <SearchBar />
     </Container>
