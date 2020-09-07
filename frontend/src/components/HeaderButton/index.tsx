@@ -1,31 +1,38 @@
-import React from 'react';
+import React, { ButtonHTMLAttributes } from 'react';
 import { IconBaseProps } from 'react-icons';
-import { Link } from 'react-router-dom';
+
+import { FaPlus } from 'react-icons/fa';
 
 import { Container } from './styles';
 
-interface HeaderButtonProps {
+interface HeaderButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: string | React.ComponentType<IconBaseProps>;
   color: string;
-  link: string;
+  add: boolean;
 }
 
 const HeaderButton: React.FC<HeaderButtonProps> = ({
+  children,
   icon,
   icon: Icon,
   color,
-  link,
+  add,
+  ...rest
 }) => {
   return (
-    <Link to={link}>
-      <Container color={color}>
-        {typeof icon === 'string' ? (
-          <img src={icon} alt="" />
-        ) : (
-          <Icon size={21} />
-        )}
-      </Container>
-    </Link>
+    <Container color={color} {...rest}>
+      {typeof icon === 'string' ? (
+        <img src={icon} alt="" />
+      ) : (
+        <Icon size={21} />
+      )}
+      {add && (
+        <div>
+          <FaPlus size={6} color={color} />
+        </div>
+      )}
+      {children}
+    </Container>
   );
 };
 

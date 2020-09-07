@@ -74,7 +74,7 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
         </Content>
         {children}
       </Container>
-      {menuIsOpen && <Cover />}
+      <Cover menuIsOpen={menuIsOpen} />
     </>
   );
 };

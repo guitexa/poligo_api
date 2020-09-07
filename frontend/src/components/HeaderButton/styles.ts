@@ -4,9 +4,10 @@ interface ContainerProps {
   color: string;
 }
 
-export const Container = styled.div<ContainerProps>`
+export const Container = styled.button<ContainerProps>`
   width: 34px;
   height: 34px;
+  background: transparent;
   border: 1px solid #fff;
   border-radius: 4px;
   display: flex;
@@ -21,6 +22,19 @@ export const Container = styled.div<ContainerProps>`
     height: 17px;
     filter: invert(98%) sepia(2%) saturate(9%) hue-rotate(36deg)
       brightness(103%) contrast(105%);
+  }
+
+  div {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 2px 0 2px 0;
+    width: 8px;
+    height: 8px;
+    bottom: 0;
+    right: 0;
+    background: #fff;
   }
 
   svg {

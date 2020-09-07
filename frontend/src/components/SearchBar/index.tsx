@@ -29,7 +29,11 @@ import {
   Status,
 } from './styles';
 
-const SearchBar: React.FC = () => {
+interface SearchBarProps {
+  color: string;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [companyNameValue, setCompanyNameValue] = useState('');
   const [serviceValue, setServiceValue] = useState('');
@@ -42,7 +46,7 @@ const SearchBar: React.FC = () => {
   const defaultMaterialTheme = createMuiTheme({
     palette: {
       primary: {
-        main: '#004A82',
+        main: color,
       },
     },
   });
@@ -63,7 +67,7 @@ const SearchBar: React.FC = () => {
   }, []);
 
   return (
-    <Container>
+    <Container color={color}>
       <ThemeProvider theme={defaultMaterialTheme}>
         <Date>
           <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -82,34 +86,46 @@ const SearchBar: React.FC = () => {
           </MuiPickersUtilsProvider>
         </Date>
         <CompanyName>
-          <TextField
-            id="input-with-icon-text-field"
-            label="Razão Social"
-            value={companyNameValue}
-            onChange={(e) => setCompanyNameValue(e.target.value)}
-            InputProps={{
-              endAdornment: (
+          <Grid container spacing={1} alignItems="flex-end">
+            <Grid item>
+              <TextField
+                id="input-with-icon-grid"
+                label="Razão Social"
+                value={companyNameValue}
+                onChange={(e) => setCompanyNameValue(e.target.value)}
+              />
+            </Grid>
+            <Grid item>
+              {companyNameValue ? (
                 <IconButton onClick={() => setCompanyNameValue('')}>
-                  {companyNameValue ? <Close /> : <Search />}
+                  <Close />
                 </IconButton>
-              ),
-            }}
-          />
+              ) : (
+                <Search />
+              )}
+            </Grid>
+          </Grid>
         </CompanyName>
         <Service>
-          <TextField
-            id="input-with-icon-text-field"
-            label="Serviço"
-            value={serviceValue}
-            onChange={(e) => setServiceValue(e.target.value)}
-            InputProps={{
-              endAdornment: (
+          <Grid container spacing={1} alignItems="flex-end">
+            <Grid item>
+              <TextField
+                id="input-with-icon-grid"
+                label="Serviço"
+                value={serviceValue}
+                onChange={(e) => setServiceValue(e.target.value)}
+              />
+            </Grid>
+            <Grid item>
+              {serviceValue ? (
                 <IconButton onClick={() => setServiceValue('')}>
-                  {serviceValue ? <Close /> : <Search />}
+                  <Close />
                 </IconButton>
-              ),
-            }}
-          />
+              ) : (
+                <Search />
+              )}
+            </Grid>
+          </Grid>
         </Service>
         <Seller>
           <FormControl className={classes.formControl}>

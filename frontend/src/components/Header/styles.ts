@@ -7,15 +7,21 @@ interface ContainerProps {
   color: string;
 }
 
+interface CoverProps {
+  menuIsOpen: boolean;
+}
+
 export const Container = styled.div<ContainerProps>`
   width: 100%;
   height: 50px;
   background: ${({ color }) => color};
   position: fixed;
   top: 0;
+  right: 0;
+  left: 0;
   display: flex;
   align-items: center;
-  padding-right: 20px;
+  padding-right: 15px;
   justify-content: space-between;
   z-index: 99999;
 `;
@@ -142,9 +148,12 @@ export const Title = styled.div`
   font-size: 20px;
 `;
 
-export const Cover = styled.div`
+export const Cover = styled.div<CoverProps>`
+  position: absolute;
   width: 100vw;
   height: 100vh;
-  background: #00000099;
+  background: #000000;
   z-index: 9999;
+  opacity: ${({ menuIsOpen }) => (menuIsOpen ? 0.9 : 0)};
+  visibility: ${({ menuIsOpen }) => (menuIsOpen ? 'visible' : 'hidden')};
 `;

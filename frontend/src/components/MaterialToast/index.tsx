@@ -19,7 +19,7 @@ const Alert = forwardRef((props: AlertProps, ref) => (
 ));
 
 function SlideTransition(props: TransitionProps): JSX.Element {
-  return <Slide {...props} direction="left" />;
+  return <Slide {...props} direction="down" />;
 }
 
 const MaterialToast: React.FC<ToastContent> = ({ open, toastContent }) => {
@@ -28,12 +28,13 @@ const MaterialToast: React.FC<ToastContent> = ({ open, toastContent }) => {
   return (
     <>
       <Snackbar
+        style={{ zIndex: 99999 }}
         anchorOrigin={{
           vertical: 'top',
-          horizontal: 'right',
+          horizontal: 'center',
         }}
         open={open}
-        autoHideDuration={2500}
+        autoHideDuration={3000}
         onClose={handleClose}
         TransitionComponent={SlideTransition}
       >
