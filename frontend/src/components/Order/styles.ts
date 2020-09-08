@@ -10,10 +10,9 @@ export const Container = styled.div`
   min-height: calc(100vh - 50px);
   max-height: calc(100vh - 50px);
   overflow: hidden;
-  z-index: 99;
 `;
 
-export const ContentOk = styled.div`
+export const Content = styled.div`
   padding: 15px;
   width: 100%;
   overflow: auto;

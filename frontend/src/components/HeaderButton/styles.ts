@@ -5,15 +5,15 @@ interface ContainerProps {
 }
 
 export const Container = styled.button<ContainerProps>`
+  position: relative;
   width: 34px;
   height: 34px;
-  background: transparent;
+  background: ${({ color }) => color};
   border: 1px solid #fff;
   border-radius: 4px;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
   transition: 0.2s all;
   cursor: pointer;
 
@@ -26,14 +26,14 @@ export const Container = styled.button<ContainerProps>`
 
   div {
     position: absolute;
+    bottom: 0;
+    right: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 2px 0 2px 0;
     width: 8px;
     height: 8px;
-    bottom: 0;
-    right: 0;
     background: #fff;
   }
 

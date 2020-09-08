@@ -21,9 +21,9 @@ export const Container = styled.div<ContainerProps>`
   left: 0;
   display: flex;
   align-items: center;
-  padding-right: 15px;
+  padding: 0 15px 0 70px;
   justify-content: space-between;
-  z-index: 99999;
+  z-index: 10;
 `;
 
 export const Content = styled.div`
@@ -33,9 +33,13 @@ export const Content = styled.div`
 `;
 
 export const Menu = styled.div`
-  width: 70px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150px;
   height: 50px;
-  background: url(${Logotipo}) no-repeat center center;
+  padding-left: 15px;
+  background: url(${Logotipo}) no-repeat left 15px center;
   background-size: 40px 40px;
   cursor: pointer;
   z-index: 99999;
@@ -108,8 +112,9 @@ export const Menu = styled.div`
         }
 
         .text {
+          margin-top: 2px;
           font-size: 10px;
-          line-height: 11px;
+          line-height: 10px;
         }
       }
     }
@@ -149,9 +154,18 @@ export const Title = styled.div`
 `;
 
 export const Cover = styled.div<CoverProps>`
-  position: absolute;
+  /* position: absolute;
   width: 100vw;
-  height: 100vh;
+  height: 100vh; */
+  position: absolute;
+  display: flex;
+  top: 50px;
+  right: 0;
+  left: 0;
+  width: 100vw;
+  min-height: calc(100vh - 50px);
+  max-height: calc(100vh - 50px);
+  overflow: hidden;
   background: #000000;
   z-index: 9999;
   opacity: ${({ menuIsOpen }) => (menuIsOpen ? 0.9 : 0)};

@@ -6,26 +6,30 @@ import ContractIcon from '../../assets/icons/icon-contract.svg';
 import Header from '../../components/Header';
 import HeaderButton from '../../components/HeaderButton';
 import SearchBar from '../../components/SearchBar';
-import Content from '../../components/Content';
+import NewOrder from '../../components/NewOrder';
+import SearchResults from '../../components/SearchResults';
 
 import { Container } from './styles';
 
 const Comercial: React.FC = () => {
-  const [contentOpen, setContentOpen] = useState(false);
+  const [newOrderOpen, setNewOrderOpen] = useState(false);
+
+  const color = '#004A82';
 
   return (
     <Container>
-      <Header title="Comercial" color="#004A82">
+      <Header title="Comercial" color={color}>
         <HeaderButton
           type="button"
-          icon={contentOpen ? FaTimes : ContractIcon}
-          color="#004A82"
-          add={!contentOpen}
-          onClick={() => setContentOpen(!contentOpen)}
+          icon={newOrderOpen ? FaTimes : ContractIcon}
+          color={color}
+          add={!newOrderOpen}
+          onClick={() => setNewOrderOpen(!newOrderOpen)}
         />
       </Header>
-      <SearchBar color="#004A82" />
-      {contentOpen && <Content />}
+      <SearchBar color={color} />
+      {newOrderOpen && <NewOrder />}
+      <SearchResults color={color} />
     </Container>
   );
 };

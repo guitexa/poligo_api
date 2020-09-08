@@ -16,8 +16,8 @@ export const Container = styled.div<ContainerProps>`
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  border-bottom: 1px solid #ddd;
   z-index: 0;
+  overflow: hidden;
 
   .MuiInput-underline:hover:not(.Mui-disabled):before {
     border-color: ${({ color }) => color};
@@ -34,7 +34,7 @@ export const Date = styled.div`
   }
 
   .MuiInputLabel-formControl {
-    transform: translate(0, 18px) scale(1);
+    transform: translate(0, 18px) scale(1.1);
   }
   .MuiInputLabel-shrink {
     transform: translate(0, 1.5px) scale(0.7);
@@ -80,7 +80,7 @@ export const CompanyName = styled.div`
   }
 
   .MuiInputLabel-formControl {
-    transform: translate(0, 18px) scale(1);
+    transform: translate(0, 18px) scale(1.1);
   }
   .MuiInputLabel-shrink {
     transform: translate(0, 1.5px) scale(0.7);
@@ -149,7 +149,7 @@ export const Service = styled.div`
   }
 
   .MuiInputLabel-formControl {
-    transform: translate(0, 18px) scale(1);
+    transform: translate(0, 18px) scale(1.1);
   }
   .MuiInputLabel-shrink {
     transform: translate(0, 1.5px) scale(0.7);
@@ -214,7 +214,7 @@ export const Seller = styled.div`
   }
 
   .MuiInputLabel-formControl {
-    transform: translate(0, 18px) scale(1);
+    transform: translate(0, 18px) scale(1.1);
   }
   .MuiInputLabel-shrink {
     transform: translate(0.5px, 1.5px) scale(0.7);
@@ -279,7 +279,7 @@ export const Value = styled.div`
   }
 
   .MuiInputLabel-formControl {
-    transform: translate(0, 18px) scale(1);
+    transform: translate(0, 18px) scale(1.1);
   }
   .MuiInputLabel-shrink {
     transform: translate(0, 1.5px) scale(0.7);
@@ -344,7 +344,7 @@ export const Status = styled.div`
   }
 
   .MuiInputLabel-formControl {
-    transform: translate(0, 18px) scale(1);
+    transform: translate(0, 18px) scale(1.1);
   }
   .MuiInputLabel-shrink {
     transform: translate(0.5px, 1.5px) scale(0.7);

@@ -13,7 +13,7 @@ export default createGlobalStyle`
   }
 
   body, input, button {
-    font-family: 'Calibri', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: 16px;
   }
 
