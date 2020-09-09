@@ -10,7 +10,20 @@ export const Container = styled.div`
   min-height: calc(100vh - 50px);
   max-height: calc(100vh - 50px);
   overflow: hidden;
-  z-index: 99;
+  z-index: 100;
+  background: #000;
+  opacity: 0.7;
+`;
+
+export const ModalContainer = styled.div`
+  position: absolute;
+  width: 60%;
+  background: #ffffff;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  z-index: 200;
 `;
 
 export const Content = styled.div`
@@ -21,6 +34,4 @@ export const Content = styled.div`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  background: #222;
-  color: #ccc;
 `;

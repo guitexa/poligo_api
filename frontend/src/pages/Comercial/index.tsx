@@ -12,6 +12,7 @@ import SearchResults from '../../components/SearchResults';
 import { OrderOverlapping, Container } from './styles';
 
 const Comercial: React.FC = () => {
+  const [orderOpen, setOrderOpen] = useState(true);
   const [newOrderOpen, setNewOrderOpen] = useState(false);
 
   const color = '#004A82';
@@ -27,23 +28,26 @@ const Comercial: React.FC = () => {
             type="button"
             icon={FaTimes}
             color={color}
-            add={!newOrderOpen}
           />
         </OrderOverlapping>
       )}
       <Container>
         <Header title="Comercial" color={color}>
           <HeaderButton
-            show={!newOrderOpen}
+            add
+            show={!newOrderOpen && !orderOpen}
             handleClick={(e) => setNewOrderOpen(!!e)}
             type="button"
             icon={ContractIcon}
             color={color}
-            add={!newOrderOpen}
           />
         </Header>
         <SearchBar color={color} />
-        <SearchResults color={color} />
+        <SearchResults
+          color={color}
+          orderOpen={orderOpen}
+          setOrderOpen={(e) => setOrderOpen(e)}
+        />
       </Container>
     </>
   );

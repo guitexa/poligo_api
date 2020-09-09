@@ -29,24 +29,20 @@ import {
 
 interface OrderProps {
   color: string;
+  newServiceOpen: boolean;
+  setNewServiceOpen(e: boolean): void;
 }
 
-const Order: React.FC<OrderProps> = ({ color }) => {
-  const [newServiceOpen, setNewServiceOpen] = useState(false);
-
+const Order: React.FC<OrderProps> = ({
+  color,
+  newServiceOpen,
+  setNewServiceOpen,
+}) => {
   return (
     <>
       {newServiceOpen && (
         <OrderOverlapping>
-          <NewService />
-          <HeaderButton
-            show={newServiceOpen}
-            handleClick={(e) => setNewServiceOpen(!e)}
-            type="button"
-            icon={FaTimes}
-            color={color}
-            add={!newServiceOpen}
-          />
+          <NewService setNewServiceOpen={(e) => setNewServiceOpen(e)} />
         </OrderOverlapping>
       )}
       <Container>

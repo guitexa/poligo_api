@@ -20,23 +20,32 @@ import {
 
 interface SearchResultsProps {
   color: string;
+  orderOpen: boolean;
+  setOrderOpen(e: boolean): void;
 }
 
-const SearchResults: React.FC<SearchResultsProps> = ({ color }) => {
-  const [orderOpen, setOrderOpen] = useState(false);
+const SearchResults: React.FC<SearchResultsProps> = ({
+  color,
+  orderOpen,
+  setOrderOpen,
+}) => {
+  const [newServiceOpen, setNewServiceOpen] = useState(true);
 
   return (
     <>
       {orderOpen && (
         <OrderOverlapping>
-          <Order color={color} />
+          <Order
+            color={color}
+            newServiceOpen={newServiceOpen}
+            setNewServiceOpen={(e) => setNewServiceOpen(e)}
+          />
           <HeaderButton
-            show={orderOpen}
+            show={orderOpen && !newServiceOpen}
             handleClick={(e) => setOrderOpen(!e)}
             type="button"
             icon={FaTimes}
             color={color}
-            add={!orderOpen}
           />
         </OrderOverlapping>
       )}

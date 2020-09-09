@@ -8,7 +8,7 @@ import { Container } from './styles';
 interface HeaderButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: string | React.ComponentType<IconBaseProps>;
   color: string;
-  add: boolean;
+  add?: boolean;
   show: boolean;
   handleClick(e: React.MouseEvent<HTMLButtonElement, MouseEvent>): void;
 }
