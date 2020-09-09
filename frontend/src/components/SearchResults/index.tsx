@@ -6,7 +6,7 @@ import Order from '../Order';
 import HeaderButton from '../HeaderButton';
 
 import {
-  Outside,
+  OrderOverlapping,
   Container,
   Content,
   RowResult,
@@ -28,16 +28,17 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color }) => {
   return (
     <>
       {orderOpen && (
-        <Outside>
-          <Order />
+        <OrderOverlapping>
+          <Order color={color} />
           <HeaderButton
+            show={orderOpen}
+            handleClick={(e) => setOrderOpen(!e)}
             type="button"
             icon={FaTimes}
             color={color}
             add={!orderOpen}
-            onClick={() => setOrderOpen(!orderOpen)}
           />
-        </Outside>
+        </OrderOverlapping>
       )}
       <Container>
         <Content>

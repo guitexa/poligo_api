@@ -9,7 +9,7 @@ const MaterialTooltip: React.FC<TooltipProps> = ({ children, ...rest }) => {
     },
     tooltip: {
       backgroundColor: theme.palette.common.black,
-      fontSize: 9,
+      fontSize: 10,
       fontWeight: 'lighter',
     },
   }));
@@ -17,7 +17,7 @@ const MaterialTooltip: React.FC<TooltipProps> = ({ children, ...rest }) => {
   const classes = useStylesBootstrap();
 
   return (
-    <Tooltip arrow classes={classes} {...rest} leaveDelay={100}>
+    <Tooltip arrow classes={classes} {...rest} enterDelay={0} leaveDelay={100}>
       <div>{children}</div>
     </Tooltip>
   );

@@ -1,43 +1,286 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-import { Container, Content } from './styles';
+import { FaPlus, FaTimes, FaRegClock, FaTrashAlt } from 'react-icons/fa';
+import { TiArrowSortedDown } from 'react-icons/ti';
 
-const Order: React.FC = () => {
+import MaterialTooltip from '../MaterialTooltip';
+import NewService from '../NewService';
+import HeaderButton from '../HeaderButton';
+
+import {
+  OrderOverlapping,
+  Container,
+  PrimaryContent,
+  CompanyData,
+  OrderData,
+  SecondaryContent,
+  AddServiceButton,
+  TitlesForm,
+  DataForm,
+  DeliveryData,
+  BillingData,
+  ServicesOrderContent,
+  TitleRow,
+  ServiceRow,
+  ServiceName,
+  ServiceDescription,
+  ServiceValue,
+} from './styles';
+
+interface OrderProps {
+  color: string;
+}
+
+const Order: React.FC<OrderProps> = ({ color }) => {
+  const [newServiceOpen, setNewServiceOpen] = useState(false);
+
   return (
-    <Container>
-      <Content>
-        <p>#1 Order Order Order Order</p>
-        <p>#2 Order Order Order Order</p>
-        <p>#3 Order Order Order Order</p>
-        <p>#4 Order Order Order Order</p>
-        <p>#5 Order Order Order Order</p>
-        <p>#6 Order Order Order Order</p>
-        <p>#7 Order Order Order Order</p>
-        <p>#8 Order Order Order Order</p>
-        <p>#9 Order Order Order Order</p>
-        <p>#10 Order Order Order Order</p>
-        <p>#11 Order Order Order Order</p>
-        <p>#12 Order Order Order Order</p>
-        <p>#13 Order Order Order Order</p>
-        <p>#14 Order Order Order Order</p>
-        <p>#16 Order Order Order Order</p>
-        <p>#1 pedido pedido pedido pedido</p>
-        <p>#2 pedido pedido pedido pedido</p>
-        <p>#3 pedido pedido pedido pedido</p>
-        <p>#4 pedido pedido pedido pedido</p>
-        <p>#5 pedido pedido pedido pedido</p>
-        <p>#6 pedido pedido pedido pedido</p>
-        <p>#7 pedido pedido pedido pedido</p>
-        <p>#8 pedido pedido pedido pedido</p>
-        <p>#9 pedido pedido pedido pedido</p>
-        <p>#10 pedido pedido pedido pedido</p>
-        <p>#11 pedido pedido pedido pedido</p>
-        <p>#12 pedido pedido pedido pedido</p>
-        <p>#13 pedido pedido pedido pedido</p>
-        <p>#14 pedido pedido pedido pedido</p>
-        <p>#16 pedido pedido pedido pedido</p>
-      </Content>
-    </Container>
+    <>
+      {newServiceOpen && (
+        <OrderOverlapping>
+          <NewService />
+          <HeaderButton
+            show={newServiceOpen}
+            handleClick={(e) => setNewServiceOpen(!e)}
+            type="button"
+            icon={FaTimes}
+            color={color}
+            add={!newServiceOpen}
+          />
+        </OrderOverlapping>
+      )}
+      <Container>
+        <PrimaryContent>
+          <CompanyData>
+            <TitlesForm>
+              <p>Razão social:</p>
+              <p>CNPJ:</p>
+              <p>Contato:</p>
+              <p>E-mail:</p>
+              <p>Telefone:</p>
+              <p>WhatsApp:</p>
+            </TitlesForm>
+            <DataForm>
+              <p>Hidrovacuo Saneamento LTDA</p>
+              <p>08.692.756/0001-50</p>
+              <p>Marcella</p>
+              <p>emusa@uol.com.br</p>
+              <p>(34) 3314-5339</p>
+              <p>--</p>
+            </DataForm>
+          </CompanyData>
+          <OrderData>
+            <TitlesForm>
+              <p>Pedido Nº:</p>
+              <p>Vendedor:</p>
+              <p>Valor total:</p>
+              <p>Data:</p>
+              <p>Status:</p>
+              <p>Data de aprovação:</p>
+            </TitlesForm>
+            <DataForm>
+              <p>6478</p>
+              <p>Christiane de Araujo</p>
+              <p>R$1.500,00</p>
+              <p>12/06/2020</p>
+              <p>
+                <FaRegClock />
+                <span>Aguardando cliente</span>
+                <TiArrowSortedDown />
+              </p>
+              <p>--</p>
+            </DataForm>
+          </OrderData>
+        </PrimaryContent>
+        <SecondaryContent>
+          <AddServiceButton
+            type="button"
+            color={color}
+            onClick={() => setNewServiceOpen(!newServiceOpen)}
+          >
+            <MaterialTooltip title="Adicionar Serviço" arrow placement="top">
+              <FaPlus />
+            </MaterialTooltip>
+          </AddServiceButton>
+          <DeliveryData>
+            <TitlesForm>
+              <p>Condições de entrega:</p>
+              <p>Data de entrega solicitada:</p>
+              <p>Data de entrega:</p>
+              <p>Status área técnica:</p>
+            </TitlesForm>
+            <DataForm>
+              <p>Aguardar pagamento da segunda parcela</p>
+              <p>30/06/2020</p>
+              <p>--</p>
+              <p>--</p>
+            </DataForm>
+          </DeliveryData>
+          <BillingData>
+            <TitlesForm>
+              <p>Forma de pagamento:</p>
+              <p>Emitir NF:</p>
+              <p>Vencimento:</p>
+              <p>Status financeiro:</p>
+            </TitlesForm>
+            <DataForm>
+              <p>1+3x R$1.325,00</p>
+              <p>Não</p>
+              <p>Entrada para 16/06 e parcelas junto com faturamento</p>
+              <p>--</p>
+            </DataForm>
+          </BillingData>
+        </SecondaryContent>
+        <ServicesOrderContent>
+          <TitleRow>
+            <ServiceName>SERVIÇO</ServiceName>
+            <ServiceDescription>DESCRIÇÃO DO SERVIÇO</ServiceDescription>
+            <ServiceValue>VALOR</ServiceValue>
+          </TitleRow>
+          <ServiceRow color={color}>
+            <ServiceName>PCA</ServiceName>
+            <ServiceDescription>PCA - Fono Cristiane</ServiceDescription>
+            <ServiceValue>
+              <div>
+                <span>R$</span>
+                <span>1.500,00</span>
+              </div>
+              <button type="button">
+                <MaterialTooltip title="Excluir" arrow placement="left">
+                  <FaTrashAlt />
+                </MaterialTooltip>
+              </button>
+            </ServiceValue>
+          </ServiceRow>
+          <ServiceRow color={color}>
+            <ServiceName>LTCAT</ServiceName>
+            <ServiceDescription>Medições de calor e ruído</ServiceDescription>
+            <ServiceValue>
+              <div>
+                <span>R$</span>
+                <span>11.800,00</span>
+              </div>
+              <button type="button">
+                <MaterialTooltip title="Excluir" arrow placement="left">
+                  <FaTrashAlt />
+                </MaterialTooltip>
+              </button>
+            </ServiceValue>
+          </ServiceRow>
+          <ServiceRow color={color}>
+            <ServiceName>PPR</ServiceName>
+            <ServiceDescription>
+              Fit test in loco no endereço da empresa
+            </ServiceDescription>
+            <ServiceValue>
+              <div>
+                <span>R$</span>
+                <span>2.000,00</span>
+              </div>
+              <button type="button">
+                <MaterialTooltip title="Excluir" arrow placement="left">
+                  <FaTrashAlt />
+                </MaterialTooltip>
+              </button>
+            </ServiceValue>
+          </ServiceRow>
+          <ServiceRow color={color}>
+            <ServiceName>PCA</ServiceName>
+            <ServiceDescription>PCA - Fono Cristiane</ServiceDescription>
+            <ServiceValue>
+              <div>
+                <span>R$</span>
+                <span>1.500,00</span>
+              </div>
+              <button type="button">
+                <MaterialTooltip title="Excluir" arrow placement="left">
+                  <FaTrashAlt />
+                </MaterialTooltip>
+              </button>
+            </ServiceValue>
+          </ServiceRow>
+          <ServiceRow color={color}>
+            <ServiceName>LTCAT</ServiceName>
+            <ServiceDescription>Medições de calor e ruído</ServiceDescription>
+            <ServiceValue>
+              <div>
+                <span>R$</span>
+                <span>11.800,00</span>
+              </div>
+              <button type="button">
+                <MaterialTooltip title="Excluir" arrow placement="left">
+                  <FaTrashAlt />
+                </MaterialTooltip>
+              </button>
+            </ServiceValue>
+          </ServiceRow>
+          <ServiceRow color={color}>
+            <ServiceName>PPR</ServiceName>
+            <ServiceDescription>
+              Fit test in loco no endereço da empresa
+            </ServiceDescription>
+            <ServiceValue>
+              <div>
+                <span>R$</span>
+                <span>2.000,00</span>
+              </div>
+              <button type="button">
+                <MaterialTooltip title="Excluir" arrow placement="left">
+                  <FaTrashAlt />
+                </MaterialTooltip>
+              </button>
+            </ServiceValue>
+          </ServiceRow>
+          <ServiceRow color={color}>
+            <ServiceName>PCA</ServiceName>
+            <ServiceDescription>PCA - Fono Cristiane</ServiceDescription>
+            <ServiceValue>
+              <div>
+                <span>R$</span>
+                <span>1.500,00</span>
+              </div>
+              <button type="button">
+                <MaterialTooltip title="Excluir" arrow placement="left">
+                  <FaTrashAlt />
+                </MaterialTooltip>
+              </button>
+            </ServiceValue>
+          </ServiceRow>
+          <ServiceRow color={color}>
+            <ServiceName>LTCAT</ServiceName>
+            <ServiceDescription>Medições de calor e ruído</ServiceDescription>
+            <ServiceValue>
+              <div>
+                <span>R$</span>
+                <span>11.800,00</span>
+              </div>
+              <button type="button">
+                <MaterialTooltip title="Excluir" arrow placement="left">
+                  <FaTrashAlt />
+                </MaterialTooltip>
+              </button>
+            </ServiceValue>
+          </ServiceRow>
+          <ServiceRow color={color}>
+            <ServiceName>PPR</ServiceName>
+            <ServiceDescription>
+              Fit test in loco no endereço da empresa
+            </ServiceDescription>
+            <ServiceValue>
+              <div>
+                <span>R$</span>
+                <span>2.000,00</span>
+              </div>
+              <button type="button">
+                <MaterialTooltip title="Excluir" arrow placement="left">
+                  <FaTrashAlt />
+                </MaterialTooltip>
+              </button>
+            </ServiceValue>
+          </ServiceRow>
+        </ServicesOrderContent>
+      </Container>
+    </>
   );
 };
 

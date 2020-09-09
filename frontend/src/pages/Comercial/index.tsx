@@ -9,7 +9,7 @@ import SearchBar from '../../components/SearchBar';
 import NewOrder from '../../components/NewOrder';
 import SearchResults from '../../components/SearchResults';
 
-import { Container } from './styles';
+import { OrderOverlapping, Container } from './styles';
 
 const Comercial: React.FC = () => {
   const [newOrderOpen, setNewOrderOpen] = useState(false);
@@ -17,20 +17,35 @@ const Comercial: React.FC = () => {
   const color = '#004A82';
 
   return (
-    <Container>
-      <Header title="Comercial" color={color}>
-        <HeaderButton
-          type="button"
-          icon={newOrderOpen ? FaTimes : ContractIcon}
-          color={color}
-          add={!newOrderOpen}
-          onClick={() => setNewOrderOpen(!newOrderOpen)}
-        />
-      </Header>
-      <SearchBar color={color} />
-      {newOrderOpen && <NewOrder />}
-      <SearchResults color={color} />
-    </Container>
+    <>
+      {newOrderOpen && (
+        <OrderOverlapping>
+          <NewOrder />
+          <HeaderButton
+            show={newOrderOpen}
+            handleClick={(e) => setNewOrderOpen(!e)}
+            type="button"
+            icon={FaTimes}
+            color={color}
+            add={!newOrderOpen}
+          />
+        </OrderOverlapping>
+      )}
+      <Container>
+        <Header title="Comercial" color={color}>
+          <HeaderButton
+            show={!newOrderOpen}
+            handleClick={(e) => setNewOrderOpen(!!e)}
+            type="button"
+            icon={ContractIcon}
+            color={color}
+            add={!newOrderOpen}
+          />
+        </Header>
+        <SearchBar color={color} />
+        <SearchResults color={color} />
+      </Container>
+    </>
   );
 };
 

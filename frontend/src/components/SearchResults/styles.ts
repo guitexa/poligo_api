@@ -4,10 +4,10 @@ interface ContentProps {
   color: string;
 }
 
-export const Outside = styled.div`
+export const OrderOverlapping = styled.div`
   z-index: 100;
 
-  button {
+  & > button {
     position: absolute;
     top: 8px;
     right: 15px;
@@ -25,12 +25,12 @@ export const Container = styled.div`
   max-height: calc(100vh - 110px);
   overflow: hidden;
   z-index: 0;
+  background: #fff;
 `;
 
 export const Content = styled.div`
   width: 100%;
   overflow-y: scroll;
-  background: #fff;
 `;
 
 export const RowResult = styled.button<ContentProps>`
