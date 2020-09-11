@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, ChangeEvent } from 'react';
 import 'date-fns';
 import DateFnsUtils from '@date-io/date-fns';
 import {
@@ -6,18 +6,29 @@ import {
   KeyboardDatePicker,
 } from '@material-ui/pickers';
 import {
-  createMuiTheme,
   TextField,
   IconButton,
+  Grid,
   InputLabel,
   Select,
+  MenuItem,
   FormControl,
-  Grid,
 } from '@material-ui/core';
+import {
+  createStyles,
+  makeStyles,
+  Theme,
+  createMuiTheme,
+} from '@material-ui/core/styles';
 import { ThemeProvider } from '@material-ui/styles';
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import { Search, Close } from '@material-ui/icons';
-import formatValue from '../../utils/formatValue';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import * as themeAugmentation from '@material-ui/lab/themeAugmentation';
+import parse from 'autosuggest-highlight/parse';
+import match from 'autosuggest-highlight/match';
+import { FaCheckCircle, FaRegClock, FaTimes } from 'react-icons/fa';
+import NumberFormat from 'react-number-format';
 
 import {
   Container,
@@ -33,11 +44,51 @@ interface SearchBarProps {
   color: string;
 }
 
+interface ValueState {
+  formattedValue: string;
+}
+
+interface NumberFormatCustomProps {
+  inputRef: (instance: NumberFormat | null) => void;
+  onChange: (event: { target: { name: string; value: string } }) => void;
+  name: string;
+}
+
+function NumberFormatCustom(props: NumberFormatCustomProps): JSX.Element {
+  const { inputRef, onChange, ...other } = props;
+
+  return (
+    <NumberFormat
+      {...other}
+      getInputRef={inputRef}
+      onValueChange={(value) => {
+        onChange({
+          target: {
+            name: props.name,
+            value: value.value,
+          },
+        });
+      }}
+      thousandSeparator="."
+      decimalSeparator=","
+      isNumericString
+      fixedDecimalScale
+      prefix="R$ "
+      decimalScale={2}
+    />
+  );
+}
+
 const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [companyNameValue, setCompanyNameValue] = useState('');
-  const [serviceValue, setServiceValue] = useState('');
-  const [valueValue, setValueValue] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [service, setService] = useState('');
+  const [value, setValue] = useState<ValueState>({
+    formattedValue: '',
+  });
+  const [status, setStatus] = React.useState('');
+
+  const sellers = [{ name: 'Christiane' }, { name: 'Tainara' }];
 
   const handleDateChange = useCallback((date: Date | null) => {
     setSelectedDate(date);
@@ -49,22 +100,81 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
         main: color,
       },
     },
+    overrides: {
+      MuiAutocomplete: {
+        option: {
+          '&:hover': {
+            backgroundColor: color,
+            color: '#fff',
+          },
+          '&[data-focus="true"]': {
+            backgroundColor: color,
+            color: '#fff',
+            '&:hover': {
+              backgroundColor: color,
+              color: '#fff',
+            },
+          },
+          '&[aria-selected="true"]': {
+            backgroundColor: color,
+            color: '#fff',
+            '&:hover': {
+              backgroundColor: color,
+              color: '#fff',
+            },
+          },
+        },
+      },
+      MuiMenuItem: {
+        root: {
+          '&:hover': {
+            backgroundColor: color,
+            '&& svg': {
+              color: '#fff',
+            },
+          },
+          '&$selected': {
+            backgroundColor: color,
+            '&& svg': {
+              color: '#fff',
+            },
+            '&:hover': {
+              backgroundColor: color,
+              '&& svg': {
+                color: '#fff',
+              },
+            },
+          },
+        },
+      },
+    },
   });
 
   const useStyles = makeStyles((theme: Theme) =>
     createStyles({
       formControl: {
         margin: theme.spacing(1),
-        minWidth: 120,
+      },
+      faCheck: {
+        color: '#1b914f',
+      },
+      faRegClock: {
+        color: '#999',
+      },
+      faTimes: {
+        color: '#f00',
       },
     })
   );
 
-  const classes = useStyles();
+  const { formControl, faCheck, faRegClock, faTimes } = useStyles();
 
-  const handleValueChange = useCallback((num: number) => {
-    setValueValue(formatValue(num));
-  }, []);
+  const handleChangeValue = (event: ChangeEvent<HTMLInputElement>): void => {
+    setValue({
+      ...value,
+      [event.target.name]: event.target.value,
+    });
+  };
 
   return (
     <Container color={color}>
@@ -89,15 +199,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
           <Grid container spacing={1} alignItems="flex-end">
             <Grid item>
               <TextField
-                id="input-with-icon-grid"
+                id="input-with-icon-grid-company-name"
                 label="Razão Social"
-                value={companyNameValue}
-                onChange={(e) => setCompanyNameValue(e.target.value)}
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
               />
             </Grid>
             <Grid item>
-              {companyNameValue ? (
-                <IconButton onClick={() => setCompanyNameValue('')}>
+              {companyName ? (
+                <IconButton onClick={() => setCompanyName('')}>
                   <Close />
                 </IconButton>
               ) : (
@@ -110,15 +220,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
           <Grid container spacing={1} alignItems="flex-end">
             <Grid item>
               <TextField
-                id="input-with-icon-grid"
+                id="input-with-icon-grid-service"
                 label="Serviço"
-                value={serviceValue}
-                onChange={(e) => setServiceValue(e.target.value)}
+                value={service}
+                onChange={(e) => setService(e.target.value)}
               />
             </Grid>
             <Grid item>
-              {serviceValue ? (
-                <IconButton onClick={() => setServiceValue('')}>
+              {service ? (
+                <IconButton onClick={() => setService('')}>
                   <Close />
                 </IconButton>
               ) : (
@@ -128,30 +238,59 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
           </Grid>
         </Service>
         <Seller>
-          <FormControl className={classes.formControl}>
-            <InputLabel htmlFor="grouped-native-select">Vendedor</InputLabel>
-            <Select native defaultValue="" id="grouped-native-select">
-              <option aria-label="None" value="" />
-              <option value={1}>Miriam Wagner</option>
-              <option value={2}>Bradley Wilkerson</option>
-              <option value={3}>Virginia Andrews</option>
-              <option value={4}>Kelly Snyder</option>
-            </Select>
-          </FormControl>
+          <Autocomplete
+            autoSelect
+            openOnFocus
+            openText="Abrir"
+            id="input-highlights-sellers"
+            options={sellers}
+            getOptionLabel={({ name }) => name}
+            noOptionsText=""
+            renderInput={(params) => <TextField {...params} label="Vendedor" />}
+            renderOption={({ name }, { inputValue }) => {
+              const matches = match(name, inputValue);
+              const parts = parse(name, matches);
+
+              return (
+                <div>
+                  {parts.map(({ highlight, text }) => (
+                    <span
+                      key={text}
+                      style={{
+                        fontWeight: highlight ? 700 : 400,
+                      }}
+                    >
+                      {text}
+                    </span>
+                  ))}
+                </div>
+              );
+            }}
+          />
         </Seller>
         <Value>
           <Grid container spacing={1} alignItems="flex-end">
             <Grid item>
               <TextField
-                id="input-with-icon-grid"
                 label="Valor"
-                value={valueValue}
-                onChange={(e) => handleValueChange(Number(e.target.value))}
+                value={value.formattedValue}
+                onChange={handleChangeValue}
+                name="formattedValue"
+                id="formatted-formattedValue-input"
+                InputProps={{
+                  inputComponent: NumberFormatCustom as any,
+                }}
               />
             </Grid>
             <Grid item>
-              {valueValue ? (
-                <IconButton onClick={() => setValueValue('')}>
+              {value.formattedValue ? (
+                <IconButton
+                  onClick={() => {
+                    setValue({
+                      formattedValue: '',
+                    });
+                  }}
+                >
                   <Close />
                 </IconButton>
               ) : (
@@ -160,14 +299,28 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
             </Grid>
           </Grid>
         </Value>
-        <Status>
-          <FormControl className={classes.formControl}>
-            <InputLabel htmlFor="grouped-native-select">Status</InputLabel>
-            <Select native defaultValue="" id="grouped-native-select">
-              <option aria-label="None" value="" />
-              <option value={1}>Aprovado</option>
-              <option value={2}>Aguardando</option>
-              <option value={3}>Encerrado</option>
+        <Status value={!!status}>
+          <FormControl className={formControl}>
+            <InputLabel id="demo-simple-select-label">Status</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as string)}
+              displayEmpty
+            >
+              <MenuItem value="">
+                <em>&nbsp;</em>
+              </MenuItem>
+              <MenuItem value="Aprovado" style={{ justifyContent: 'center' }}>
+                <FaCheckCircle className={faCheck} />
+              </MenuItem>
+              <MenuItem value="Aguardando" style={{ justifyContent: 'center' }}>
+                <FaRegClock className={faRegClock} />
+              </MenuItem>
+              <MenuItem value="Encerrado" style={{ justifyContent: 'center' }}>
+                <FaTimes className={faTimes} />
+              </MenuItem>
             </Select>
           </FormControl>
         </Status>

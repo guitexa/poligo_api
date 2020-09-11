@@ -1,4 +1,5 @@
 import React, {
+  ComponentType,
   InputHTMLAttributes,
   useRef,
   useEffect,
@@ -13,7 +14,7 @@ import { Container, Tooltip } from './styles';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   name: string;
-  icon?: React.ComponentType<IconBaseProps>;
+  icon?: ComponentType<IconBaseProps>;
 }
 
 const Input: React.FC<InputProps> = ({ name, icon: Icon, ...rest }) => {

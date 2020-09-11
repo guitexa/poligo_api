@@ -220,6 +220,7 @@ export const ServiceDescription = styled.div`
 
 export const ServiceValue = styled.div`
   width: 15%;
+  max-width: 180px;
   display: flex;
   justify-content: space-between;
   align-items: center;

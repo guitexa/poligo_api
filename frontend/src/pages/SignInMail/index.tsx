@@ -86,10 +86,6 @@ const SignInMail: React.FC = () => {
             )}
           </Form>
         </div>
-        {/* <Link to="/SignUp">
-          <FiLogIn size={20} />
-          Criar conta
-        </Link> */}
       </Content>
     </Container>
   );

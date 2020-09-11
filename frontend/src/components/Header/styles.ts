@@ -154,9 +154,6 @@ export const Title = styled.div`
 `;
 
 export const Cover = styled.div<CoverProps>`
-  /* position: absolute;
-  width: 100vw;
-  height: 100vh; */
   position: absolute;
   display: flex;
   top: 50px;
@@ -168,6 +165,6 @@ export const Cover = styled.div<CoverProps>`
   overflow: hidden;
   background: #000000;
   z-index: 9999;
-  opacity: ${({ menuIsOpen }) => (menuIsOpen ? 0.9 : 0)};
+  opacity: ${({ menuIsOpen }) => (menuIsOpen ? 0.7 : 0)};
   visibility: ${({ menuIsOpen }) => (menuIsOpen ? 'visible' : 'hidden')};
 `;

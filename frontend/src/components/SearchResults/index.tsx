@@ -29,7 +29,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   orderOpen,
   setOrderOpen,
 }) => {
-  const [newServiceOpen, setNewServiceOpen] = useState(true);
+  const [newServiceOpen, setNewServiceOpen] = useState(false);
 
   return (
     <>

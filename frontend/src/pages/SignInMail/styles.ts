@@ -60,7 +60,7 @@ export const Content = styled.div`
       a {
         margin-top: 3px;
         color: #00000090;
-        font-size: 14px;
+        font-size: 13px;
         text-decoration: none;
         align-self: flex-start;
         transition: all 0.2s;

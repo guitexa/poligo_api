@@ -34,7 +34,7 @@ export const Content = styled.div`
 `;
 
 export const RowResult = styled.button<ContentProps>`
-  padding: 0 5px 0 18px;
+  padding: 0 0 0 15px;
   margin: 2px 0;
   width: 100%;
   height: 24px;
@@ -46,6 +46,9 @@ export const RowResult = styled.button<ContentProps>`
   outline: none;
   border: none;
 
+  div {
+  }
+
   &:hover {
     background: ${({ color }) => color};
     color: #fff;
@@ -55,48 +58,56 @@ export const RowResult = styled.button<ContentProps>`
     }
   }
 
-  div {
+  > div {
     font-size: 13px;
-    padding: 0 4px 0 2px;
+    padding: 0 5px 0 5px;
+
+    & + div {
+      margin-left: 10px;
+    }
   }
 `;
 
 export const Date = styled.div`
+  width: 9.5%;
+  max-width: 100px;
   display: flex;
   align-items: center;
-  width: 8.88%;
-  justify-content: center;
+  justify-content: flex-start;
 `;
 
 export const CompanyName = styled.div`
+  flex: 1;
   display: flex;
   align-items: center;
-  width: 26.48%;
 `;
 
 export const Service = styled.div`
+  flex: 1;
   display: flex;
   align-items: center;
-  width: 23.55%;
 `;
 
 export const Seller = styled.div`
+  width: 14%;
+  max-width: 200px;
   display: flex;
   align-items: center;
-  width: 13.47%;
 `;
 
 export const Value = styled.div`
+  width: 11%;
+  max-width: 120px;
   display: flex;
   align-items: center;
-  width: 10.46%;
   justify-content: space-between;
 `;
 
 export const Status = styled.div`
+  width: 8%;
+  max-width: 80px;
   display: flex;
   align-items: center;
-  width: 7.37%;
   justify-content: center;
 
   svg {
@@ -108,7 +119,6 @@ export const Status = styled.div`
   .fa-times {
     width: 19px;
     height: 19px;
-    margin-right: 0.5px;
     color: #f00;
   }
 

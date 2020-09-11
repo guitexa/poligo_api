@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-import { FaPlus, FaTimes, FaRegClock, FaTrashAlt } from 'react-icons/fa';
+import { FaPlus, FaRegClock, FaTrashAlt } from 'react-icons/fa';
 import { TiArrowSortedDown } from 'react-icons/ti';
 
 import MaterialTooltip from '../MaterialTooltip';
 import NewService from '../NewService';
-import HeaderButton from '../HeaderButton';
 
 import {
   OrderOverlapping,
@@ -42,7 +41,10 @@ const Order: React.FC<OrderProps> = ({
     <>
       {newServiceOpen && (
         <OrderOverlapping>
-          <NewService setNewServiceOpen={(e) => setNewServiceOpen(e)} />
+          <NewService
+            color={color}
+            setNewServiceOpen={(e) => setNewServiceOpen(e)}
+          />
         </OrderOverlapping>
       )}
       <Container>

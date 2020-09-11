@@ -38,6 +38,7 @@ export const Container = styled.div<InputProps>`
     border: none;
 
     &::placeholder {
+      font-size: 15px;
       color: #333;
     }
   }

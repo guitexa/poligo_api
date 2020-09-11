@@ -12,7 +12,7 @@ import SearchResults from '../../components/SearchResults';
 import { OrderOverlapping, Container } from './styles';
 
 const Comercial: React.FC = () => {
-  const [orderOpen, setOrderOpen] = useState(true);
+  const [orderOpen, setOrderOpen] = useState(false);
   const [newOrderOpen, setNewOrderOpen] = useState(false);
 
   const color = '#004A82';
