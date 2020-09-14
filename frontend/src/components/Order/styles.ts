@@ -32,8 +32,7 @@ export const Container = styled.div`
   right: 0;
   left: 0;
   width: 100vw;
-  min-height: calc(100vh - 50px);
-  max-height: calc(100vh - 50px);
+  bottom: 0;
   background: #fff;
   font-size: 13px;
   overflow: hidden;

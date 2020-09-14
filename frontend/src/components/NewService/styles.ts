@@ -15,8 +15,7 @@ export const Background = styled.div`
   right: 0;
   left: 0;
   width: 100vw;
-  min-height: calc(100vh - 50px);
-  max-height: calc(100vh - 50px);
+  bottom: 0;
   overflow: hidden;
   z-index: 100;
   background: #000;
@@ -108,7 +107,7 @@ export const Service = styled.div`
   }
 
   .MuiInputLabel-formControl {
-    transform: translate(1px, 14px) scale(1);
+    transform: translate(1px, 15.5px) scale(1);
   }
   .MuiInputLabel-shrink {
     transform: translate(0px, -2px) scale(0.7);
@@ -170,7 +169,7 @@ export const ValueService = styled.div`
   }
 
   .MuiInputLabel-formControl {
-    transform: translate(1px, 19px) scale(1);
+    transform: translate(1px, 17.5px) scale(1);
   }
   .MuiInputLabel-shrink {
     transform: translate(0px, 0px) scale(0.7);

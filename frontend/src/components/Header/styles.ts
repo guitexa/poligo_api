@@ -160,8 +160,7 @@ export const Cover = styled.div<CoverProps>`
   right: 0;
   left: 0;
   width: 100vw;
-  min-height: calc(100vh - 50px);
-  max-height: calc(100vh - 50px);
+  bottom: 0;
   overflow: hidden;
   background: #000000;
   z-index: 9999;

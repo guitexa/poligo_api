@@ -21,8 +21,7 @@ export const Container = styled.div`
   right: 0;
   left: 0;
   width: 100vw;
-  min-height: calc(100vh - 110px);
-  max-height: calc(100vh - 110px);
+  bottom: 0;
   overflow: hidden;
   z-index: 0;
   background: #fff;

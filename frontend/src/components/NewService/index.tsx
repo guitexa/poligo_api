@@ -30,7 +30,7 @@ interface NewServiceProps {
   setNewServiceOpen(e: boolean): void;
 }
 
-interface ServiceProps {
+interface ServiceState {
   inputValue?: string;
   category?: string;
   name: string;
@@ -75,13 +75,13 @@ const NewService: React.FC<NewServiceProps> = ({
   color,
   setNewServiceOpen,
 }) => {
-  const [service, setService] = useState<ServiceProps | null>(null);
+  const [service, setService] = useState<ServiceState | null>(null);
   const [descriptionService, setDescriptionService] = useState('');
   const [value, setValue] = useState<ValueState>({
     formattedValue: '',
   });
 
-  const services: ServiceProps[] = [
+  const services: ServiceState[] = [
     {
       category: 'Segurança do Trabalho',
       name: 'PPRA - Programa de Prevenção dos Riscos Ambientais',
@@ -318,7 +318,7 @@ const NewService: React.FC<NewServiceProps> = ({
     },
   });
 
-  const filter = createFilterOptions<ServiceProps>();
+  const filter = createFilterOptions<ServiceState>();
 
   const handleChangeValue = (event: ChangeEvent<HTMLInputElement>): void => {
     setValue({
@@ -339,7 +339,6 @@ const NewService: React.FC<NewServiceProps> = ({
         <Content color={color}>
           <Service>
             <Autocomplete
-              autoSelect
               openOnFocus
               openText=""
               id="input-highlights"
@@ -359,7 +358,7 @@ const NewService: React.FC<NewServiceProps> = ({
                 }
               }}
               filterOptions={(options, params) => {
-                const filtered = filter(options, params) as ServiceProps[];
+                const filtered = filter(options, params) as ServiceState[];
 
                 if (params.inputValue !== '') {
                   filtered.push({
@@ -380,7 +379,7 @@ const NewService: React.FC<NewServiceProps> = ({
                 return name;
               }}
               renderInput={(params) => (
-                <TextField {...params} label="Serviço" />
+                <TextField autoFocus {...params} label="Serviço" />
               )}
               renderOption={({ name }, { inputValue }) => {
                 const matches = match(name, inputValue);

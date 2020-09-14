@@ -239,7 +239,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
         </Service>
         <Seller>
           <Autocomplete
-            autoSelect
             openOnFocus
             openText="Abrir"
             id="input-highlights-sellers"
