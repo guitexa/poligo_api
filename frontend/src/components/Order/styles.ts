@@ -1,3 +1,4 @@
+import { shade } from 'polished';
 import styled from 'styled-components';
 
 interface ServiceRowProps {
@@ -55,7 +56,7 @@ export const SecondaryContent = styled.div`
 export const AddServiceButton = styled.button<AddServiceButtonProps>`
   width: 32px;
   height: 32px;
-  background: #888;
+  background: ${({ color }) => color};
   border-radius: 50%;
   border: 5px solid #fff;
   display: flex;
@@ -69,7 +70,7 @@ export const AddServiceButton = styled.button<AddServiceButtonProps>`
   transition: 0.2s all;
 
   &:hover {
-    background: ${({ color }) => color};
+    background: ${({ color }) => shade(0.2, color)};
   }
 
   svg {

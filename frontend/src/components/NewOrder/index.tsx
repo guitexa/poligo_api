@@ -9,7 +9,7 @@ import {
 } from '@material-ui/core';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
-import { FiArrowRight } from 'react-icons/fi';
+import { FiArrowRight, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import { Close } from '@material-ui/icons';
@@ -33,6 +33,9 @@ import {
   WhatIsCompanyNameContact,
   WhatIsCompanyEmailContact,
   WhatIsCompanyPhoneContact,
+  Footer,
+  Progress,
+  ButtonsControl,
 } from './styles';
 
 interface NewOrderProps {
@@ -47,9 +50,9 @@ interface CompanyNameState {
 const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [companyName, setCompanyName] = useState<CompanyNameState | null>(null);
   const [companyCpfCnpj, setCompanyCpfCnpj] = useState('');
-  const [companyPhoneContact, setCompanyPhoneContact] = useState('');
   const [companyNameContact, setCompanyNameContact] = useState('');
   const [companyEmailContact, setCompanyEmailContact] = useState('');
+  const [companyPhoneContact, setCompanyPhoneContact] = useState('');
 
   const [companyNameOpen, setCompanyNameOpen] = useState(true);
   const [companyCpfCnpjOpen, setCompanyCpfCnpjOpen] = useState(false);
@@ -66,43 +69,59 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     true
   );
 
+  const [counterAnswers, setCounterAnswers] = useState(0);
+
   const formRef = useRef<FormHandles>(null);
 
   const handleSubmitCompanyName = useCallback(() => {
     if (companyName && companyNameOpen) {
       setCompanyNameOpen(!companyNameOpen); // Close question opened
       setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Open next question
+      setCounterAnswers(counterAnswers + 1); // Set as answered
     }
-  }, [companyName, companyNameOpen, companyCpfCnpjOpen]);
+  }, [companyName, companyNameOpen, companyCpfCnpjOpen, counterAnswers]);
 
   const handleSubmitCompanyCpfCnpj = useCallback(() => {
     if (companyCpfCnpj !== '' && companyCpfCnpjOpen) {
       if (isCNPJ(companyCpfCnpj)) {
         setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
-        setCompanyNameContactOpen(!companyNameOpen); // Open next question
+        setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
         setIsCompanyCnpjValid(true);
         setIsCompanyCpfValid(true);
+        setCounterAnswers(counterAnswers + 1); // Set as answered
       } else {
         setIsCompanyCnpjValid(false);
       }
 
       if (isCPF(companyCpfCnpj)) {
         setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
-        setCompanyNameContactOpen(!companyNameOpen); // Open next question
+        setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
         setIsCompanyCnpjValid(true);
         setIsCompanyCpfValid(true);
+        setCounterAnswers(counterAnswers + 1); // Set as answered
       } else {
         setIsCompanyCpfValid(false);
       }
     }
-  }, [companyCpfCnpj, companyCpfCnpjOpen, companyNameOpen]);
+  }, [
+    companyCpfCnpj,
+    companyCpfCnpjOpen,
+    companyNameContactOpen,
+    counterAnswers,
+  ]);
 
   const handleSubmitCompanyNameContact = useCallback(() => {
     if (companyNameContact && companyNameContactOpen) {
       setCompanyNameContactOpen(!companyNameContactOpen); // Close question opened
       setCompanyEmailContactOpen(!companyEmailContactOpen); // Open next question
+      setCounterAnswers(counterAnswers + 1); // Set as answered
     }
-  }, [companyNameContact, companyNameContactOpen, companyEmailContactOpen]);
+  }, [
+    companyNameContact,
+    companyNameContactOpen,
+    companyEmailContactOpen,
+    counterAnswers,
+  ]);
 
   const handleSubmitCompanyEmailContact = useCallback(() => {
     if (companyEmailContact && companyEmailContactOpen) {
@@ -110,11 +129,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         setCompanyEmailContactOpen(!companyEmailContactOpen); // Close question opened
         setCompanyPhoneContactOpen(!companyPhoneContactOpen); // Open next question
         setIsCompanyEmailContactValid(true);
+        setCounterAnswers(counterAnswers + 1); // Set as answered
       } else {
         setIsCompanyEmailContactValid(false);
       }
     }
-  }, [companyEmailContact, companyEmailContactOpen, companyPhoneContactOpen]);
+  }, [
+    companyEmailContact,
+    companyEmailContactOpen,
+    companyPhoneContactOpen,
+    counterAnswers,
+  ]);
 
   const handleSubmitCompanyPhoneContact = useCallback(() => {
     if (companyPhoneContact && companyPhoneContactOpen) {
@@ -122,11 +147,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         setCompanyPhoneContactOpen(!companyPhoneContactOpen); // Close question opened
         setCompanyNameOpen(!companyNameOpen); // Open next question
         setIsCompanyPhoneContactValid(true);
+        setCounterAnswers(counterAnswers + 1); // Set as answered
       } else {
         setIsCompanyPhoneContactValid(false);
       }
     }
-  }, [companyPhoneContact, companyPhoneContactOpen, companyNameOpen]);
+  }, [
+    companyPhoneContact,
+    companyPhoneContactOpen,
+    companyNameOpen,
+    counterAnswers,
+  ]);
 
   const companyNames: CompanyNameState[] = [
     {
@@ -254,6 +285,78 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     },
   });
 
+  const handleChangeToPreviousQuestion = useCallback(() => {
+    if (companyNameOpen) {
+      setCompanyNameOpen(!companyNameOpen);
+      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+    }
+    if (companyCpfCnpjOpen) {
+      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
+      setCompanyNameOpen(!companyNameOpen);
+    }
+    if (companyNameContactOpen) {
+      setCompanyNameContactOpen(!companyNameContactOpen);
+      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
+    }
+    if (companyEmailContactOpen) {
+      setCompanyEmailContactOpen(!companyEmailContactOpen);
+      setCompanyNameContactOpen(!companyNameContactOpen);
+    }
+    if (companyPhoneContactOpen) {
+      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+      setCompanyEmailContactOpen(!companyEmailContactOpen);
+    }
+  }, [
+    companyNameOpen,
+    companyCpfCnpjOpen,
+    companyNameContactOpen,
+    companyEmailContactOpen,
+    companyPhoneContactOpen,
+  ]);
+
+  const handleChangeToNextQuestion = useCallback(() => {
+    if (companyNameOpen) {
+      setCompanyNameOpen(!companyNameOpen);
+      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
+    }
+    if (companyCpfCnpjOpen) {
+      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
+      setCompanyNameContactOpen(!companyNameContactOpen);
+    }
+    if (companyNameContactOpen) {
+      setCompanyNameContactOpen(!companyNameContactOpen);
+      setCompanyEmailContactOpen(!companyEmailContactOpen);
+    }
+    if (companyEmailContactOpen) {
+      setCompanyEmailContactOpen(!companyEmailContactOpen);
+      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+    }
+    if (companyPhoneContactOpen) {
+      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+      setCompanyNameOpen(!companyNameOpen);
+    }
+  }, [
+    companyNameOpen,
+    companyCpfCnpjOpen,
+    companyNameContactOpen,
+    companyEmailContactOpen,
+    companyPhoneContactOpen,
+  ]);
+
+  const eventKeyPress = useCallback(
+    (event: KeyboardEvent): void => {
+      console.log('chegou aqui');
+      if (event.key === 'PageUp') {
+        handleChangeToPreviousQuestion();
+      }
+      if (event.key === 'PageDown') {
+        handleChangeToNextQuestion();
+      }
+    },
+    [handleChangeToPreviousQuestion, handleChangeToNextQuestion]
+  );
+  document.onkeydown = eventKeyPress;
+
   return (
     <ThemeProvider theme={defaultMaterialTheme}>
       <Container>
@@ -339,7 +442,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     <Button onClick={handleSubmitCompanyName}>Continuar</Button>
                     <div>
                       <span>
-                        Pressione <strong>Enter</strong>
+                        Pressione <strong>ENTER</strong>
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
@@ -398,7 +501,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </Button>
                     <div>
                       <span>
-                        Pressione <strong>Enter</strong>
+                        Pressione <strong>ENTER</strong>
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
@@ -452,7 +555,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </Button>
                     <div>
                       <span>
-                        Pressione <strong>Enter</strong>
+                        Pressione <strong>ENTER</strong>
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
@@ -509,7 +612,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </Button>
                     <div>
                       <span>
-                        Pressione <strong>Enter</strong>
+                        Pressione <strong>ENTER</strong>
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
@@ -567,7 +670,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </Button>
                     <div>
                       <span>
-                        Pressione <strong>Enter</strong>
+                        Pressione <strong>ENTER</strong>
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
@@ -579,6 +682,23 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
             )}
           </Content>
         </Form>
+        <Footer>
+          <Progress color={color} counterAnswers={counterAnswers}>
+            <span>
+              {counterAnswers} de 5 respondida{counterAnswers > 1 && 's'}
+            </span>
+            <div className="progress-bar" />
+            <div className="bg-progress-bar" />
+          </Progress>
+          <ButtonsControl color={color}>
+            <button type="button" onClick={handleChangeToPreviousQuestion}>
+              <FiChevronUp />
+            </button>
+            <button type="button" onClick={handleChangeToNextQuestion}>
+              <FiChevronDown />
+            </button>
+          </ButtonsControl>
+        </Footer>
       </Container>
     </ThemeProvider>
   );

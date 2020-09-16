@@ -1,3 +1,4 @@
+import { shade } from 'polished';
 import styled from 'styled-components';
 
 interface ContentProps {
@@ -22,6 +23,15 @@ interface CompanyEmailContactProps {
 
 interface CompanyPhoneContactProps {
   companyPhoneContactOpen: boolean;
+}
+
+interface ProgressProps {
+  color: string;
+  counterAnswers: number;
+}
+
+interface ButtonsControlProps {
+  color: string;
 }
 
 export const Container = styled.div`
@@ -103,8 +113,12 @@ export const SubmitQuestion = styled.div`
     align-items: flex-end;
 
     span {
-      margin: 0 10px 0 15px;
-      font-size: 15px;
+      margin: 0 7px 0 15px;
+      font-size: 13px;
+    }
+
+    img {
+      height: 17px;
     }
   }
 `;
@@ -366,6 +380,89 @@ export const WhatIsCompanyPhoneContact = styled.div<CompanyPhoneContactProps>`
       & > .MuiSvgIcon-root {
         margin: 0 0 -2px 5px;
       }
+    }
+  }
+`;
+
+export const Footer = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+`;
+
+export const Progress = styled.div<ProgressProps>`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-right: 10px;
+  width: 150px;
+
+  span {
+    font-size: 12px;
+    margin-bottom: 2px;
+  }
+
+  .progress-bar {
+    width: ${({ counterAnswers }) =>
+      counterAnswers === 1
+        ? '20%'
+        : counterAnswers === 2
+        ? '40%'
+        : counterAnswers === 3
+        ? '60%'
+        : counterAnswers === 4
+        ? '80%'
+        : counterAnswers === 5
+        ? '100%'
+        : 0};
+    height: 6px;
+    background: ${({ color }) => color};
+    border-radius: 3px;
+    margin-bottom: -6px;
+    z-index: 10;
+    transition: 0.2s all;
+  }
+
+  .bg-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #dfdfdf;
+    border-radius: 3px;
+    z-index: 1;
+  }
+`;
+
+export const ButtonsControl = styled.div<ButtonsControlProps>`
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    width: 35px;
+    height: 35px;
+    background: ${({ color }) => color};
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    outline: none;
+    transition: 0.2s all;
+
+    &:hover {
+      background: ${({ color }) => shade(0.2, color)};
+    }
+
+    & + button {
+      margin-left: 2px;
+    }
+
+    svg {
+      color: #fff;
+      width: 30px;
+      height: 30px;
     }
   }
 `;

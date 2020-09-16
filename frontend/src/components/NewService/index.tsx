@@ -339,9 +339,9 @@ const NewService: React.FC<NewServiceProps> = ({
         <Content color={color}>
           <Service>
             <Autocomplete
-              openOnFocus
+              openOnFocus={service === null}
               openText=""
-              id="input-highlights"
+              id="input-service"
               clearOnBlur={false}
               value={service}
               onChange={(event, newService) => {
