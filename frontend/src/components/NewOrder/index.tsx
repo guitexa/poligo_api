@@ -18,6 +18,8 @@ import isEmail from 'validator/es/lib/isEmail';
 import $ from 'jquery';
 import 'jquery-mask-plugin/dist/jquery.mask.min';
 
+import EnterIcon from '../../assets/icons/icon-enter.svg';
+
 import Button from '../Button';
 import DisabledButton from '../DisabledButton';
 
@@ -25,6 +27,7 @@ import {
   Container,
   Content,
   AskTitle,
+  SubmitQuestion,
   WhatIsCompanyName,
   WhatIsCompanyCpfCnpj,
   WhatIsCompanyNameContact,
@@ -36,25 +39,23 @@ interface NewOrderProps {
   color: string;
 }
 
-interface WhatIsCompanyNameState {
+interface CompanyNameState {
   inputValue?: string;
   name: string;
 }
 
 const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
-  const [companyName, setCompanyName] = useState<WhatIsCompanyNameState | null>(
-    null
-  );
+  const [companyName, setCompanyName] = useState<CompanyNameState | null>(null);
   const [companyCpfCnpj, setCompanyCpfCnpj] = useState('');
   const [companyPhoneContact, setCompanyPhoneContact] = useState('');
   const [companyNameContact, setCompanyNameContact] = useState('');
   const [companyEmailContact, setCompanyEmailContact] = useState('');
 
-  const [companyNameOpen, setCompanyNameOpen] = useState(false);
+  const [companyNameOpen, setCompanyNameOpen] = useState(true);
   const [companyCpfCnpjOpen, setCompanyCpfCnpjOpen] = useState(false);
   const [companyNameContactOpen, setCompanyNameContactOpen] = useState(false);
   const [companyEmailContactOpen, setCompanyEmailContactOpen] = useState(false);
-  const [companyPhoneContactOpen, setCompanyPhoneContactOpen] = useState(true);
+  const [companyPhoneContactOpen, setCompanyPhoneContactOpen] = useState(false);
 
   const [isCompanyCpfValid, setIsCompanyCpfValid] = useState(true);
   const [isCompanyCnpjValid, setIsCompanyCnpjValid] = useState(true);
@@ -127,7 +128,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     }
   }, [companyPhoneContact, companyPhoneContactOpen, companyNameOpen]);
 
-  const companyNames: WhatIsCompanyNameState[] = [
+  const companyNames: CompanyNameState[] = [
     {
       name: 'Distribuidora Triangulina de Veículos Ltda',
     },
@@ -215,7 +216,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     },
   });
 
-  const filter = createFilterOptions<WhatIsCompanyNameState>();
+  const filter = createFilterOptions<CompanyNameState>();
 
   // This function clear errors when field is empty
   useEffect(() => {
@@ -226,7 +227,10 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     if (companyEmailContact === '') {
       setIsCompanyEmailContactValid(true);
     }
-  }, [companyCpfCnpj, companyEmailContact]);
+    if (companyPhoneContact === '') {
+      setIsCompanyPhoneContactValid(true);
+    }
+  }, [companyCpfCnpj, companyEmailContact, companyPhoneContact]);
 
   const forceFocusOnInputField = useCallback((id: string): void => {
     const getElement = document.getElementById(id);
@@ -267,7 +271,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </div>
                 </AskTitle>
                 <Autocomplete
-                  openOnFocus
+                  openOnFocus={companyName === null}
                   openText=""
                   id="input-highlights"
                   clearOnBlur={false}
@@ -285,7 +289,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     const filtered = filter(
                       options,
                       params
-                    ) as WhatIsCompanyNameState[];
+                    ) as CompanyNameState[];
 
                     if (params.inputValue !== '') {
                       filtered.push({
@@ -306,8 +310,8 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   }}
                   renderInput={(params) => (
                     <TextField
-                      helperText=" "
                       autoFocus
+                      helperText=" "
                       {...params}
                       placeholder="Escreva ou selecione uma opção"
                     />
@@ -331,12 +335,15 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   }}
                 />
                 {companyName?.name ? (
-                  <Button
-                    className="submit-button"
-                    onClick={handleSubmitCompanyName}
-                  >
-                    Continuar
-                  </Button>
+                  <SubmitQuestion>
+                    <Button onClick={handleSubmitCompanyName}>Continuar</Button>
+                    <div>
+                      <span>
+                        Pressione <strong>Enter</strong>
+                      </span>
+                      <img src={EnterIcon} alt="" />
+                    </div>
+                  </SubmitQuestion>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
@@ -385,13 +392,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </Grid>
                 </Grid>
                 {companyCpfCnpj !== '' ? (
-                  <Button
-                    className="submit-button"
-                    type="submit"
-                    onClick={handleSubmitCompanyCpfCnpj}
-                  >
-                    Continuar
-                  </Button>
+                  <SubmitQuestion>
+                    <Button onClick={handleSubmitCompanyCpfCnpj}>
+                      Continuar
+                    </Button>
+                    <div>
+                      <span>
+                        Pressione <strong>Enter</strong>
+                      </span>
+                      <img src={EnterIcon} alt="" />
+                    </div>
+                  </SubmitQuestion>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
@@ -435,13 +446,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </Grid>
                 </Grid>
                 {companyNameContact !== '' ? (
-                  <Button
-                    className="submit-button"
-                    type="submit"
-                    onClick={handleSubmitCompanyNameContact}
-                  >
-                    Continuar
-                  </Button>
+                  <SubmitQuestion>
+                    <Button onClick={handleSubmitCompanyNameContact}>
+                      Continuar
+                    </Button>
+                    <div>
+                      <span>
+                        Pressione <strong>Enter</strong>
+                      </span>
+                      <img src={EnterIcon} alt="" />
+                    </div>
+                  </SubmitQuestion>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
@@ -488,13 +503,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </Grid>
                 </Grid>
                 {companyEmailContact !== '' ? (
-                  <Button
-                    className="submit-button"
-                    type="submit"
-                    onClick={handleSubmitCompanyEmailContact}
-                  >
-                    Continuar
-                  </Button>
+                  <SubmitQuestion>
+                    <Button onClick={handleSubmitCompanyEmailContact}>
+                      Continuar
+                    </Button>
+                    <div>
+                      <span>
+                        Pressione <strong>Enter</strong>
+                      </span>
+                      <img src={EnterIcon} alt="" />
+                    </div>
+                  </SubmitQuestion>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
@@ -542,13 +561,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </Grid>
                 </Grid>
                 {companyPhoneContact !== '' ? (
-                  <Button
-                    className="submit-button"
-                    type="submit"
-                    onClick={handleSubmitCompanyPhoneContact}
-                  >
-                    Continuar
-                  </Button>
+                  <SubmitQuestion>
+                    <Button onClick={handleSubmitCompanyPhoneContact}>
+                      Continuar
+                    </Button>
+                    <div>
+                      <span>
+                        Pressione <strong>Enter</strong>
+                      </span>
+                      <img src={EnterIcon} alt="" />
+                    </div>
+                  </SubmitQuestion>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}

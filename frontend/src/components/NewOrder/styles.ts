@@ -54,13 +54,12 @@ export const Content = styled.div<ContentProps>`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding-top: 15%;
+  padding-top: 25vh;
 
   .MuiInput-underline:hover:not(.Mui-disabled)::before {
     border-color: ${({ color }) => color};
   }
 
-  .submit-button,
   .disabled-button {
     margin-top: 15px;
   }
@@ -88,6 +87,24 @@ export const AskTitle = styled.div`
       height: 12px;
       margin-top: 1px;
       color: #999;
+    }
+  }
+`;
+
+export const SubmitQuestion = styled.div`
+  margin-top: 15px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  div {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+
+    span {
+      margin: 0 10px 0 15px;
+      font-size: 15px;
     }
   }
 `;

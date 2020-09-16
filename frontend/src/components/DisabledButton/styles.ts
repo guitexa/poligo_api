@@ -3,7 +3,6 @@ import styled from 'styled-components';
 export const Container = styled.div`
   background-color: #0181ca40;
   color: #fff;
-  margin-top: 25px;
   border-radius: 4px;
   border: none;
   padding: 8px 60px;

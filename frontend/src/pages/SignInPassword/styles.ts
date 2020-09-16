@@ -66,7 +66,7 @@ export const Content = styled.div`
       }
 
       a {
-        margin-top: 3px;
+        margin: 3px 0 25px 0;
         color: #00000090;
         font-size: 13px;
         text-decoration: none;

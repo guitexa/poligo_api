@@ -75,4 +75,8 @@ export const Content = styled.div`
       margin-right: 5px;
     }
   }
+
+  button {
+    margin-top: 25px;
+  }
 `;
