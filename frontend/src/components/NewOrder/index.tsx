@@ -1,10 +1,4 @@
-import React, {
-  useRef,
-  useCallback,
-  useState,
-  ChangeEvent,
-  useEffect,
-} from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { Autocomplete, createFilterOptions } from '@material-ui/lab';
 import {
   ThemeProvider,
@@ -18,9 +12,11 @@ import parse from 'autosuggest-highlight/parse';
 import { FiArrowRight } from 'react-icons/fi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
-import NumberFormat from 'react-number-format';
 import { Close } from '@material-ui/icons';
-import { isCNPJ } from 'brazilian-values';
+import { isCNPJ, isCPF, isPhone } from 'brazilian-values';
+import isEmail from 'validator/es/lib/isEmail';
+import $ from 'jquery';
+import 'jquery-mask-plugin/dist/jquery.mask.min';
 
 import Button from '../Button';
 import DisabledButton from '../DisabledButton';
@@ -30,7 +26,10 @@ import {
   Content,
   AskTitle,
   WhatIsCompanyName,
-  WhatIsCompanyCNPJ,
+  WhatIsCompanyCpfCnpj,
+  WhatIsCompanyNameContact,
+  WhatIsCompanyEmailContact,
+  WhatIsCompanyPhoneContact,
 } from './styles';
 
 interface NewOrderProps {
@@ -42,76 +41,91 @@ interface WhatIsCompanyNameState {
   name: string;
 }
 
-interface CompanyCNPJState {
-  formattedValue: string;
-}
-
-interface NumberFormatCustomProps {
-  inputRef: (instance: NumberFormat | null) => void;
-  onChange: (event: { target: { name: string; value: string } }) => void;
-  name: string;
-}
-
-function NumberFormatCustom(props: NumberFormatCustomProps): JSX.Element {
-  const { inputRef, onChange, ...other } = props;
-
-  return (
-    <NumberFormat
-      {...other}
-      getInputRef={inputRef}
-      onValueChange={(value) => {
-        onChange({
-          target: {
-            name: props.name,
-            value: value.value,
-          },
-        });
-      }}
-      isNumericString
-      format="##.###.###/####-##"
-      mask="_"
-    />
-  );
-}
-
 const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [companyName, setCompanyName] = useState<WhatIsCompanyNameState | null>(
     null
   );
-  const [companyCNPJ, setCompanyCNPJ] = useState<CompanyCNPJState>({
-    formattedValue: '',
-  });
-  const [companyNameOpen, setCompanyNameOpen] = useState(true);
-  const [companyCNPJOpen, setCompanyCNPJOpen] = useState(false);
-  const [isCompanyCNPJValid, setIsCompanyCNPJValid] = useState(true);
+  const [companyCpfCnpj, setCompanyCpfCnpj] = useState('');
+  const [companyPhoneContact, setCompanyPhoneContact] = useState('');
+  const [companyNameContact, setCompanyNameContact] = useState('');
+  const [companyEmailContact, setCompanyEmailContact] = useState('');
+
+  const [companyNameOpen, setCompanyNameOpen] = useState(false);
+  const [companyCpfCnpjOpen, setCompanyCpfCnpjOpen] = useState(false);
+  const [companyNameContactOpen, setCompanyNameContactOpen] = useState(false);
+  const [companyEmailContactOpen, setCompanyEmailContactOpen] = useState(false);
+  const [companyPhoneContactOpen, setCompanyPhoneContactOpen] = useState(true);
+
+  const [isCompanyCpfValid, setIsCompanyCpfValid] = useState(true);
+  const [isCompanyCnpjValid, setIsCompanyCnpjValid] = useState(true);
+  const [isCompanyEmailContactValid, setIsCompanyEmailContactValid] = useState(
+    true
+  );
+  const [isCompanyPhoneContactValid, setIsCompanyPhoneContactValid] = useState(
+    true
+  );
 
   const formRef = useRef<FormHandles>(null);
 
   const handleSubmitCompanyName = useCallback(() => {
     if (companyName && companyNameOpen) {
-      setCompanyNameOpen(!companyNameOpen);
-      setCompanyCNPJOpen(!companyCNPJOpen);
+      setCompanyNameOpen(!companyNameOpen); // Close question opened
+      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Open next question
     }
-  }, [companyName, companyNameOpen, companyCNPJOpen]);
+  }, [companyName, companyNameOpen, companyCpfCnpjOpen]);
 
-  const handleSubmitCompanyCNPJ = useCallback(() => {
-    if (companyCNPJ.formattedValue !== '' && companyCNPJOpen) {
-      if (isCNPJ(companyCNPJ.formattedValue)) {
-        setCompanyCNPJOpen(!companyCNPJOpen);
-        setCompanyNameOpen(!companyNameOpen);
-        if (isCompanyCNPJValid === false) {
-          setIsCompanyCNPJValid(true);
-        }
+  const handleSubmitCompanyCpfCnpj = useCallback(() => {
+    if (companyCpfCnpj !== '' && companyCpfCnpjOpen) {
+      if (isCNPJ(companyCpfCnpj)) {
+        setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
+        setCompanyNameContactOpen(!companyNameOpen); // Open next question
+        setIsCompanyCnpjValid(true);
+        setIsCompanyCpfValid(true);
       } else {
-        setIsCompanyCNPJValid(false);
+        setIsCompanyCnpjValid(false);
+      }
+
+      if (isCPF(companyCpfCnpj)) {
+        setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
+        setCompanyNameContactOpen(!companyNameOpen); // Open next question
+        setIsCompanyCnpjValid(true);
+        setIsCompanyCpfValid(true);
+      } else {
+        setIsCompanyCpfValid(false);
       }
     }
-  }, [
-    companyCNPJ.formattedValue,
-    companyCNPJOpen,
-    companyNameOpen,
-    isCompanyCNPJValid,
-  ]);
+  }, [companyCpfCnpj, companyCpfCnpjOpen, companyNameOpen]);
+
+  const handleSubmitCompanyNameContact = useCallback(() => {
+    if (companyNameContact && companyNameContactOpen) {
+      setCompanyNameContactOpen(!companyNameContactOpen); // Close question opened
+      setCompanyEmailContactOpen(!companyEmailContactOpen); // Open next question
+    }
+  }, [companyNameContact, companyNameContactOpen, companyEmailContactOpen]);
+
+  const handleSubmitCompanyEmailContact = useCallback(() => {
+    if (companyEmailContact && companyEmailContactOpen) {
+      if (isEmail(companyEmailContact)) {
+        setCompanyEmailContactOpen(!companyEmailContactOpen); // Close question opened
+        setCompanyPhoneContactOpen(!companyPhoneContactOpen); // Open next question
+        setIsCompanyEmailContactValid(true);
+      } else {
+        setIsCompanyEmailContactValid(false);
+      }
+    }
+  }, [companyEmailContact, companyEmailContactOpen, companyPhoneContactOpen]);
+
+  const handleSubmitCompanyPhoneContact = useCallback(() => {
+    if (companyPhoneContact && companyPhoneContactOpen) {
+      if (isPhone(companyPhoneContact)) {
+        setCompanyPhoneContactOpen(!companyPhoneContactOpen); // Close question opened
+        setCompanyNameOpen(!companyNameOpen); // Open next question
+        setIsCompanyPhoneContactValid(true);
+      } else {
+        setIsCompanyPhoneContactValid(false);
+      }
+    }
+  }, [companyPhoneContact, companyPhoneContactOpen, companyNameOpen]);
 
   const companyNames: WhatIsCompanyNameState[] = [
     {
@@ -203,20 +217,38 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
 
   const filter = createFilterOptions<WhatIsCompanyNameState>();
 
-  const handleChangeCompanyCNPJ = (
-    event: ChangeEvent<HTMLInputElement>
-  ): void => {
-    setCompanyCNPJ({
-      ...companyCNPJ,
-      [event.target.name]: event.target.value,
-    });
-  };
-
+  // This function clear errors when field is empty
   useEffect(() => {
-    if (companyCNPJ.formattedValue === '') {
-      setIsCompanyCNPJValid(true);
+    if (companyCpfCnpj === '') {
+      setIsCompanyCpfValid(true);
+      setIsCompanyCnpjValid(true);
     }
-  }, [companyCNPJ.formattedValue]);
+    if (companyEmailContact === '') {
+      setIsCompanyEmailContactValid(true);
+    }
+  }, [companyCpfCnpj, companyEmailContact]);
+
+  const forceFocusOnInputField = useCallback((id: string): void => {
+    const getElement = document.getElementById(id);
+
+    if (getElement !== null) {
+      getElement.focus();
+    }
+  }, []);
+
+  $('#companyPhoneContact-input').mask('(00) 0000-00009', {
+    onKeyPress(value: string): void {
+      const mask = value.length < 15 ? '(00) 0000-00009' : '(00) 00000-0000';
+      $('#companyPhoneContact-input').mask(mask);
+    },
+  });
+
+  $('#companyCpfCnpj-input').mask('00.000.000/0000-00', {
+    onKeyPress(value: string): void {
+      const mask = value.length > 14 ? '00.000.000/0000-00' : '000.000.000-00';
+      $('#companyCpfCnpj-input').mask(mask);
+    },
+  });
 
   return (
     <ThemeProvider theme={defaultMaterialTheme}>
@@ -231,7 +263,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     <FiArrowRight />
                   </div>
                   <div>
-                    Qual a <strong>razão social</strong> da empresa cliente?
+                    Qual a <strong>razão social</strong> do cliente?
                   </div>
                 </AskTitle>
                 <Autocomplete
@@ -310,40 +342,41 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                 )}
               </WhatIsCompanyName>
             )}
-            {companyCNPJOpen && (
-              <WhatIsCompanyCNPJ companyCNPJOpen={companyCNPJOpen}>
+            {companyCpfCnpjOpen && (
+              <WhatIsCompanyCpfCnpj companyCpfCnpjOpen={companyCpfCnpjOpen}>
                 <AskTitle>
                   <div>
                     <span>2</span>
                     <FiArrowRight />
                   </div>
                   <div>
-                    Qual o <strong>CNPJ</strong> desta empresa?
+                    Qual o <strong>CNPJ</strong> ou <strong>CPF</strong> deste
+                    cliente?
                   </div>
                 </AskTitle>
                 <Grid container spacing={1} alignItems="flex-end">
                   <Grid item>
                     <TextField
                       autoFocus
-                      error={!isCompanyCNPJValid}
-                      helperText={!isCompanyCNPJValid ? 'CNPJ Inválido' : ' '}
+                      error={!isCompanyCpfValid || !isCompanyCnpjValid}
+                      helperText={
+                        !isCompanyCnpjValid || !isCompanyCpfValid
+                          ? 'Dados inválidos'
+                          : ' '
+                      }
                       placeholder="Digite aqui"
-                      value={companyCNPJ.formattedValue}
-                      onChange={handleChangeCompanyCNPJ}
+                      value={companyCpfCnpj}
+                      onChange={(e) => setCompanyCpfCnpj(e.target.value)}
                       name="formattedValue"
-                      id="formatted-formattedValue-input"
-                      InputProps={{
-                        inputComponent: NumberFormatCustom as any,
-                      }}
+                      id="companyCpfCnpj-input"
                     />
                   </Grid>
                   <Grid item>
-                    {companyCNPJ.formattedValue && (
+                    {companyCpfCnpj && (
                       <IconButton
                         onClick={() => {
-                          setCompanyCNPJ({
-                            formattedValue: '',
-                          });
+                          setCompanyCpfCnpj('');
+                          forceFocusOnInputField('companyCpfCnpj-input');
                         }}
                       >
                         <Close />
@@ -351,18 +384,175 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     )}
                   </Grid>
                 </Grid>
-                {companyCNPJ.formattedValue !== '' ? (
+                {companyCpfCnpj !== '' ? (
                   <Button
                     className="submit-button"
                     type="submit"
-                    onClick={handleSubmitCompanyCNPJ}
+                    onClick={handleSubmitCompanyCpfCnpj}
                   >
                     Continuar
                   </Button>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
-              </WhatIsCompanyCNPJ>
+              </WhatIsCompanyCpfCnpj>
+            )}
+            {companyNameContactOpen && (
+              <WhatIsCompanyNameContact
+                companyNameContactOpen={companyNameContactOpen}
+              >
+                <AskTitle>
+                  <div>
+                    <span>3</span>
+                    <FiArrowRight />
+                  </div>
+                  <div>
+                    Qual o <strong>nome</strong> do responsável?
+                  </div>
+                </AskTitle>
+                <Grid container spacing={1} alignItems="flex-end">
+                  <Grid item>
+                    <TextField
+                      autoFocus
+                      helperText=" "
+                      placeholder="Digite aqui"
+                      value={companyNameContact}
+                      onChange={(e) => setCompanyNameContact(e.target.value)}
+                      id="companyNameContact-input"
+                    />
+                  </Grid>
+                  <Grid item>
+                    {companyNameContact && (
+                      <IconButton
+                        onClick={() => {
+                          setCompanyNameContact('');
+                          forceFocusOnInputField('companyNameContact-input');
+                        }}
+                      >
+                        <Close />
+                      </IconButton>
+                    )}
+                  </Grid>
+                </Grid>
+                {companyNameContact !== '' ? (
+                  <Button
+                    className="submit-button"
+                    type="submit"
+                    onClick={handleSubmitCompanyNameContact}
+                  >
+                    Continuar
+                  </Button>
+                ) : (
+                  <DisabledButton>Continuar</DisabledButton>
+                )}
+              </WhatIsCompanyNameContact>
+            )}
+            {companyEmailContactOpen && (
+              <WhatIsCompanyEmailContact
+                companyEmailContactOpen={companyEmailContactOpen}
+              >
+                <AskTitle>
+                  <div>
+                    <span>4</span>
+                    <FiArrowRight />
+                  </div>
+                  <div>
+                    Qual o <strong>email</strong> do responsável?
+                  </div>
+                </AskTitle>
+                <Grid container spacing={1} alignItems="flex-end">
+                  <Grid item>
+                    <TextField
+                      autoFocus
+                      error={!isCompanyEmailContactValid}
+                      helperText={
+                        !isCompanyEmailContactValid ? 'E-mail inválido' : ' '
+                      }
+                      placeholder="Digite aqui"
+                      value={companyEmailContact}
+                      onChange={(e) => setCompanyEmailContact(e.target.value)}
+                      id="companyEmailContact-input"
+                    />
+                  </Grid>
+                  <Grid item>
+                    {companyEmailContact && (
+                      <IconButton
+                        onClick={() => {
+                          setCompanyEmailContact('');
+                          forceFocusOnInputField('companyEmailContact-input');
+                        }}
+                      >
+                        <Close />
+                      </IconButton>
+                    )}
+                  </Grid>
+                </Grid>
+                {companyEmailContact !== '' ? (
+                  <Button
+                    className="submit-button"
+                    type="submit"
+                    onClick={handleSubmitCompanyEmailContact}
+                  >
+                    Continuar
+                  </Button>
+                ) : (
+                  <DisabledButton>Continuar</DisabledButton>
+                )}
+              </WhatIsCompanyEmailContact>
+            )}
+            {companyPhoneContactOpen && (
+              <WhatIsCompanyPhoneContact
+                companyPhoneContactOpen={companyPhoneContactOpen}
+              >
+                <AskTitle>
+                  <div>
+                    <span>5</span>
+                    <FiArrowRight />
+                  </div>
+                  <div>
+                    Qual o <strong>telefone</strong> do responsável?
+                  </div>
+                </AskTitle>
+                <Grid container spacing={1} alignItems="flex-end">
+                  <Grid item>
+                    <TextField
+                      autoFocus
+                      placeholder="Digite aqui"
+                      id="companyPhoneContact-input"
+                      error={!isCompanyPhoneContactValid}
+                      helperText={
+                        !isCompanyPhoneContactValid ? 'Telefone inválido' : ' '
+                      }
+                      value={companyPhoneContact}
+                      onChange={(e) => setCompanyPhoneContact(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </Grid>
+                  <Grid item>
+                    {companyPhoneContact && (
+                      <IconButton
+                        onClick={() => {
+                          setCompanyPhoneContact('');
+                          forceFocusOnInputField('companyPhoneContact-input');
+                        }}
+                      >
+                        <Close />
+                      </IconButton>
+                    )}
+                  </Grid>
+                </Grid>
+                {companyPhoneContact !== '' ? (
+                  <Button
+                    className="submit-button"
+                    type="submit"
+                    onClick={handleSubmitCompanyPhoneContact}
+                  >
+                    Continuar
+                  </Button>
+                ) : (
+                  <DisabledButton>Continuar</DisabledButton>
+                )}
+              </WhatIsCompanyPhoneContact>
             )}
           </Content>
         </Form>

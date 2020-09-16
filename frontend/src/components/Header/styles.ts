@@ -26,12 +26,6 @@ export const Container = styled.div<ContainerProps>`
   z-index: 10;
 `;
 
-export const Content = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-`;
-
 export const Menu = styled.div`
   position: absolute;
   top: 0;

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import IconTechnicalArea from '../../assets/icons/icon-technical-area.svg';
@@ -8,7 +8,7 @@ import IconExit from '../../assets/icons/icon-exit.svg';
 
 import { useAuth } from '../../hooks/auth';
 
-import { Container, Content, Menu, Title, Cover } from './styles';
+import { Container, Menu, Title, Cover } from './styles';
 
 interface HeaderProps {
   title: string;

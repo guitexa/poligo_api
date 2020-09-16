@@ -4,12 +4,24 @@ interface ContentProps {
   color: string;
 }
 
-interface WhatIsCompanyNameProps {
+interface CompanyNameProps {
   companyNameOpen: boolean;
 }
 
-interface WhatIsCompanyCNPJProps {
-  companyCNPJOpen: boolean;
+interface CompanyCpfCnpjProps {
+  companyCpfCnpjOpen: boolean;
+}
+
+interface CompanyNameContactProps {
+  companyNameContactOpen: boolean;
+}
+
+interface CompanyEmailContactProps {
+  companyEmailContactOpen: boolean;
+}
+
+interface CompanyPhoneContactProps {
+  companyPhoneContactOpen: boolean;
 }
 
 export const Container = styled.div`
@@ -80,7 +92,7 @@ export const AskTitle = styled.div`
   }
 `;
 
-export const WhatIsCompanyName = styled.div<WhatIsCompanyNameProps>`
+export const WhatIsCompanyName = styled.div<CompanyNameProps>`
   width: 50%;
   display: ${({ companyNameOpen }) => (companyNameOpen ? 'flex' : 'none')};
   flex-direction: column;
@@ -117,9 +129,10 @@ export const WhatIsCompanyName = styled.div<WhatIsCompanyNameProps>`
   }
 `;
 
-export const WhatIsCompanyCNPJ = styled.div<WhatIsCompanyCNPJProps>`
+export const WhatIsCompanyCpfCnpj = styled.div<CompanyCpfCnpjProps>`
   width: 50%;
-  display: ${({ companyCNPJOpen }) => (companyCNPJOpen ? 'flex' : 'none')};
+  display: ${({ companyCpfCnpjOpen }) =>
+    companyCpfCnpjOpen ? 'flex' : 'none'};
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
@@ -134,7 +147,174 @@ export const WhatIsCompanyCNPJ = styled.div<WhatIsCompanyCNPJProps>`
     height: 2em;
     padding: 0px 30px 0px 4px;
     margin-bottom: -1px;
-    /* width: calc(100% + 28px); */
+  }
+
+  .MuiInputBase-root {
+    width: calc(100% + 28px);
+  }
+
+  .MuiIconButton-root {
+    padding: 3px;
+    margin: 4px 0px 1px 2px;
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 1.23rem;
+    color: #0000008a;
+  }
+
+  .MuiGrid-align-items-xs-flex-end {
+    align-items: flex-start;
+  }
+
+  .MuiGrid-container {
+    width: 100%;
+    margin: 0;
+
+    .MuiGrid-item:nth-child(1) {
+      width: calc(100% - 28px);
+    }
+
+    .MuiGrid-item {
+      padding: 0;
+
+      & > .MuiSvgIcon-root {
+        margin: 0 0 -2px 5px;
+      }
+    }
+  }
+`;
+
+export const WhatIsCompanyNameContact = styled.div<CompanyNameContactProps>`
+  width: 50%;
+  display: ${({ companyNameContactOpen }) =>
+    companyNameContactOpen ? 'flex' : 'none'};
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: 5%;
+
+  .MuiFormControl-root {
+    width: 100%;
+  }
+
+  .MuiInputBase-input {
+    font-size: 1rem;
+    height: 2em;
+    padding: 0px 30px 0px 4px;
+    margin-bottom: -1px;
+  }
+
+  .MuiInputBase-root {
+    width: calc(100% + 28px);
+  }
+
+  .MuiIconButton-root {
+    padding: 3px;
+    margin: 4px 0px 1px 2px;
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 1.23rem;
+    color: #0000008a;
+  }
+
+  .MuiGrid-align-items-xs-flex-end {
+    align-items: flex-start;
+  }
+
+  .MuiGrid-container {
+    width: 100%;
+    margin: 0;
+
+    .MuiGrid-item:nth-child(1) {
+      width: calc(100% - 28px);
+    }
+
+    .MuiGrid-item {
+      padding: 0;
+
+      & > .MuiSvgIcon-root {
+        margin: 0 0 -2px 5px;
+      }
+    }
+  }
+`;
+
+export const WhatIsCompanyEmailContact = styled.div<CompanyEmailContactProps>`
+  width: 50%;
+  display: ${({ companyEmailContactOpen }) =>
+    companyEmailContactOpen ? 'flex' : 'none'};
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: 5%;
+
+  .MuiFormControl-root {
+    width: 100%;
+  }
+
+  .MuiInputBase-input {
+    font-size: 1rem;
+    height: 2em;
+    padding: 0px 30px 0px 4px;
+    margin-bottom: -1px;
+  }
+
+  .MuiInputBase-root {
+    width: calc(100% + 28px);
+  }
+
+  .MuiIconButton-root {
+    padding: 3px;
+    margin: 4px 0px 1px 2px;
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 1.23rem;
+    color: #0000008a;
+  }
+
+  .MuiGrid-align-items-xs-flex-end {
+    align-items: flex-start;
+  }
+
+  .MuiGrid-container {
+    width: 100%;
+    margin: 0;
+
+    .MuiGrid-item:nth-child(1) {
+      width: calc(100% - 28px);
+    }
+
+    .MuiGrid-item {
+      padding: 0;
+
+      & > .MuiSvgIcon-root {
+        margin: 0 0 -2px 5px;
+      }
+    }
+  }
+`;
+
+export const WhatIsCompanyPhoneContact = styled.div<CompanyPhoneContactProps>`
+  width: 50%;
+  display: ${({ companyPhoneContactOpen }) =>
+    companyPhoneContactOpen ? 'flex' : 'none'};
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: 5%;
+
+  .MuiFormControl-root {
+    width: 100%;
+  }
+
+  .MuiInputBase-input {
+    font-size: 1rem;
+    height: 2em;
+    padding: 0px 30px 0px 4px;
+    margin-bottom: -1px;
   }
 
   .MuiInputBase-root {
