@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, ChangeEvent } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Autocomplete, createFilterOptions } from '@material-ui/lab';
 import {
   ThemeProvider,
@@ -86,6 +86,96 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [counterAnswers, setCounterAnswers] = useState(0);
 
   const { addToast } = useToast();
+
+  const defaultMaterialTheme = createMuiTheme({
+    palette: {
+      primary: {
+        main: color,
+      },
+    },
+    overrides: {
+      MuiAutocomplete: {
+        option: {
+          '&:hover': {
+            backgroundColor: color,
+            color: '#fff',
+          },
+          '&[data-focus="true"]': {
+            backgroundColor: color,
+            color: '#fff',
+            '&:hover': {
+              backgroundColor: color,
+              color: '#fff',
+            },
+          },
+          '&[aria-selected="true"]': {
+            backgroundColor: color,
+            color: '#fff',
+            '&:hover': {
+              backgroundColor: color,
+              color: '#fff',
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const filter = createFilterOptions<CompanyNameState>();
+
+  const companyNames: CompanyNameState[] = [
+    {
+      name: 'Distribuidora Triangulina de Veículos Ltda',
+    },
+    {
+      name: 'Hidrovacuo Saneamento LTDA',
+    },
+    {
+      name: 'Carré - Arte em Mármore e Granito Ltda',
+    },
+    {
+      name: 'Mariangela Borges Alves',
+    },
+    {
+      name: 'Ergosafety',
+    },
+    {
+      name: 'Resolv Prestadora de Serviços Ltda',
+    },
+    {
+      name: 'Arko Industria e Comercio de Mineração e Fertilizant...',
+    },
+    {
+      name: 'Arko Industria e Comercio de Mineração e Fertilizant...',
+    },
+    {
+      name: 'RCM Engenharia e Construções',
+    },
+    {
+      name: 'Supermotos',
+    },
+    {
+      name: 'Empreiteira Cristal Ltda',
+    },
+    {
+      name: 'Arko Industria e Comercio de Mineração e Fertilizant...',
+    },
+    {
+      name: 'Rocha Serviços de Limpeza Profissional Eireli',
+    },
+    {
+      name: 'Ergosafety Segurança do Trabalho LTDA',
+    },
+    {
+      name: 'Montana Andaimes',
+    },
+    {
+      name: 'Composite',
+    },
+    {
+      name: 'Carré - Arte em Mármore e Granito Ltda',
+    },
+  ];
 
   const handleSubmitCompanyName = useCallback(() => {
     if (companyName && companyNameOpen) {
@@ -287,131 +377,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     }
   }, [companyPhone, companyPhoneOpen, companyNameOpen, counterAnswers]);
 
-  const companyNames: CompanyNameState[] = [
-    {
-      name: 'Distribuidora Triangulina de Veículos Ltda',
-    },
-    {
-      name: 'Hidrovacuo Saneamento LTDA',
-    },
-    {
-      name: 'Carré - Arte em Mármore e Granito Ltda',
-    },
-    {
-      name: 'Mariangela Borges Alves',
-    },
-    {
-      name: 'Ergosafety',
-    },
-    {
-      name: 'Resolv Prestadora de Serviços Ltda',
-    },
-    {
-      name: 'Arko Industria e Comercio de Mineração e Fertilizant...',
-    },
-    {
-      name: 'Arko Industria e Comercio de Mineração e Fertilizant...',
-    },
-    {
-      name: 'RCM Engenharia e Construções',
-    },
-    {
-      name: 'Supermotos',
-    },
-    {
-      name: 'Empreiteira Cristal Ltda',
-    },
-    {
-      name: 'Arko Industria e Comercio de Mineração e Fertilizant...',
-    },
-    {
-      name: 'Rocha Serviços de Limpeza Profissional Eireli',
-    },
-    {
-      name: 'Ergosafety Segurança do Trabalho LTDA',
-    },
-    {
-      name: 'Montana Andaimes',
-    },
-    {
-      name: 'Composite',
-    },
-    {
-      name: 'Carré - Arte em Mármore e Granito Ltda',
-    },
-  ];
-
-  const defaultMaterialTheme = createMuiTheme({
-    palette: {
-      primary: {
-        main: color,
-      },
-    },
-    overrides: {
-      MuiAutocomplete: {
-        option: {
-          '&:hover': {
-            backgroundColor: color,
-            color: '#fff',
-          },
-          '&[data-focus="true"]': {
-            backgroundColor: color,
-            color: '#fff',
-            '&:hover': {
-              backgroundColor: color,
-              color: '#fff',
-            },
-          },
-          '&[aria-selected="true"]': {
-            backgroundColor: color,
-            color: '#fff',
-            '&:hover': {
-              backgroundColor: color,
-              color: '#fff',
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const filter = createFilterOptions<CompanyNameState>();
-
-  // This function clear errors when field is empty
-  useEffect(() => {
-    if (companyCpfCnpj === '') {
-      setIsCompanyCpfValid(null);
-      setIsCompanyCnpjValid(null);
-    }
-    if (companyEmailContact === '') {
-      setIsCompanyEmailContactValid(true);
-    }
-    if (companyPhoneContact === '') {
-      setIsCompanyPhoneContactValid(true);
-    }
-    if (companyPhone === '') {
-      setIsCompanyPhoneValid(true);
-    }
-  }, [companyCpfCnpj, companyEmailContact, companyPhoneContact, companyPhone]);
-
-  const forceFocusOnInputField = useCallback((id: string): void => {
-    const getElement = document.getElementById(id);
-
-    if (getElement !== null) {
-      getElement.focus();
-    }
-  }, []);
-
-  $('#companyPhoneContact-input').mask('(00) 0000-0000');
-
-  $('#companyPhone-input').mask('(00) 9 0000-0000');
-
-  $('#companyCpfCnpj-input').mask('00.000.000/0000-00', {
-    onKeyPress(value: string): void {
-      const mask = value.length > 14 ? '00.000.000/0000-00' : '000.000.000-00';
-      $('#companyCpfCnpj-input').mask(mask);
-    },
-  });
+  const handleSubmitForm = useCallback(() => {
+    addToast({
+      type: 'success',
+      description: 'Pedido criado com sucesso!',
+    });
+  }, [addToast]);
 
   const handleChangeToPreviousQuestion = useCallback(() => {
     if (companyNameOpen) {
@@ -491,12 +462,41 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     confirmDataOpen,
   ]);
 
-  const handleSubmitForm = useCallback(() => {
-    addToast({
-      type: 'success',
-      description: 'Pedido criado com sucesso!',
-    });
-  }, [addToast]);
+  const forceFocusOnInputField = useCallback((id: string): void => {
+    const getElement = document.getElementById(id);
+
+    if (getElement !== null) {
+      getElement.focus();
+    }
+  }, []);
+
+  // This function clear errors when field is empty
+  useEffect(() => {
+    if (companyCpfCnpj === '') {
+      setIsCompanyCpfValid(null);
+      setIsCompanyCnpjValid(null);
+    }
+    if (companyEmailContact === '') {
+      setIsCompanyEmailContactValid(true);
+    }
+    if (companyPhoneContact === '') {
+      setIsCompanyPhoneContactValid(true);
+    }
+    if (companyPhone === '') {
+      setIsCompanyPhoneValid(true);
+    }
+  }, [companyCpfCnpj, companyEmailContact, companyPhoneContact, companyPhone]);
+
+  $('#companyPhoneContact-input').mask('(00) 0000-0000');
+
+  $('#companyPhone-input').mask('(00) 9 0000-0000');
+
+  $('#companyCpfCnpj-input').mask('00.000.000/0000-00', {
+    onKeyPress(value: string): void {
+      const mask = value.length > 14 ? '00.000.000/0000-00' : '000.000.000-00';
+      $('#companyCpfCnpj-input').mask(mask);
+    },
+  });
 
   // Monitor keyboard events
   const eventKeyPress = useCallback(
