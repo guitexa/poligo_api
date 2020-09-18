@@ -115,6 +115,10 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
         setIsCompanyCnpjValid(true);
 
+        if (isCompanyCpfValid === true) {
+          setIsCompanyCpfValid(false);
+        }
+
         if (counterAnswers !== 6) {
           setCounterAnswers(counterAnswers + 1); // Set as answered
         }
@@ -137,6 +141,10 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
         setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
         setIsCompanyCpfValid(true);
+
+        if (isCompanyCnpjValid === true) {
+          setIsCompanyCnpjValid(false);
+        }
 
         if (counterAnswers !== 6) {
           setCounterAnswers(counterAnswers + 1); // Set as answered
@@ -161,6 +169,8 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     companyCpfCnpjOpen,
     companyNameContactOpen,
     counterAnswers,
+    isCompanyCnpjValid,
+    isCompanyCpfValid,
   ]);
 
   const handleSubmitCompanyNameContact = useCallback(() => {
@@ -954,7 +964,8 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
             <QuestionData>
               <QuestionsContainer>
                 <p>Razão Social: </p>
-                <p>CNPJ: </p>
+                {isCompanyCnpjValid && <p>CNPJ: </p>}
+                {isCompanyCpfValid && <p>CPF: </p>}
                 <p>Nome do responsável: </p>
                 <p>E-mail do responsável: </p>
                 <p>Telefone da empresa: </p>
