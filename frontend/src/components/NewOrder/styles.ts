@@ -1,5 +1,5 @@
+import styled, { keyframes } from 'styled-components';
 import { shade } from 'polished';
-import styled from 'styled-components';
 
 interface ContentProps {
   color: string;
@@ -25,6 +25,10 @@ interface CompanyPhoneContactProps {
   companyPhoneContactOpen: boolean;
 }
 
+interface CompanyPhoneProps {
+  companyPhoneOpen: boolean;
+}
+
 interface ProgressProps {
   color: string;
   counterAnswers: number;
@@ -33,6 +37,31 @@ interface ProgressProps {
 interface ButtonsControlProps {
   color: string;
 }
+
+interface ConfirmDataProps {
+  confirmDataOpen: boolean;
+  color: string;
+}
+
+const enterEffect = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const opacityEffect = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`;
 
 export const Container = styled.div`
   position: absolute;
@@ -45,8 +74,10 @@ export const Container = styled.div`
   overflow: hidden;
   z-index: 99;
   background: #fff;
+`;
 
-  > form {
+export const Content = styled.div<ContentProps>`
+  .individual-form {
     position: absolute;
     top: 0;
     right: 0;
@@ -55,16 +86,20 @@ export const Container = styled.div`
     width: 100vw;
     overflow: hidden;
     display: flex;
-  }
-`;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding-top: 25vh;
 
-export const Content = styled.div<ContentProps>`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  padding-top: 25vh;
+    > div {
+      width: 50%;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      margin-bottom: 5%;
+      animation: ${enterEffect} 1s;
+    }
+  }
 
   .MuiInput-underline:hover:not(.Mui-disabled)::before {
     border-color: ${({ color }) => color};
@@ -101,7 +136,7 @@ export const AskTitle = styled.div`
   }
 `;
 
-export const SubmitQuestion = styled.div`
+export const SubmitQuestionButton = styled.div`
   margin-top: 15px;
   display: flex;
   justify-content: flex-start;
@@ -124,12 +159,7 @@ export const SubmitQuestion = styled.div`
 `;
 
 export const WhatIsCompanyName = styled.div<CompanyNameProps>`
-  width: 50%;
   display: ${({ companyNameOpen }) => (companyNameOpen ? 'flex' : 'none')};
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  margin-bottom: 5%;
 
   .MuiAutocomplete-root {
     width: 100%;
@@ -161,13 +191,8 @@ export const WhatIsCompanyName = styled.div<CompanyNameProps>`
 `;
 
 export const WhatIsCompanyCpfCnpj = styled.div<CompanyCpfCnpjProps>`
-  width: 50%;
   display: ${({ companyCpfCnpjOpen }) =>
     companyCpfCnpjOpen ? 'flex' : 'none'};
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  margin-bottom: 5%;
 
   .MuiFormControl-root {
     width: 100%;
@@ -217,13 +242,8 @@ export const WhatIsCompanyCpfCnpj = styled.div<CompanyCpfCnpjProps>`
 `;
 
 export const WhatIsCompanyNameContact = styled.div<CompanyNameContactProps>`
-  width: 50%;
   display: ${({ companyNameContactOpen }) =>
     companyNameContactOpen ? 'flex' : 'none'};
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  margin-bottom: 5%;
 
   .MuiFormControl-root {
     width: 100%;
@@ -273,13 +293,8 @@ export const WhatIsCompanyNameContact = styled.div<CompanyNameContactProps>`
 `;
 
 export const WhatIsCompanyEmailContact = styled.div<CompanyEmailContactProps>`
-  width: 50%;
   display: ${({ companyEmailContactOpen }) =>
     companyEmailContactOpen ? 'flex' : 'none'};
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  margin-bottom: 5%;
 
   .MuiFormControl-root {
     width: 100%;
@@ -329,13 +344,58 @@ export const WhatIsCompanyEmailContact = styled.div<CompanyEmailContactProps>`
 `;
 
 export const WhatIsCompanyPhoneContact = styled.div<CompanyPhoneContactProps>`
-  width: 50%;
   display: ${({ companyPhoneContactOpen }) =>
     companyPhoneContactOpen ? 'flex' : 'none'};
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  margin-bottom: 5%;
+
+  .MuiFormControl-root {
+    width: 100%;
+  }
+
+  .MuiInputBase-input {
+    font-size: 1rem;
+    height: 2em;
+    padding: 0px 30px 0px 4px;
+    margin-bottom: -1px;
+  }
+
+  .MuiInputBase-root {
+    width: calc(100% + 28px);
+  }
+
+  .MuiIconButton-root {
+    padding: 3px;
+    margin: 4px 0px 1px 2px;
+  }
+
+  .MuiSvgIcon-root {
+    font-size: 1.23rem;
+    color: #0000008a;
+  }
+
+  .MuiGrid-align-items-xs-flex-end {
+    align-items: flex-start;
+  }
+
+  .MuiGrid-container {
+    width: 100%;
+    margin: 0;
+
+    .MuiGrid-item:nth-child(1) {
+      width: calc(100% - 28px);
+    }
+
+    .MuiGrid-item {
+      padding: 0;
+
+      & > .MuiSvgIcon-root {
+        margin: 0 0 -2px 5px;
+      }
+    }
+  }
+`;
+
+export const WhatIsCompanyPhone = styled.div<CompanyPhoneProps>`
+  display: ${({ companyPhoneOpen }) => (companyPhoneOpen ? 'flex' : 'none')};
 
   .MuiFormControl-root {
     width: 100%;
@@ -408,14 +468,16 @@ export const Progress = styled.div<ProgressProps>`
   .progress-bar {
     width: ${({ counterAnswers }) =>
       counterAnswers === 1
-        ? '20%'
+        ? '16%'
         : counterAnswers === 2
-        ? '40%'
+        ? '33%'
         : counterAnswers === 3
-        ? '60%'
+        ? '50%'
         : counterAnswers === 4
-        ? '80%'
+        ? '66%'
         : counterAnswers === 5
+        ? '83%'
+        : counterAnswers === 6
         ? '100%'
         : 0};
     height: 6px;
@@ -463,6 +525,80 @@ export const ButtonsControl = styled.div<ButtonsControlProps>`
       color: #fff;
       width: 30px;
       height: 30px;
+    }
+  }
+`;
+
+export const ConfirmData = styled.div<ConfirmDataProps>`
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  width: 100vw;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+  animation: ${opacityEffect} 0.5s;
+`;
+
+export const QuestionData = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+export const QuestionsContainer = styled.div`
+  width: 40%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: 15px;
+
+  p {
+    padding: 10px 0;
+    color: #888;
+  }
+`;
+
+export const AnswersContainer = styled.div`
+  width: 60%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: flex-start;
+
+  p {
+    padding: 10px 0;
+    color: #222;
+  }
+`;
+
+export const SubmitFormButton = styled.div`
+  width: 100%;
+  margin-top: 15px;
+  padding-left: calc(40% + 10px);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  div {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-end;
+
+    span {
+      margin: 0 7px 0 15px;
+      font-size: 13px;
+    }
+
+    img {
+      height: 17px;
     }
   }
 `;

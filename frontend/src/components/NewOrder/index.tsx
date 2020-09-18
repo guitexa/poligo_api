@@ -1,17 +1,15 @@
-import React, { useRef, useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, ChangeEvent } from 'react';
 import { Autocomplete, createFilterOptions } from '@material-ui/lab';
 import {
   ThemeProvider,
-  TextField,
   createMuiTheme,
   Grid,
+  TextField,
   IconButton,
 } from '@material-ui/core';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
 import { FiArrowRight, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { Form } from '@unform/web';
-import { FormHandles } from '@unform/core';
 import { Close } from '@material-ui/icons';
 import { isCNPJ, isCPF, isPhone } from 'brazilian-values';
 import isEmail from 'validator/es/lib/isEmail';
@@ -20,6 +18,8 @@ import 'jquery-mask-plugin/dist/jquery.mask.min';
 
 import EnterIcon from '../../assets/icons/icon-enter.svg';
 
+import { useToast } from '../../hooks/toast';
+
 import Button from '../Button';
 import DisabledButton from '../DisabledButton';
 
@@ -27,15 +27,21 @@ import {
   Container,
   Content,
   AskTitle,
-  SubmitQuestion,
   WhatIsCompanyName,
   WhatIsCompanyCpfCnpj,
   WhatIsCompanyNameContact,
   WhatIsCompanyEmailContact,
   WhatIsCompanyPhoneContact,
+  WhatIsCompanyPhone,
+  SubmitQuestionButton,
   Footer,
   Progress,
   ButtonsControl,
+  ConfirmData,
+  QuestionData,
+  QuestionsContainer,
+  AnswersContainer,
+  SubmitFormButton,
 } from './styles';
 
 interface NewOrderProps {
@@ -52,32 +58,53 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [companyCpfCnpj, setCompanyCpfCnpj] = useState('');
   const [companyNameContact, setCompanyNameContact] = useState('');
   const [companyEmailContact, setCompanyEmailContact] = useState('');
+  const [companyPhone, setCompanyPhone] = useState('');
   const [companyPhoneContact, setCompanyPhoneContact] = useState('');
 
   const [companyNameOpen, setCompanyNameOpen] = useState(true);
   const [companyCpfCnpjOpen, setCompanyCpfCnpjOpen] = useState(false);
   const [companyNameContactOpen, setCompanyNameContactOpen] = useState(false);
   const [companyEmailContactOpen, setCompanyEmailContactOpen] = useState(false);
+  const [companyPhoneOpen, setCompanyPhoneOpen] = useState(false);
   const [companyPhoneContactOpen, setCompanyPhoneContactOpen] = useState(false);
+  const [confirmDataOpen, setConfirmDataOpen] = useState(false);
 
-  const [isCompanyCpfValid, setIsCompanyCpfValid] = useState(true);
-  const [isCompanyCnpjValid, setIsCompanyCnpjValid] = useState(true);
+  const [isCompanyCpfValid, setIsCompanyCpfValid] = useState<boolean | null>(
+    null
+  );
+  const [isCompanyCnpjValid, setIsCompanyCnpjValid] = useState<boolean | null>(
+    null
+  );
   const [isCompanyEmailContactValid, setIsCompanyEmailContactValid] = useState(
     true
   );
   const [isCompanyPhoneContactValid, setIsCompanyPhoneContactValid] = useState(
     true
   );
+  const [isCompanyPhoneValid, setIsCompanyPhoneValid] = useState(true);
 
   const [counterAnswers, setCounterAnswers] = useState(0);
 
-  const formRef = useRef<FormHandles>(null);
+  const { addToast } = useToast();
 
   const handleSubmitCompanyName = useCallback(() => {
     if (companyName && companyNameOpen) {
       setCompanyNameOpen(!companyNameOpen); // Close question opened
       setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Open next question
-      setCounterAnswers(counterAnswers + 1); // Set as answered
+
+      if (counterAnswers !== 6) {
+        setCounterAnswers(counterAnswers + 1); // Set as answered
+      }
+
+      if (counterAnswers >= 5) {
+        setCompanyNameOpen(false);
+        setCompanyCpfCnpjOpen(false);
+        setCompanyNameContactOpen(false);
+        setCompanyEmailContactOpen(false);
+        setCompanyPhoneContactOpen(false);
+        setCompanyPhoneOpen(false);
+        setConfirmDataOpen(true);
+      }
     }
   }, [companyName, companyNameOpen, companyCpfCnpjOpen, counterAnswers]);
 
@@ -87,20 +114,46 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
         setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
         setIsCompanyCnpjValid(true);
-        setIsCompanyCpfValid(true);
-        setCounterAnswers(counterAnswers + 1); // Set as answered
-      } else {
+
+        if (counterAnswers !== 6) {
+          setCounterAnswers(counterAnswers + 1); // Set as answered
+        }
+
+        if (counterAnswers >= 5) {
+          setCompanyNameOpen(false);
+          setCompanyCpfCnpjOpen(false);
+          setCompanyNameContactOpen(false);
+          setCompanyEmailContactOpen(false);
+          setCompanyPhoneContactOpen(false);
+          setCompanyPhoneOpen(false);
+          setConfirmDataOpen(true);
+        }
+      } else if (companyCpfCnpj.length > 14) {
         setIsCompanyCnpjValid(false);
+        setIsCompanyCpfValid(null);
       }
 
       if (isCPF(companyCpfCnpj)) {
         setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
         setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
-        setIsCompanyCnpjValid(true);
         setIsCompanyCpfValid(true);
-        setCounterAnswers(counterAnswers + 1); // Set as answered
-      } else {
+
+        if (counterAnswers !== 6) {
+          setCounterAnswers(counterAnswers + 1); // Set as answered
+        }
+
+        if (counterAnswers >= 5) {
+          setCompanyNameOpen(false);
+          setCompanyCpfCnpjOpen(false);
+          setCompanyNameContactOpen(false);
+          setCompanyEmailContactOpen(false);
+          setCompanyPhoneContactOpen(false);
+          setCompanyPhoneOpen(false);
+          setConfirmDataOpen(true);
+        }
+      } else if (companyCpfCnpj.length <= 14) {
         setIsCompanyCpfValid(false);
+        setIsCompanyCnpjValid(null);
       }
     }
   }, [
@@ -114,7 +167,20 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     if (companyNameContact && companyNameContactOpen) {
       setCompanyNameContactOpen(!companyNameContactOpen); // Close question opened
       setCompanyEmailContactOpen(!companyEmailContactOpen); // Open next question
-      setCounterAnswers(counterAnswers + 1); // Set as answered
+
+      if (counterAnswers !== 6) {
+        setCounterAnswers(counterAnswers + 1); // Set as answered
+      }
+
+      if (counterAnswers >= 5) {
+        setCompanyNameOpen(false);
+        setCompanyCpfCnpjOpen(false);
+        setCompanyNameContactOpen(false);
+        setCompanyEmailContactOpen(false);
+        setCompanyPhoneContactOpen(false);
+        setCompanyPhoneOpen(false);
+        setConfirmDataOpen(true);
+      }
     }
   }, [
     companyNameContact,
@@ -129,7 +195,20 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         setCompanyEmailContactOpen(!companyEmailContactOpen); // Close question opened
         setCompanyPhoneContactOpen(!companyPhoneContactOpen); // Open next question
         setIsCompanyEmailContactValid(true);
-        setCounterAnswers(counterAnswers + 1); // Set as answered
+
+        if (counterAnswers !== 6) {
+          setCounterAnswers(counterAnswers + 1); // Set as answered
+        }
+
+        if (counterAnswers >= 5) {
+          setCompanyNameOpen(false);
+          setCompanyCpfCnpjOpen(false);
+          setCompanyNameContactOpen(false);
+          setCompanyEmailContactOpen(false);
+          setCompanyPhoneContactOpen(false);
+          setCompanyPhoneOpen(false);
+          setConfirmDataOpen(true);
+        }
       } else {
         setIsCompanyEmailContactValid(false);
       }
@@ -145,9 +224,22 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     if (companyPhoneContact && companyPhoneContactOpen) {
       if (isPhone(companyPhoneContact)) {
         setCompanyPhoneContactOpen(!companyPhoneContactOpen); // Close question opened
-        setCompanyNameOpen(!companyNameOpen); // Open next question
+        setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
         setIsCompanyPhoneContactValid(true);
-        setCounterAnswers(counterAnswers + 1); // Set as answered
+
+        if (counterAnswers !== 6) {
+          setCounterAnswers(counterAnswers + 1); // Set as answered
+        }
+
+        if (counterAnswers >= 5) {
+          setCompanyNameOpen(false);
+          setCompanyCpfCnpjOpen(false);
+          setCompanyNameContactOpen(false);
+          setCompanyEmailContactOpen(false);
+          setCompanyPhoneContactOpen(false);
+          setCompanyPhoneOpen(false);
+          setConfirmDataOpen(true);
+        }
       } else {
         setIsCompanyPhoneContactValid(false);
       }
@@ -155,9 +247,35 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   }, [
     companyPhoneContact,
     companyPhoneContactOpen,
-    companyNameOpen,
+    companyPhoneOpen,
     counterAnswers,
   ]);
+
+  const handleSubmitCompanyPhone = useCallback(() => {
+    if (companyPhone && companyPhoneOpen) {
+      if (isPhone(companyPhone)) {
+        setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
+        setCompanyNameOpen(!companyNameOpen); // Open next question
+        setIsCompanyPhoneValid(true);
+
+        if (counterAnswers !== 6) {
+          setCounterAnswers(counterAnswers + 1); // Set as answered
+        }
+
+        if (counterAnswers >= 5) {
+          setCompanyNameOpen(false);
+          setCompanyCpfCnpjOpen(false);
+          setCompanyNameContactOpen(false);
+          setCompanyEmailContactOpen(false);
+          setCompanyPhoneContactOpen(false);
+          setCompanyPhoneOpen(false);
+          setConfirmDataOpen(true);
+        }
+      } else {
+        setIsCompanyPhoneValid(false);
+      }
+    }
+  }, [companyPhone, companyPhoneOpen, companyNameOpen, counterAnswers]);
 
   const companyNames: CompanyNameState[] = [
     {
@@ -252,8 +370,8 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   // This function clear errors when field is empty
   useEffect(() => {
     if (companyCpfCnpj === '') {
-      setIsCompanyCpfValid(true);
-      setIsCompanyCnpjValid(true);
+      setIsCompanyCpfValid(null);
+      setIsCompanyCnpjValid(null);
     }
     if (companyEmailContact === '') {
       setIsCompanyEmailContactValid(true);
@@ -261,7 +379,10 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     if (companyPhoneContact === '') {
       setIsCompanyPhoneContactValid(true);
     }
-  }, [companyCpfCnpj, companyEmailContact, companyPhoneContact]);
+    if (companyPhone === '') {
+      setIsCompanyPhoneValid(true);
+    }
+  }, [companyCpfCnpj, companyEmailContact, companyPhoneContact, companyPhone]);
 
   const forceFocusOnInputField = useCallback((id: string): void => {
     const getElement = document.getElementById(id);
@@ -271,12 +392,9 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     }
   }, []);
 
-  $('#companyPhoneContact-input').mask('(00) 0000-00009', {
-    onKeyPress(value: string): void {
-      const mask = value.length < 15 ? '(00) 0000-00009' : '(00) 00000-0000';
-      $('#companyPhoneContact-input').mask(mask);
-    },
-  });
+  $('#companyPhoneContact-input').mask('(00) 0000-0000');
+
+  $('#companyPhone-input').mask('(00) 9 0000-0000');
 
   $('#companyCpfCnpj-input').mask('00.000.000/0000-00', {
     onKeyPress(value: string): void {
@@ -306,12 +424,22 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       setCompanyPhoneContactOpen(!companyPhoneContactOpen);
       setCompanyEmailContactOpen(!companyEmailContactOpen);
     }
+    if (companyPhoneOpen) {
+      setCompanyPhoneOpen(!companyPhoneOpen);
+      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+    }
+    if (confirmDataOpen) {
+      setConfirmDataOpen(!confirmDataOpen);
+      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+    }
   }, [
     companyNameOpen,
     companyCpfCnpjOpen,
     companyNameContactOpen,
     companyEmailContactOpen,
+    companyPhoneOpen,
     companyPhoneContactOpen,
+    confirmDataOpen,
   ]);
 
   const handleChangeToNextQuestion = useCallback(() => {
@@ -333,6 +461,14 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     }
     if (companyPhoneContactOpen) {
       setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+      setCompanyPhoneOpen(!companyPhoneOpen);
+    }
+    if (companyPhoneOpen) {
+      setCompanyPhoneOpen(!companyPhoneOpen);
+      setCompanyNameOpen(!companyNameOpen);
+    }
+    if (confirmDataOpen) {
+      setConfirmDataOpen(!confirmDataOpen);
       setCompanyNameOpen(!companyNameOpen);
     }
   }, [
@@ -341,28 +477,48 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     companyNameContactOpen,
     companyEmailContactOpen,
     companyPhoneContactOpen,
+    companyPhoneOpen,
+    confirmDataOpen,
   ]);
 
+  const handleSubmitForm = useCallback(() => {
+    addToast({
+      type: 'success',
+      description: 'Pedido criado com sucesso!',
+    });
+  }, [addToast]);
+
+  // Monitor keyboard events
   const eventKeyPress = useCallback(
     (event: KeyboardEvent): void => {
-      console.log('chegou aqui');
       if (event.key === 'PageUp') {
         handleChangeToPreviousQuestion();
       }
       if (event.key === 'PageDown') {
         handleChangeToNextQuestion();
       }
+      if (event.key === 'Enter' && confirmDataOpen) {
+        handleSubmitForm();
+      }
     },
-    [handleChangeToPreviousQuestion, handleChangeToNextQuestion]
+    [
+      confirmDataOpen,
+      handleChangeToPreviousQuestion,
+      handleChangeToNextQuestion,
+      handleSubmitForm,
+    ]
   );
   document.onkeydown = eventKeyPress;
 
   return (
     <ThemeProvider theme={defaultMaterialTheme}>
       <Container>
-        <Form ref={formRef} onSubmit={() => {}}>
-          <Content color={color}>
-            {companyNameOpen && (
+        <Content color={color}>
+          {companyNameOpen && (
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="individual-form"
+            >
               <WhatIsCompanyName companyNameOpen={companyNameOpen}>
                 <AskTitle>
                   <div>
@@ -374,9 +530,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </div>
                 </AskTitle>
                 <Autocomplete
-                  openOnFocus={companyName === null}
                   openText=""
-                  id="input-highlights"
                   clearOnBlur={false}
                   value={companyName}
                   onChange={(event, newCompanyName) => {
@@ -413,10 +567,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   }}
                   renderInput={(params) => (
                     <TextField
+                      name="companyName"
                       autoFocus
+                      autoComplete="off"
+                      placeholder="Escreva ou selecione uma opção"
                       helperText=" "
                       {...params}
-                      placeholder="Escreva ou selecione uma opção"
                     />
                   )}
                   renderOption={({ name }, { inputValue }) => {
@@ -438,7 +594,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   }}
                 />
                 {companyName?.name ? (
-                  <SubmitQuestion>
+                  <SubmitQuestionButton>
                     <Button onClick={handleSubmitCompanyName}>Continuar</Button>
                     <div>
                       <span>
@@ -446,13 +602,18 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
-                  </SubmitQuestion>
+                  </SubmitQuestionButton>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
               </WhatIsCompanyName>
-            )}
-            {companyCpfCnpjOpen && (
+            </form>
+          )}
+          {companyCpfCnpjOpen && (
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="individual-form"
+            >
               <WhatIsCompanyCpfCnpj companyCpfCnpjOpen={companyCpfCnpjOpen}>
                 <AskTitle>
                   <div>
@@ -460,25 +621,32 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     <FiArrowRight />
                   </div>
                   <div>
-                    Qual o <strong>CNPJ</strong> ou <strong>CPF</strong> deste
+                    Qual o <strong>CNPJ</strong> ou <strong>CPF</strong> do
                     cliente?
                   </div>
                 </AskTitle>
                 <Grid container spacing={1} alignItems="flex-end">
                   <Grid item>
                     <TextField
+                      id="companyCpfCnpj-input"
+                      name="companyCpfCnpj"
                       autoFocus
-                      error={!isCompanyCpfValid || !isCompanyCnpjValid}
+                      autoComplete="off"
+                      placeholder="Digite aqui"
+                      error={
+                        isCompanyCpfValid === false ||
+                        isCompanyCnpjValid === false
+                      }
                       helperText={
-                        !isCompanyCnpjValid || !isCompanyCpfValid
-                          ? 'Dados inválidos'
+                        isCompanyCpfValid === false
+                          ? 'CPF inválido'
+                          : isCompanyCnpjValid !== null &&
+                            isCompanyCnpjValid !== true
+                          ? 'CNPJ inválido'
                           : ' '
                       }
-                      placeholder="Digite aqui"
                       value={companyCpfCnpj}
                       onChange={(e) => setCompanyCpfCnpj(e.target.value)}
-                      name="formattedValue"
-                      id="companyCpfCnpj-input"
                     />
                   </Grid>
                   <Grid item>
@@ -495,7 +663,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </Grid>
                 </Grid>
                 {companyCpfCnpj !== '' ? (
-                  <SubmitQuestion>
+                  <SubmitQuestionButton>
                     <Button onClick={handleSubmitCompanyCpfCnpj}>
                       Continuar
                     </Button>
@@ -505,13 +673,18 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
-                  </SubmitQuestion>
+                  </SubmitQuestionButton>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
               </WhatIsCompanyCpfCnpj>
-            )}
-            {companyNameContactOpen && (
+            </form>
+          )}
+          {companyNameContactOpen && (
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="individual-form"
+            >
               <WhatIsCompanyNameContact
                 companyNameContactOpen={companyNameContactOpen}
               >
@@ -527,12 +700,14 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                 <Grid container spacing={1} alignItems="flex-end">
                   <Grid item>
                     <TextField
+                      id="companyNameContact-input"
+                      name="companyNameContact"
                       autoFocus
-                      helperText=" "
+                      autoComplete="off"
                       placeholder="Digite aqui"
+                      helperText=" "
                       value={companyNameContact}
                       onChange={(e) => setCompanyNameContact(e.target.value)}
-                      id="companyNameContact-input"
                     />
                   </Grid>
                   <Grid item>
@@ -549,7 +724,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </Grid>
                 </Grid>
                 {companyNameContact !== '' ? (
-                  <SubmitQuestion>
+                  <SubmitQuestionButton>
                     <Button onClick={handleSubmitCompanyNameContact}>
                       Continuar
                     </Button>
@@ -559,13 +734,18 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
-                  </SubmitQuestion>
+                  </SubmitQuestionButton>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
               </WhatIsCompanyNameContact>
-            )}
-            {companyEmailContactOpen && (
+            </form>
+          )}
+          {companyEmailContactOpen && (
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="individual-form"
+            >
               <WhatIsCompanyEmailContact
                 companyEmailContactOpen={companyEmailContactOpen}
               >
@@ -581,15 +761,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                 <Grid container spacing={1} alignItems="flex-end">
                   <Grid item>
                     <TextField
+                      id="companyEmailContact-input"
+                      name="companyEmailContact"
                       autoFocus
+                      autoComplete="off"
+                      placeholder="Digite aqui"
                       error={!isCompanyEmailContactValid}
                       helperText={
                         !isCompanyEmailContactValid ? 'E-mail inválido' : ' '
                       }
-                      placeholder="Digite aqui"
                       value={companyEmailContact}
                       onChange={(e) => setCompanyEmailContact(e.target.value)}
-                      id="companyEmailContact-input"
                     />
                   </Grid>
                   <Grid item>
@@ -606,7 +788,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </Grid>
                 </Grid>
                 {companyEmailContact !== '' ? (
-                  <SubmitQuestion>
+                  <SubmitQuestionButton>
                     <Button onClick={handleSubmitCompanyEmailContact}>
                       Continuar
                     </Button>
@@ -616,13 +798,18 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
-                  </SubmitQuestion>
+                  </SubmitQuestionButton>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
               </WhatIsCompanyEmailContact>
-            )}
-            {companyPhoneContactOpen && (
+            </form>
+          )}
+          {companyPhoneContactOpen && (
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="individual-form"
+            >
               <WhatIsCompanyPhoneContact
                 companyPhoneContactOpen={companyPhoneContactOpen}
               >
@@ -632,22 +819,23 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     <FiArrowRight />
                   </div>
                   <div>
-                    Qual o <strong>telefone</strong> do responsável?
+                    Qual o <strong>telefone fixo</strong> do cliente?
                   </div>
                 </AskTitle>
                 <Grid container spacing={1} alignItems="flex-end">
                   <Grid item>
                     <TextField
-                      autoFocus
-                      placeholder="Digite aqui"
                       id="companyPhoneContact-input"
+                      name="companyPhoneContact"
+                      autoFocus
+                      autoComplete="off"
+                      placeholder="Digite aqui"
                       error={!isCompanyPhoneContactValid}
                       helperText={
                         !isCompanyPhoneContactValid ? 'Telefone inválido' : ' '
                       }
                       value={companyPhoneContact}
                       onChange={(e) => setCompanyPhoneContact(e.target.value)}
-                      autoComplete="off"
                     />
                   </Grid>
                   <Grid item>
@@ -664,7 +852,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   </Grid>
                 </Grid>
                 {companyPhoneContact !== '' ? (
-                  <SubmitQuestion>
+                  <SubmitQuestionButton>
                     <Button onClick={handleSubmitCompanyPhoneContact}>
                       Continuar
                     </Button>
@@ -674,31 +862,124 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       </span>
                       <img src={EnterIcon} alt="" />
                     </div>
-                  </SubmitQuestion>
+                  </SubmitQuestionButton>
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
               </WhatIsCompanyPhoneContact>
-            )}
-          </Content>
-        </Form>
-        <Footer>
-          <Progress color={color} counterAnswers={counterAnswers}>
-            <span>
-              {counterAnswers} de 5 respondida{counterAnswers > 1 && 's'}
-            </span>
-            <div className="progress-bar" />
-            <div className="bg-progress-bar" />
-          </Progress>
-          <ButtonsControl color={color}>
-            <button type="button" onClick={handleChangeToPreviousQuestion}>
-              <FiChevronUp />
-            </button>
-            <button type="button" onClick={handleChangeToNextQuestion}>
-              <FiChevronDown />
-            </button>
-          </ButtonsControl>
-        </Footer>
+            </form>
+          )}
+          {companyPhoneOpen && (
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="individual-form"
+            >
+              <WhatIsCompanyPhone companyPhoneOpen={companyPhoneOpen}>
+                <AskTitle>
+                  <div>
+                    <span>6</span>
+                    <FiArrowRight />
+                  </div>
+                  <div>
+                    Qual o <strong>telefone celular</strong> do responsável?
+                  </div>
+                </AskTitle>
+                <Grid container spacing={1} alignItems="flex-end">
+                  <Grid item>
+                    <TextField
+                      id="companyPhone-input"
+                      name="companyPhone"
+                      autoFocus
+                      autoComplete="off"
+                      placeholder="Digite aqui"
+                      error={!isCompanyPhoneValid}
+                      helperText={
+                        !isCompanyPhoneValid ? 'Telefone inválido' : ' '
+                      }
+                      value={companyPhone}
+                      onChange={(e) => setCompanyPhone(e.target.value)}
+                    />
+                  </Grid>
+                  <Grid item>
+                    {companyPhone && (
+                      <IconButton
+                        onClick={() => {
+                          setCompanyPhone('');
+                          forceFocusOnInputField('companyPhone-input');
+                        }}
+                      >
+                        <Close />
+                      </IconButton>
+                    )}
+                  </Grid>
+                </Grid>
+                {companyPhone !== '' ? (
+                  <SubmitQuestionButton>
+                    <Button onClick={handleSubmitCompanyPhone}>
+                      Continuar
+                    </Button>
+                    <div>
+                      <span>
+                        Pressione <strong>ENTER</strong>
+                      </span>
+                      <img src={EnterIcon} alt="" />
+                    </div>
+                  </SubmitQuestionButton>
+                ) : (
+                  <DisabledButton>Continuar</DisabledButton>
+                )}
+              </WhatIsCompanyPhone>
+            </form>
+          )}
+        </Content>
+        {!confirmDataOpen && (
+          <Footer>
+            <Progress color={color} counterAnswers={counterAnswers}>
+              <span>{counterAnswers} de 6 respondidas</span>
+              <div className="progress-bar" />
+              <div className="bg-progress-bar" />
+            </Progress>
+            <ButtonsControl color={color}>
+              <button type="button" onClick={handleChangeToPreviousQuestion}>
+                <FiChevronUp />
+              </button>
+              <button type="button" onClick={handleChangeToNextQuestion}>
+                <FiChevronDown />
+              </button>
+            </ButtonsControl>
+          </Footer>
+        )}
+        {confirmDataOpen && (
+          <ConfirmData confirmDataOpen={confirmDataOpen} color={color}>
+            <QuestionData>
+              <QuestionsContainer>
+                <p>Razão Social: </p>
+                <p>CNPJ: </p>
+                <p>Nome do responsável: </p>
+                <p>E-mail do responsável: </p>
+                <p>Telefone da empresa: </p>
+                <p>Telefone do responsável: </p>
+              </QuestionsContainer>
+              <AnswersContainer>
+                <p>{companyName?.name}</p>
+                <p>{companyCpfCnpj}</p>
+                <p>{companyNameContact}</p>
+                <p>{companyEmailContact}</p>
+                <p>{companyPhone}</p>
+                <p>{companyPhoneContact}</p>
+              </AnswersContainer>
+            </QuestionData>
+            <SubmitFormButton>
+              <Button onClick={handleSubmitForm}>Criar pedido</Button>
+              <div>
+                <span>
+                  Pressione <strong>ENTER</strong>
+                </span>
+                <img src={EnterIcon} alt="" />
+              </div>
+            </SubmitFormButton>
+          </ConfirmData>
+        )}
       </Container>
     </ThemeProvider>
   );
