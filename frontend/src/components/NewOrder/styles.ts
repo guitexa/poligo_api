@@ -21,8 +21,8 @@ interface CompanyEmailContactProps {
   companyEmailContactOpen: boolean;
 }
 
-interface CompanyPhoneContactProps {
-  companyPhoneContactOpen: boolean;
+interface CompanyMobilePhoneContactProps {
+  companyMobilePhoneContactOpen: boolean;
 }
 
 interface CompanyPhoneProps {
@@ -343,9 +343,11 @@ export const WhatIsCompanyEmailContact = styled.div<CompanyEmailContactProps>`
   }
 `;
 
-export const WhatIsCompanyPhoneContact = styled.div<CompanyPhoneContactProps>`
-  display: ${({ companyPhoneContactOpen }) =>
-    companyPhoneContactOpen ? 'flex' : 'none'};
+export const WhatIsCompanyMobilePhoneContact = styled.div<
+  CompanyMobilePhoneContactProps
+>`
+  display: ${({ companyMobilePhoneContactOpen }) =>
+    companyMobilePhoneContactOpen ? 'flex' : 'none'};
 
   .MuiFormControl-root {
     width: 100%;

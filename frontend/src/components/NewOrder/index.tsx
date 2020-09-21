@@ -11,10 +11,14 @@ import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
 import { FiArrowRight, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { Close } from '@material-ui/icons';
-import { isCNPJ, isCPF, isPhone } from 'brazilian-values';
+import {
+  isCNPJ,
+  isCPF,
+  isPhone,
+  formatToPhone,
+  formatToCPFOrCNPJ,
+} from 'brazilian-values';
 import isEmail from 'validator/es/lib/isEmail';
-import $ from 'jquery';
-import 'jquery-mask-plugin/dist/jquery.mask.min';
 
 import EnterIcon from '../../assets/icons/icon-enter.svg';
 
@@ -31,7 +35,7 @@ import {
   WhatIsCompanyCpfCnpj,
   WhatIsCompanyNameContact,
   WhatIsCompanyEmailContact,
-  WhatIsCompanyPhoneContact,
+  WhatIsCompanyMobilePhoneContact,
   WhatIsCompanyPhone,
   SubmitQuestionButton,
   Footer,
@@ -59,14 +63,19 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [companyNameContact, setCompanyNameContact] = useState('');
   const [companyEmailContact, setCompanyEmailContact] = useState('');
   const [companyPhone, setCompanyPhone] = useState('');
-  const [companyPhoneContact, setCompanyPhoneContact] = useState('');
+  const [companyMobilePhoneContact, setCompanyMobilePhoneContact] = useState(
+    ''
+  );
 
   const [companyNameOpen, setCompanyNameOpen] = useState(true);
   const [companyCpfCnpjOpen, setCompanyCpfCnpjOpen] = useState(false);
   const [companyNameContactOpen, setCompanyNameContactOpen] = useState(false);
   const [companyEmailContactOpen, setCompanyEmailContactOpen] = useState(false);
+  const [
+    companyMobilePhoneContactOpen,
+    setCompanyMobilePhoneContactOpen,
+  ] = useState(false);
   const [companyPhoneOpen, setCompanyPhoneOpen] = useState(false);
-  const [companyPhoneContactOpen, setCompanyPhoneContactOpen] = useState(false);
   const [confirmDataOpen, setConfirmDataOpen] = useState(false);
 
   const [isCompanyCpfValid, setIsCompanyCpfValid] = useState<boolean | null>(
@@ -78,9 +87,10 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [isCompanyEmailContactValid, setIsCompanyEmailContactValid] = useState(
     true
   );
-  const [isCompanyPhoneContactValid, setIsCompanyPhoneContactValid] = useState(
-    true
-  );
+  const [
+    isCompanyMobilePhoneContactValid,
+    setIsCompanyMobilePhoneContactValid,
+  ] = useState(true);
   const [isCompanyPhoneValid, setIsCompanyPhoneValid] = useState(true);
 
   const [counterAnswers, setCounterAnswers] = useState(0);
@@ -191,7 +201,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         setCompanyCpfCnpjOpen(false);
         setCompanyNameContactOpen(false);
         setCompanyEmailContactOpen(false);
-        setCompanyPhoneContactOpen(false);
+        setCompanyMobilePhoneContactOpen(false);
         setCompanyPhoneOpen(false);
         setConfirmDataOpen(true);
       }
@@ -218,7 +228,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           setCompanyCpfCnpjOpen(false);
           setCompanyNameContactOpen(false);
           setCompanyEmailContactOpen(false);
-          setCompanyPhoneContactOpen(false);
+          setCompanyMobilePhoneContactOpen(false);
           setCompanyPhoneOpen(false);
           setConfirmDataOpen(true);
         }
@@ -245,7 +255,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           setCompanyCpfCnpjOpen(false);
           setCompanyNameContactOpen(false);
           setCompanyEmailContactOpen(false);
-          setCompanyPhoneContactOpen(false);
+          setCompanyMobilePhoneContactOpen(false);
           setCompanyPhoneOpen(false);
           setConfirmDataOpen(true);
         }
@@ -277,7 +287,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         setCompanyCpfCnpjOpen(false);
         setCompanyNameContactOpen(false);
         setCompanyEmailContactOpen(false);
-        setCompanyPhoneContactOpen(false);
+        setCompanyMobilePhoneContactOpen(false);
         setCompanyPhoneOpen(false);
         setConfirmDataOpen(true);
       }
@@ -293,7 +303,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     if (companyEmailContact && companyEmailContactOpen) {
       if (isEmail(companyEmailContact)) {
         setCompanyEmailContactOpen(!companyEmailContactOpen); // Close question opened
-        setCompanyPhoneContactOpen(!companyPhoneContactOpen); // Open next question
+        setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Open next question
         setIsCompanyEmailContactValid(true);
 
         if (counterAnswers !== 6) {
@@ -305,7 +315,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           setCompanyCpfCnpjOpen(false);
           setCompanyNameContactOpen(false);
           setCompanyEmailContactOpen(false);
-          setCompanyPhoneContactOpen(false);
+          setCompanyMobilePhoneContactOpen(false);
           setCompanyPhoneOpen(false);
           setConfirmDataOpen(true);
         }
@@ -316,16 +326,16 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   }, [
     companyEmailContact,
     companyEmailContactOpen,
-    companyPhoneContactOpen,
+    companyMobilePhoneContactOpen,
     counterAnswers,
   ]);
 
-  const handleSubmitCompanyPhoneContact = useCallback(() => {
-    if (companyPhoneContact && companyPhoneContactOpen) {
-      if (isPhone(companyPhoneContact)) {
-        setCompanyPhoneContactOpen(!companyPhoneContactOpen); // Close question opened
+  const handleSubmitCompanyMobilePhoneContact = useCallback(() => {
+    if (companyMobilePhoneContact && companyMobilePhoneContactOpen) {
+      if (isPhone(companyMobilePhoneContact)) {
+        setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Close question opened
         setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
-        setIsCompanyPhoneContactValid(true);
+        setIsCompanyMobilePhoneContactValid(true);
 
         if (counterAnswers !== 6) {
           setCounterAnswers(counterAnswers + 1); // Set as answered
@@ -336,17 +346,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           setCompanyCpfCnpjOpen(false);
           setCompanyNameContactOpen(false);
           setCompanyEmailContactOpen(false);
-          setCompanyPhoneContactOpen(false);
+          setCompanyMobilePhoneContactOpen(false);
           setCompanyPhoneOpen(false);
           setConfirmDataOpen(true);
         }
       } else {
-        setIsCompanyPhoneContactValid(false);
+        setIsCompanyMobilePhoneContactValid(false);
       }
     }
   }, [
-    companyPhoneContact,
-    companyPhoneContactOpen,
+    companyMobilePhoneContact,
+    companyMobilePhoneContactOpen,
     companyPhoneOpen,
     counterAnswers,
   ]);
@@ -367,7 +377,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           setCompanyCpfCnpjOpen(false);
           setCompanyNameContactOpen(false);
           setCompanyEmailContactOpen(false);
-          setCompanyPhoneContactOpen(false);
+          setCompanyMobilePhoneContactOpen(false);
           setCompanyPhoneOpen(false);
           setConfirmDataOpen(true);
         }
@@ -387,7 +397,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const handleChangeToPreviousQuestion = useCallback(() => {
     if (companyNameOpen) {
       setCompanyNameOpen(!companyNameOpen);
-      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+      setConfirmDataOpen(!confirmDataOpen);
     }
     if (companyCpfCnpjOpen) {
       setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
@@ -401,17 +411,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       setCompanyEmailContactOpen(!companyEmailContactOpen);
       setCompanyNameContactOpen(!companyNameContactOpen);
     }
-    if (companyPhoneContactOpen) {
-      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+    if (companyMobilePhoneContactOpen) {
+      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
       setCompanyEmailContactOpen(!companyEmailContactOpen);
     }
     if (companyPhoneOpen) {
       setCompanyPhoneOpen(!companyPhoneOpen);
-      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
     }
     if (confirmDataOpen) {
       setConfirmDataOpen(!confirmDataOpen);
-      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+      setCompanyPhoneOpen(!companyPhoneOpen);
     }
   }, [
     companyNameOpen,
@@ -419,7 +429,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     companyNameContactOpen,
     companyEmailContactOpen,
     companyPhoneOpen,
-    companyPhoneContactOpen,
+    companyMobilePhoneContactOpen,
     confirmDataOpen,
   ]);
 
@@ -438,15 +448,15 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     }
     if (companyEmailContactOpen) {
       setCompanyEmailContactOpen(!companyEmailContactOpen);
-      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
     }
-    if (companyPhoneContactOpen) {
-      setCompanyPhoneContactOpen(!companyPhoneContactOpen);
+    if (companyMobilePhoneContactOpen) {
+      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
       setCompanyPhoneOpen(!companyPhoneOpen);
     }
     if (companyPhoneOpen) {
       setCompanyPhoneOpen(!companyPhoneOpen);
-      setCompanyNameOpen(!companyNameOpen);
+      setConfirmDataOpen(!confirmDataOpen);
     }
     if (confirmDataOpen) {
       setConfirmDataOpen(!confirmDataOpen);
@@ -457,7 +467,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     companyCpfCnpjOpen,
     companyNameContactOpen,
     companyEmailContactOpen,
-    companyPhoneContactOpen,
+    companyMobilePhoneContactOpen,
     companyPhoneOpen,
     confirmDataOpen,
   ]);
@@ -479,24 +489,18 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     if (companyEmailContact === '') {
       setIsCompanyEmailContactValid(true);
     }
-    if (companyPhoneContact === '') {
-      setIsCompanyPhoneContactValid(true);
+    if (companyMobilePhoneContact === '') {
+      setIsCompanyMobilePhoneContactValid(true);
     }
     if (companyPhone === '') {
       setIsCompanyPhoneValid(true);
     }
-  }, [companyCpfCnpj, companyEmailContact, companyPhoneContact, companyPhone]);
-
-  $('#companyPhoneContact-input').mask('(00) 0000-0000');
-
-  $('#companyPhone-input').mask('(00) 9 0000-0000');
-
-  $('#companyCpfCnpj-input').mask('00.000.000/0000-00', {
-    onKeyPress(value: string): void {
-      const mask = value.length > 14 ? '00.000.000/0000-00' : '000.000.000-00';
-      $('#companyCpfCnpj-input').mask(mask);
-    },
-  });
+  }, [
+    companyCpfCnpj,
+    companyEmailContact,
+    companyMobilePhoneContact,
+    companyPhone,
+  ]);
 
   // Monitor keyboard events
   const eventKeyPress = useCallback(
@@ -656,7 +660,9 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                           : ' '
                       }
                       value={companyCpfCnpj}
-                      onChange={(e) => setCompanyCpfCnpj(e.target.value)}
+                      onChange={(e) =>
+                        setCompanyCpfCnpj(formatToCPFOrCNPJ(e.target.value))
+                      }
                     />
                   </Grid>
                   <Grid item>
@@ -765,7 +771,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     <FiArrowRight />
                   </div>
                   <div>
-                    Qual o <strong>email</strong> do responsável?
+                    Qual o <strong>e-mail</strong> do responsável?
                   </div>
                 </AskTitle>
                 <Grid container spacing={1} alignItems="flex-end">
@@ -815,13 +821,13 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
               </WhatIsCompanyEmailContact>
             </form>
           )}
-          {companyPhoneContactOpen && (
+          {companyMobilePhoneContactOpen && (
             <form
               onSubmit={(e) => e.preventDefault()}
               className="individual-form"
             >
-              <WhatIsCompanyPhoneContact
-                companyPhoneContactOpen={companyPhoneContactOpen}
+              <WhatIsCompanyMobilePhoneContact
+                companyMobilePhoneContactOpen={companyMobilePhoneContactOpen}
               >
                 <AskTitle>
                   <div>
@@ -829,31 +835,40 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     <FiArrowRight />
                   </div>
                   <div>
-                    Qual o <strong>telefone fixo</strong> do cliente?
+                    Qual o <strong>telefone celular</strong> do responsável?
                   </div>
                 </AskTitle>
                 <Grid container spacing={1} alignItems="flex-end">
                   <Grid item>
                     <TextField
-                      id="companyPhoneContact-input"
-                      name="companyPhoneContact"
+                      id="companyMobilePhoneContact-input"
+                      name="companyMobilePhoneContact"
                       autoFocus
                       autoComplete="off"
                       placeholder="Digite aqui"
-                      error={!isCompanyPhoneContactValid}
+                      error={!isCompanyMobilePhoneContactValid}
                       helperText={
-                        !isCompanyPhoneContactValid ? 'Telefone inválido' : ' '
+                        !isCompanyMobilePhoneContactValid
+                          ? 'Telefone inválido'
+                          : ' '
                       }
-                      value={companyPhoneContact}
-                      onChange={(e) => setCompanyPhoneContact(e.target.value)}
+                      value={companyMobilePhoneContact}
+                      onChange={(e) =>
+                        setCompanyMobilePhoneContact(
+                          formatToPhone(e.target.value)
+                        )
+                      }
+                      inputProps={{ maxLength: 16 }}
                     />
                   </Grid>
                   <Grid item>
-                    {companyPhoneContact && (
+                    {companyMobilePhoneContact && (
                       <IconButton
                         onClick={() => {
-                          setCompanyPhoneContact('');
-                          forceFocusOnInputField('companyPhoneContact-input');
+                          setCompanyMobilePhoneContact('');
+                          forceFocusOnInputField(
+                            'companyMobilePhoneContact-input'
+                          );
                         }}
                       >
                         <Close />
@@ -861,9 +876,9 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     )}
                   </Grid>
                 </Grid>
-                {companyPhoneContact !== '' ? (
+                {companyMobilePhoneContact !== '' ? (
                   <SubmitQuestionButton>
-                    <Button onClick={handleSubmitCompanyPhoneContact}>
+                    <Button onClick={handleSubmitCompanyMobilePhoneContact}>
                       Continuar
                     </Button>
                     <div>
@@ -876,7 +891,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                 ) : (
                   <DisabledButton>Continuar</DisabledButton>
                 )}
-              </WhatIsCompanyPhoneContact>
+              </WhatIsCompanyMobilePhoneContact>
             </form>
           )}
           {companyPhoneOpen && (
@@ -891,7 +906,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     <FiArrowRight />
                   </div>
                   <div>
-                    Qual o <strong>telefone celular</strong> do responsável?
+                    Qual o <strong>telefone fixo</strong> do cliente?
                   </div>
                 </AskTitle>
                 <Grid container spacing={1} alignItems="flex-end">
@@ -907,7 +922,10 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                         !isCompanyPhoneValid ? 'Telefone inválido' : ' '
                       }
                       value={companyPhone}
-                      onChange={(e) => setCompanyPhone(e.target.value)}
+                      onChange={(e) =>
+                        setCompanyPhone(formatToPhone(e.target.value))
+                      }
+                      inputProps={{ maxLength: 14 }}
                     />
                   </Grid>
                   <Grid item>
@@ -977,7 +995,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                 <p>{companyNameContact}</p>
                 <p>{companyEmailContact}</p>
                 <p>{companyPhone}</p>
-                <p>{companyPhoneContact}</p>
+                <p>{companyMobilePhoneContact}</p>
               </AnswersContainer>
             </QuestionData>
             <SubmitFormButton>
