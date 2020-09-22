@@ -17,6 +17,7 @@ import {
   isPhone,
   formatToPhone,
   formatToCPFOrCNPJ,
+  formatToCapitalized,
 } from 'brazilian-values';
 import isEmail from 'validator/es/lib/isEmail';
 
@@ -764,7 +765,13 @@ const NewOrder: React.FC<NewOrderProps> = ({
                         placeholder="Digite aqui"
                         helperText=" "
                         value={companyNameContact}
-                        onChange={(e) => setCompanyNameContact(e.target.value)}
+                        onChange={(e) => {
+                          setCompanyNameContact(
+                            formatToCapitalized(e.target.value, {
+                              trimTrailingWhiteSpaces: false,
+                            })
+                          );
+                        }}
                       />
                     </Grid>
                     <Grid item>

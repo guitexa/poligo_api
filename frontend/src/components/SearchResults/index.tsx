@@ -45,6 +45,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             companyEmailContact="emusa@uol.com.br"
             companyPhone="(34) 3314-5339"
             companyMobilePhoneContact="(34) 9 8834-5339"
+            hasServices
           />
           <HeaderButton
             show={orderOpen && !newServiceOpen}

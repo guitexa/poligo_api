@@ -78,11 +78,15 @@ export const Header = styled.div<HeaderProps>`
 
 export const Content = styled.div<ContentProps>`
   width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 10px;
+
+  form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+  }
 
   .MuiInput-underline:hover:not(.Mui-disabled)::before {
     border-color: ${({ color }) => color};
@@ -142,7 +146,7 @@ export const Service = styled.div`
   }
 `;
 
-export const DescriptionService = styled.div`
+export const Description = styled.div`
   width: 100%;
   margin: 10px 0;
 
@@ -152,7 +156,7 @@ export const DescriptionService = styled.div`
   }
 `;
 
-export const ValueService = styled.div`
+export const Value = styled.div`
   width: 25%;
   min-width: 100px;
   margin: 10px 0;

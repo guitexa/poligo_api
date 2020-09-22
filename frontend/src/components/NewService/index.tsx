@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useCallback } from 'react';
 import TextField from '@material-ui/core/TextField';
 import { createFilterOptions, Autocomplete } from '@material-ui/lab';
 import parse from 'autosuggest-highlight/parse';
@@ -9,9 +9,11 @@ import * as themeAugmentation from '@material-ui/lab/themeAugmentation';
 import { createMuiTheme, Grid, IconButton } from '@material-ui/core';
 import NumberFormat from 'react-number-format';
 import { Close } from '@material-ui/icons';
+import { formatToCapitalized } from 'brazilian-values';
 
 import { FaTimes } from 'react-icons/fa';
 
+import { ServiceData } from '../Order';
 import Button from '../Button';
 import DisabledButton from '../DisabledButton';
 
@@ -21,13 +23,14 @@ import {
   Content,
   Background,
   Service,
-  DescriptionService,
-  ValueService,
+  Description,
+  Value,
 } from './styles';
 
 interface NewServiceProps {
   color: string;
   setNewServiceOpen(e: boolean): void;
+  setServices(e: ServiceData): void;
 }
 
 interface ServiceState {
@@ -74,9 +77,10 @@ function NumberFormatCustom(props: NumberFormatCustomProps): JSX.Element {
 const NewService: React.FC<NewServiceProps> = ({
   color,
   setNewServiceOpen,
+  setServices,
 }) => {
-  const [service, setService] = useState<ServiceState | null>(null);
-  const [descriptionService, setDescriptionService] = useState('');
+  const [service, setService] = useState<ServiceState>({} as ServiceState);
+  const [description, setDescription] = useState('');
   const [value, setValue] = useState<ValueState>({
     formattedValue: '',
   });
@@ -327,6 +331,15 @@ const NewService: React.FC<NewServiceProps> = ({
     });
   };
 
+  const handleAddNewService = useCallback(() => {
+    setNewServiceOpen(false);
+    setServices({
+      name: service.name,
+      description,
+      value: value.formattedValue,
+    });
+  }, [description, service, setNewServiceOpen, setServices, value]);
+
   return (
     <ThemeProvider theme={defaultMaterialTheme}>
       <ModalContainer>
@@ -337,113 +350,111 @@ const NewService: React.FC<NewServiceProps> = ({
           </button>
         </Header>
         <Content color={color}>
-          <Service>
-            <Autocomplete
-              openOnFocus={service === null}
-              openText=""
-              id="input-service"
-              clearOnBlur={false}
-              value={service}
-              onChange={(event, newService) => {
-                if (typeof newService === 'string') {
-                  console.log(
-                    `deu enter para adicionar novo serviço ${newService}`
-                  );
-                } else if (newService && newService.inputValue) {
-                  console.log(
-                    `clicou para adicionar novo serviço ${newService.inputValue}`
-                  );
-                } else {
-                  setService(newService);
-                }
-              }}
-              filterOptions={(options, params) => {
-                const filtered = filter(options, params) as ServiceState[];
+          <form onSubmit={(e) => e.preventDefault()}>
+            <Service>
+              <Autocomplete
+                openOnFocus={service === null}
+                openText=""
+                id="input-service"
+                clearOnBlur={false}
+                value={service}
+                onChange={(event, newService) => {
+                  if (newService && newService.inputValue) {
+                    setService({
+                      name: newService.inputValue,
+                    });
+                  } else if (newService) {
+                    setService(newService);
+                  }
+                }}
+                filterOptions={(options, params) => {
+                  const filtered = filter(options, params) as ServiceState[];
 
-                if (params.inputValue !== '') {
-                  filtered.push({
-                    inputValue: params.inputValue,
-                    name: `Adicionar ${params.inputValue}`,
-                  });
-                }
+                  if (params.inputValue !== '') {
+                    filtered.push({
+                      inputValue: params.inputValue,
+                      name: `Adicionar ${params.inputValue}`,
+                    });
+                  }
 
-                return filtered;
-              }}
-              options={services}
-              groupBy={({ category }) => category || ''}
-              noOptionsText=""
-              getOptionLabel={({ name, inputValue }) => {
-                if (inputValue) {
-                  return inputValue;
-                }
-                return name;
-              }}
-              renderInput={(params) => (
-                <TextField autoFocus {...params} label="Serviço" />
-              )}
-              renderOption={({ name }, { inputValue }) => {
-                const matches = match(name, inputValue);
-                const parts = parse(name, matches);
-
-                return (
-                  <div>
-                    {parts.map(({ highlight, text }) => (
-                      <span
-                        key={text}
-                        style={{ fontWeight: highlight ? 700 : 400 }}
-                      >
-                        {text}
-                      </span>
-                    ))}
-                  </div>
-                );
-              }}
-            />
-          </Service>
-          <DescriptionService>
-            <TextField
-              id="multiline-flexible"
-              placeholder="Descrição do serviço"
-              multiline
-              rowsMax={5}
-              value={descriptionService}
-              onChange={(e) => setDescriptionService(e.target.value as string)}
-            />
-          </DescriptionService>
-          <ValueService>
-            <Grid container spacing={1} alignItems="flex-end">
-              <Grid item>
-                <TextField
-                  label="Valor"
-                  value={value.formattedValue}
-                  onChange={handleChangeValue}
-                  name="formattedValue"
-                  id="formatted-formattedValue-input"
-                  InputProps={{
-                    inputComponent: NumberFormatCustom as any,
-                  }}
-                />
-              </Grid>
-              <Grid item>
-                {value.formattedValue && (
-                  <IconButton
-                    onClick={() => {
-                      setValue({
-                        formattedValue: '',
-                      });
-                    }}
-                  >
-                    <Close />
-                  </IconButton>
+                  return filtered;
+                }}
+                options={services}
+                groupBy={({ category }) => category || ''}
+                noOptionsText=""
+                getOptionLabel={({ name, inputValue }) => {
+                  if (inputValue) {
+                    return inputValue;
+                  }
+                  return name;
+                }}
+                renderInput={(params) => (
+                  <TextField autoFocus {...params} label="Serviço" />
                 )}
+                renderOption={({ name }, { inputValue }) => {
+                  const matches = match(name, inputValue);
+                  const parts = parse(name, matches);
+
+                  return (
+                    <div>
+                      {parts.map(({ highlight, text }) => (
+                        <span
+                          key={text}
+                          style={{ fontWeight: highlight ? 700 : 400 }}
+                        >
+                          {text}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                }}
+              />
+            </Service>
+            <Description>
+              <TextField
+                id="multiline-flexible"
+                placeholder="Descrição do serviço"
+                multiline
+                rowsMax={5}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </Description>
+            <Value>
+              <Grid container spacing={1} alignItems="flex-end">
+                <Grid item>
+                  <TextField
+                    label="Valor"
+                    value={value.formattedValue}
+                    onChange={handleChangeValue}
+                    name="formattedValue"
+                    id="formatted-formattedValue-input"
+                    InputProps={{
+                      inputComponent: NumberFormatCustom as any,
+                    }}
+                  />
+                </Grid>
+                <Grid item>
+                  {value.formattedValue && (
+                    <IconButton
+                      onClick={() => {
+                        setValue({
+                          formattedValue: '',
+                        });
+                      }}
+                    >
+                      <Close />
+                    </IconButton>
+                  )}
+                </Grid>
               </Grid>
-            </Grid>
-          </ValueService>
-          {value.formattedValue && descriptionService && service ? (
-            <Button>Adicionar</Button>
-          ) : (
-            <DisabledButton>Adicionar</DisabledButton>
-          )}
+            </Value>
+            {service.name && description && value.formattedValue ? (
+              <Button onClick={handleAddNewService}>Adicionar</Button>
+            ) : (
+              <DisabledButton>Adicionar</DisabledButton>
+            )}
+          </form>
         </Content>
       </ModalContainer>
       <Background />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { FaPlus, FaRegClock, FaTrashAlt } from 'react-icons/fa';
 import { TiArrowSortedDown } from 'react-icons/ti';
@@ -26,6 +26,12 @@ import {
   ServiceValue,
 } from './styles';
 
+export interface ServiceData {
+  name: string;
+  description: string;
+  value: string;
+}
+
 interface OrderProps {
   color: string;
   newServiceOpen: boolean;
@@ -36,6 +42,7 @@ interface OrderProps {
   companyEmailContact: string;
   companyPhone: string;
   companyMobilePhoneContact: string;
+  hasServices?: boolean;
 }
 
 const Order: React.FC<OrderProps> = ({
@@ -48,7 +55,22 @@ const Order: React.FC<OrderProps> = ({
   companyEmailContact,
   companyPhone,
   companyMobilePhoneContact,
+  hasServices,
 }) => {
+  const [services, setServices] = useState<ServiceData[]>([]);
+
+  useEffect(() => {
+    if (hasServices) {
+      const sample = {
+        name: 'LTCAT',
+        description: 'Medições de calor e ruído',
+        value: '11.800,00',
+      };
+
+      setServices((state) => [...state, sample]);
+    }
+  }, [hasServices]);
+
   return (
     <>
       {newServiceOpen && (
@@ -56,6 +78,7 @@ const Order: React.FC<OrderProps> = ({
           <NewService
             color={color}
             setNewServiceOpen={(e) => setNewServiceOpen(e)}
+            setServices={(e) => setServices((state) => [...state, e])}
           />
         </OrderOverlapping>
       )}
@@ -147,147 +170,25 @@ const Order: React.FC<OrderProps> = ({
             <ServiceDescription>DESCRIÇÃO DO SERVIÇO</ServiceDescription>
             <ServiceValue>VALOR</ServiceValue>
           </TitleRow>
-          <ServiceRow color={color}>
-            <ServiceName>PCA</ServiceName>
-            <ServiceDescription>PCA - Fono Cristiane</ServiceDescription>
-            <ServiceValue>
-              <div>
-                <span>R$</span>
-                <span>1.500,00</span>
-              </div>
-              <button type="button">
-                <MaterialTooltip title="Excluir" arrow placement="left">
-                  <FaTrashAlt />
-                </MaterialTooltip>
-              </button>
-            </ServiceValue>
-          </ServiceRow>
-          <ServiceRow color={color}>
-            <ServiceName>LTCAT</ServiceName>
-            <ServiceDescription>Medições de calor e ruído</ServiceDescription>
-            <ServiceValue>
-              <div>
-                <span>R$</span>
-                <span>11.800,00</span>
-              </div>
-              <button type="button">
-                <MaterialTooltip title="Excluir" arrow placement="left">
-                  <FaTrashAlt />
-                </MaterialTooltip>
-              </button>
-            </ServiceValue>
-          </ServiceRow>
-          <ServiceRow color={color}>
-            <ServiceName>PPR</ServiceName>
-            <ServiceDescription>
-              Fit test in loco no endereço da empresa
-            </ServiceDescription>
-            <ServiceValue>
-              <div>
-                <span>R$</span>
-                <span>2.000,00</span>
-              </div>
-              <button type="button">
-                <MaterialTooltip title="Excluir" arrow placement="left">
-                  <FaTrashAlt />
-                </MaterialTooltip>
-              </button>
-            </ServiceValue>
-          </ServiceRow>
-          <ServiceRow color={color}>
-            <ServiceName>PCA</ServiceName>
-            <ServiceDescription>PCA - Fono Cristiane</ServiceDescription>
-            <ServiceValue>
-              <div>
-                <span>R$</span>
-                <span>1.500,00</span>
-              </div>
-              <button type="button">
-                <MaterialTooltip title="Excluir" arrow placement="left">
-                  <FaTrashAlt />
-                </MaterialTooltip>
-              </button>
-            </ServiceValue>
-          </ServiceRow>
-          <ServiceRow color={color}>
-            <ServiceName>LTCAT</ServiceName>
-            <ServiceDescription>Medições de calor e ruído</ServiceDescription>
-            <ServiceValue>
-              <div>
-                <span>R$</span>
-                <span>11.800,00</span>
-              </div>
-              <button type="button">
-                <MaterialTooltip title="Excluir" arrow placement="left">
-                  <FaTrashAlt />
-                </MaterialTooltip>
-              </button>
-            </ServiceValue>
-          </ServiceRow>
-          <ServiceRow color={color}>
-            <ServiceName>PPR</ServiceName>
-            <ServiceDescription>
-              Fit test in loco no endereço da empresa
-            </ServiceDescription>
-            <ServiceValue>
-              <div>
-                <span>R$</span>
-                <span>2.000,00</span>
-              </div>
-              <button type="button">
-                <MaterialTooltip title="Excluir" arrow placement="left">
-                  <FaTrashAlt />
-                </MaterialTooltip>
-              </button>
-            </ServiceValue>
-          </ServiceRow>
-          <ServiceRow color={color}>
-            <ServiceName>PCA</ServiceName>
-            <ServiceDescription>PCA - Fono Cristiane</ServiceDescription>
-            <ServiceValue>
-              <div>
-                <span>R$</span>
-                <span>1.500,00</span>
-              </div>
-              <button type="button">
-                <MaterialTooltip title="Excluir" arrow placement="left">
-                  <FaTrashAlt />
-                </MaterialTooltip>
-              </button>
-            </ServiceValue>
-          </ServiceRow>
-          <ServiceRow color={color}>
-            <ServiceName>LTCAT</ServiceName>
-            <ServiceDescription>Medições de calor e ruído</ServiceDescription>
-            <ServiceValue>
-              <div>
-                <span>R$</span>
-                <span>11.800,00</span>
-              </div>
-              <button type="button">
-                <MaterialTooltip title="Excluir" arrow placement="left">
-                  <FaTrashAlt />
-                </MaterialTooltip>
-              </button>
-            </ServiceValue>
-          </ServiceRow>
-          <ServiceRow color={color}>
-            <ServiceName>PPR</ServiceName>
-            <ServiceDescription>
-              Fit test in loco no endereço da empresa
-            </ServiceDescription>
-            <ServiceValue>
-              <div>
-                <span>R$</span>
-                <span>2.000,00</span>
-              </div>
-              <button type="button">
-                <MaterialTooltip title="Excluir" arrow placement="left">
-                  <FaTrashAlt />
-                </MaterialTooltip>
-              </button>
-            </ServiceValue>
-          </ServiceRow>
+          {services &&
+            services.length > 0 &&
+            services.map((service) => (
+              <ServiceRow color={color}>
+                <ServiceName>{service.name}</ServiceName>
+                <ServiceDescription>{service.description}</ServiceDescription>
+                <ServiceValue>
+                  <div>
+                    <span>R$</span>
+                    <span>{service.value}</span>
+                  </div>
+                  <button type="button">
+                    <MaterialTooltip title="Excluir" arrow placement="left">
+                      <FaTrashAlt />
+                    </MaterialTooltip>
+                  </button>
+                </ServiceValue>
+              </ServiceRow>
+            ))}
         </ServicesOrderContent>
       </Container>
     </>
