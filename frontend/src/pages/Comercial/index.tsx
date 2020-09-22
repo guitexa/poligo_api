@@ -14,6 +14,7 @@ import { OrderOverlapping, Container } from './styles';
 const Comercial: React.FC = () => {
   const [orderOpen, setOrderOpen] = useState(false);
   const [newOrderOpen, setNewOrderOpen] = useState(false);
+  const [newServiceOpen, setNewServiceOpen] = useState(false);
 
   const color = '#004A82';
 
@@ -21,9 +22,13 @@ const Comercial: React.FC = () => {
     <>
       {newOrderOpen && (
         <OrderOverlapping>
-          <NewOrder color={color} />
+          <NewOrder
+            color={color}
+            newServiceOpen={newServiceOpen}
+            setNewServiceOpen={(e) => setNewServiceOpen(e)}
+          />
           <HeaderButton
-            show={newOrderOpen}
+            show={newOrderOpen && !newServiceOpen}
             handleClick={(e) => setNewOrderOpen(!e)}
             type="button"
             icon={FaTimes}

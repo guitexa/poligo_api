@@ -39,6 +39,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             color={color}
             newServiceOpen={newServiceOpen}
             setNewServiceOpen={(e) => setNewServiceOpen(e)}
+            companyName="Hidrovacuo Saneamento LTDA"
+            companyCpfCnpj="08.692.756/0001-50"
+            companyNameContact="Marcella"
+            companyEmailContact="emusa@uol.com.br"
+            companyPhone="(34) 3314-5339"
+            companyMobilePhoneContact="(34) 9 8834-5339"
           />
           <HeaderButton
             show={orderOpen && !newServiceOpen}

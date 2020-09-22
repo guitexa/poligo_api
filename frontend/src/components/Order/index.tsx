@@ -30,12 +30,24 @@ interface OrderProps {
   color: string;
   newServiceOpen: boolean;
   setNewServiceOpen(e: boolean): void;
+  companyName: string;
+  companyCpfCnpj: string;
+  companyNameContact: string;
+  companyEmailContact: string;
+  companyPhone: string;
+  companyMobilePhoneContact: string;
 }
 
 const Order: React.FC<OrderProps> = ({
   color,
   newServiceOpen,
   setNewServiceOpen,
+  companyName,
+  companyCpfCnpj,
+  companyNameContact,
+  companyEmailContact,
+  companyPhone,
+  companyMobilePhoneContact,
 }) => {
   return (
     <>
@@ -59,12 +71,12 @@ const Order: React.FC<OrderProps> = ({
               <p>WhatsApp:</p>
             </TitlesForm>
             <DataForm>
-              <p>Hidrovacuo Saneamento LTDA</p>
-              <p>08.692.756/0001-50</p>
-              <p>Marcella</p>
-              <p>emusa@uol.com.br</p>
-              <p>(34) 3314-5339</p>
-              <p>--</p>
+              <p>{companyName}</p>
+              <p>{companyCpfCnpj}</p>
+              <p>{companyNameContact}</p>
+              <p>{companyEmailContact}</p>
+              <p>{companyPhone}</p>
+              <p>{companyMobilePhoneContact}</p>
             </DataForm>
           </CompanyData>
           <OrderData>

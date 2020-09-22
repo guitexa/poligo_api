@@ -61,7 +61,7 @@ export const Container = styled.div`
   width: 100vw;
   bottom: 0;
   overflow: hidden;
-  z-index: 10;
+  z-index: -1;
   background: #fff;
 `;
 
@@ -519,6 +519,7 @@ export const ButtonsControl = styled.div<ButtonsControlProps>`
 `;
 
 export const ConfirmData = styled.div<ConfirmDataProps>`
+  display: ${({ confirmDataOpen }) => (confirmDataOpen ? 'flex' : 'none')};
   position: absolute;
   top: 0;
   right: 0;
@@ -526,7 +527,6 @@ export const ConfirmData = styled.div<ConfirmDataProps>`
   bottom: 0;
   width: 100vw;
   overflow: auto;
-  display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;

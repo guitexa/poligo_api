@@ -37,6 +37,7 @@ export const Container = styled.div`
   background: #fff;
   font-size: 13px;
   overflow: hidden;
+  z-index: 100;
 `;
 
 export const PrimaryContent = styled.div`
