@@ -21,7 +21,7 @@ interface CompanyEmailContactProps {
   companyEmailContactOpen: boolean;
 }
 
-interface CompanyMobilePhoneContactProps {
+interface CompMobilePhoneProps {
   companyMobilePhoneContactOpen: boolean;
 }
 
@@ -43,17 +43,6 @@ interface ConfirmDataProps {
   color: string;
 }
 
-const enterEffect = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
-
 const opacityEffect = keyframes`
   from {
     opacity: 0;
@@ -72,7 +61,7 @@ export const Container = styled.div`
   width: 100vw;
   bottom: 0;
   overflow: hidden;
-  z-index: 99;
+  z-index: 10;
   background: #fff;
 `;
 
@@ -97,7 +86,6 @@ export const Content = styled.div<ContentProps>`
       align-items: flex-start;
       justify-content: center;
       margin-bottom: 5%;
-      animation: ${enterEffect} 1s;
     }
   }
 
@@ -343,9 +331,7 @@ export const WhatIsCompanyEmailContact = styled.div<CompanyEmailContactProps>`
   }
 `;
 
-export const WhatIsCompanyMobilePhoneContact = styled.div<
-  CompanyMobilePhoneContactProps
->`
+export const WhatIsCompanyMobilePhoneContact = styled.div<CompMobilePhoneProps>`
   display: ${({ companyMobilePhoneContactOpen }) =>
     companyMobilePhoneContactOpen ? 'flex' : 'none'};
 
@@ -453,6 +439,7 @@ export const Footer = styled.div`
   position: absolute;
   bottom: 15px;
   right: 15px;
+  z-index: 30;
 `;
 
 export const Progress = styled.div<ProgressProps>`
@@ -486,7 +473,7 @@ export const Progress = styled.div<ProgressProps>`
     background: ${({ color }) => color};
     border-radius: 3px;
     margin-bottom: -6px;
-    z-index: 10;
+    z-index: 20;
     transition: 0.2s all;
   }
 
@@ -495,7 +482,7 @@ export const Progress = styled.div<ProgressProps>`
     height: 6px;
     background: #dfdfdf;
     border-radius: 3px;
-    z-index: 1;
+    z-index: 15;
   }
 `;
 
@@ -545,6 +532,7 @@ export const ConfirmData = styled.div<ConfirmDataProps>`
   align-items: center;
   background: #fff;
   animation: ${opacityEffect} 0.5s;
+  z-index: 10;
 `;
 
 export const QuestionData = styled.div`

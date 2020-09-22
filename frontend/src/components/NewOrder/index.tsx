@@ -84,16 +84,18 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [isCompanyCnpjValid, setIsCompanyCnpjValid] = useState<boolean | null>(
     null
   );
-  const [isCompanyEmailContactValid, setIsCompanyEmailContactValid] = useState(
-    true
-  );
+  const [isCompanyEmailContactValid, setIsCompanyEmailContactValid] = useState<
+    boolean | null
+  >(null);
   const [
     isCompanyMobilePhoneContactValid,
     setIsCompanyMobilePhoneContactValid,
-  ] = useState(true);
-  const [isCompanyPhoneValid, setIsCompanyPhoneValid] = useState(true);
+  ] = useState<boolean | null>(null);
+  const [isCompanyPhoneValid, setIsCompanyPhoneValid] = useState<
+    boolean | null
+  >(null);
 
-  const [counterAnswers, setCounterAnswers] = useState(0);
+  const [counterAnswers, setCounterAnswers] = useState<string[]>([]);
 
   const { addToast } = useToast();
 
@@ -187,29 +189,46 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     },
   ];
 
+  const handleShowData = useCallback(() => {
+    if (
+      (counterAnswers.includes('companyName') &&
+        counterAnswers.includes('companyCpfCnpj') &&
+        counterAnswers.includes('companyNameContact') &&
+        counterAnswers.includes('companyEmailContact') &&
+        counterAnswers.includes('companyPhone')) ||
+      counterAnswers.includes('companyMobilePhoneContact')
+    ) {
+      setCompanyNameOpen(false);
+      setCompanyCpfCnpjOpen(false);
+      setCompanyNameContactOpen(false);
+      setCompanyEmailContactOpen(false);
+      setCompanyMobilePhoneContactOpen(false);
+      setCompanyPhoneOpen(false);
+      setConfirmDataOpen(true);
+    }
+  }, [counterAnswers]);
+
   const handleSubmitCompanyName = useCallback(() => {
-    if (companyName && companyNameOpen) {
+    if (companyName?.name) {
       setCompanyNameOpen(!companyNameOpen); // Close question opened
       setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Open next question
 
-      if (counterAnswers !== 6) {
-        setCounterAnswers(counterAnswers + 1); // Set as answered
-      }
-
-      if (counterAnswers >= 5) {
-        setCompanyNameOpen(false);
-        setCompanyCpfCnpjOpen(false);
-        setCompanyNameContactOpen(false);
-        setCompanyEmailContactOpen(false);
-        setCompanyMobilePhoneContactOpen(false);
-        setCompanyPhoneOpen(false);
-        setConfirmDataOpen(true);
+      if (!counterAnswers.find((e) => e === 'companyName')) {
+        setCounterAnswers((state) => [...state, 'companyName']); // Set as answered
       }
     }
-  }, [companyName, companyNameOpen, companyCpfCnpjOpen, counterAnswers]);
+
+    handleShowData();
+  }, [
+    companyName,
+    handleShowData,
+    companyNameOpen,
+    companyCpfCnpjOpen,
+    counterAnswers,
+  ]);
 
   const handleSubmitCompanyCpfCnpj = useCallback(() => {
-    if (companyCpfCnpj !== '' && companyCpfCnpjOpen) {
+    if (companyCpfCnpj) {
       if (isCNPJ(companyCpfCnpj)) {
         setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
         setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
@@ -219,18 +238,8 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           setIsCompanyCpfValid(false);
         }
 
-        if (counterAnswers !== 6) {
-          setCounterAnswers(counterAnswers + 1); // Set as answered
-        }
-
-        if (counterAnswers >= 5) {
-          setCompanyNameOpen(false);
-          setCompanyCpfCnpjOpen(false);
-          setCompanyNameContactOpen(false);
-          setCompanyEmailContactOpen(false);
-          setCompanyMobilePhoneContactOpen(false);
-          setCompanyPhoneOpen(false);
-          setConfirmDataOpen(true);
+        if (!counterAnswers.find((e) => e === 'companyCpfCnpj')) {
+          setCounterAnswers((state) => [...state, 'companyCpfCnpj']); // Set as answered
         }
       } else if (companyCpfCnpj.length > 14) {
         setIsCompanyCnpjValid(false);
@@ -246,29 +255,22 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           setIsCompanyCnpjValid(false);
         }
 
-        if (counterAnswers !== 6) {
-          setCounterAnswers(counterAnswers + 1); // Set as answered
-        }
-
-        if (counterAnswers >= 5) {
-          setCompanyNameOpen(false);
-          setCompanyCpfCnpjOpen(false);
-          setCompanyNameContactOpen(false);
-          setCompanyEmailContactOpen(false);
-          setCompanyMobilePhoneContactOpen(false);
-          setCompanyPhoneOpen(false);
-          setConfirmDataOpen(true);
+        if (!counterAnswers.find((e) => e === 'companyCpfCnpj')) {
+          setCounterAnswers((state) => [...state, 'companyCpfCnpj']); // Set as answered
         }
       } else if (companyCpfCnpj.length <= 14) {
         setIsCompanyCpfValid(false);
         setIsCompanyCnpjValid(null);
       }
     }
+
+    handleShowData();
   }, [
     companyCpfCnpj,
     companyCpfCnpjOpen,
     companyNameContactOpen,
     counterAnswers,
+    handleShowData,
     isCompanyCnpjValid,
     isCompanyCpfValid,
   ]);
@@ -278,23 +280,16 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       setCompanyNameContactOpen(!companyNameContactOpen); // Close question opened
       setCompanyEmailContactOpen(!companyEmailContactOpen); // Open next question
 
-      if (counterAnswers !== 6) {
-        setCounterAnswers(counterAnswers + 1); // Set as answered
-      }
-
-      if (counterAnswers >= 5) {
-        setCompanyNameOpen(false);
-        setCompanyCpfCnpjOpen(false);
-        setCompanyNameContactOpen(false);
-        setCompanyEmailContactOpen(false);
-        setCompanyMobilePhoneContactOpen(false);
-        setCompanyPhoneOpen(false);
-        setConfirmDataOpen(true);
+      if (!counterAnswers.find((e) => e === 'companyNameContact')) {
+        setCounterAnswers((state) => [...state, 'companyNameContact']); // Set as answered
       }
     }
+
+    handleShowData();
   }, [
     companyNameContact,
     companyNameContactOpen,
+    handleShowData,
     companyEmailContactOpen,
     counterAnswers,
   ]);
@@ -306,86 +301,70 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Open next question
         setIsCompanyEmailContactValid(true);
 
-        if (counterAnswers !== 6) {
-          setCounterAnswers(counterAnswers + 1); // Set as answered
-        }
-
-        if (counterAnswers >= 5) {
-          setCompanyNameOpen(false);
-          setCompanyCpfCnpjOpen(false);
-          setCompanyNameContactOpen(false);
-          setCompanyEmailContactOpen(false);
-          setCompanyMobilePhoneContactOpen(false);
-          setCompanyPhoneOpen(false);
-          setConfirmDataOpen(true);
+        if (!counterAnswers.find((e) => e === 'companyEmailContact')) {
+          setCounterAnswers((state) => [...state, 'companyEmailContact']); // Set as answered
         }
       } else {
         setIsCompanyEmailContactValid(false);
       }
     }
+
+    handleShowData();
   }, [
     companyEmailContact,
     companyEmailContactOpen,
     companyMobilePhoneContactOpen,
     counterAnswers,
+    handleShowData,
   ]);
 
   const handleSubmitCompanyMobilePhoneContact = useCallback(() => {
-    if (companyMobilePhoneContact && companyMobilePhoneContactOpen) {
+    if (companyMobilePhoneContact) {
       if (isPhone(companyMobilePhoneContact)) {
-        setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Close question opened
-        setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
         setIsCompanyMobilePhoneContactValid(true);
 
-        if (counterAnswers !== 6) {
-          setCounterAnswers(counterAnswers + 1); // Set as answered
-        }
-
-        if (counterAnswers >= 5) {
-          setCompanyNameOpen(false);
-          setCompanyCpfCnpjOpen(false);
-          setCompanyNameContactOpen(false);
-          setCompanyEmailContactOpen(false);
-          setCompanyMobilePhoneContactOpen(false);
-          setCompanyPhoneOpen(false);
-          setConfirmDataOpen(true);
+        if (!counterAnswers.find((e) => e === 'companyMobilePhoneContact')) {
+          setCounterAnswers((state) => [...state, 'companyMobilePhoneContact']); // Set as answered
         }
       } else {
         setIsCompanyMobilePhoneContactValid(false);
       }
     }
+
+    setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Close question opened
+    setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
+    handleShowData();
   }, [
     companyMobilePhoneContact,
     companyMobilePhoneContactOpen,
     companyPhoneOpen,
     counterAnswers,
+    handleShowData,
   ]);
 
   const handleSubmitCompanyPhone = useCallback(() => {
     if (companyPhone && companyPhoneOpen) {
       if (isPhone(companyPhone)) {
         setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
-        setCompanyNameOpen(!companyNameOpen); // Open next question
+        setConfirmDataOpen(!confirmDataOpen); // Open next question
         setIsCompanyPhoneValid(true);
 
-        if (counterAnswers !== 6) {
-          setCounterAnswers(counterAnswers + 1); // Set as answered
-        }
-
-        if (counterAnswers >= 5) {
-          setCompanyNameOpen(false);
-          setCompanyCpfCnpjOpen(false);
-          setCompanyNameContactOpen(false);
-          setCompanyEmailContactOpen(false);
-          setCompanyMobilePhoneContactOpen(false);
-          setCompanyPhoneOpen(false);
-          setConfirmDataOpen(true);
+        if (!counterAnswers.find((e) => e === 'companyPhone')) {
+          setCounterAnswers((state) => [...state, 'companyPhone']); // Set as answered
         }
       } else {
         setIsCompanyPhoneValid(false);
       }
     }
-  }, [companyPhone, companyPhoneOpen, companyNameOpen, counterAnswers]);
+
+    handleShowData();
+  }, [
+    companyPhone,
+    companyPhoneOpen,
+    handleShowData,
+    confirmDataOpen,
+    counterAnswers,
+  ]);
 
   const handleSubmitForm = useCallback(() => {
     addToast({
@@ -395,7 +374,14 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   }, [addToast]);
 
   const handleChangeToPreviousQuestion = useCallback(() => {
-    if (companyNameOpen) {
+    if (
+      companyNameOpen &&
+      companyName?.name &&
+      companyCpfCnpj &&
+      companyNameContact &&
+      companyEmailContact &&
+      companyPhone
+    ) {
       setCompanyNameOpen(!companyNameOpen);
       setConfirmDataOpen(!confirmDataOpen);
     }
@@ -425,28 +411,33 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     }
   }, [
     companyNameOpen,
+    companyName,
     companyCpfCnpjOpen,
+    companyCpfCnpj,
     companyNameContactOpen,
+    companyNameContact,
     companyEmailContactOpen,
-    companyPhoneOpen,
+    companyEmailContact,
     companyMobilePhoneContactOpen,
+    companyPhoneOpen,
+    companyPhone,
     confirmDataOpen,
   ]);
 
   const handleChangeToNextQuestion = useCallback(() => {
-    if (companyNameOpen) {
+    if (companyNameOpen && companyName?.name) {
       setCompanyNameOpen(!companyNameOpen);
       setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
     }
-    if (companyCpfCnpjOpen) {
+    if (companyCpfCnpjOpen && companyCpfCnpj) {
       setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
       setCompanyNameContactOpen(!companyNameContactOpen);
     }
-    if (companyNameContactOpen) {
+    if (companyNameContactOpen && companyNameContact) {
       setCompanyNameContactOpen(!companyNameContactOpen);
       setCompanyEmailContactOpen(!companyEmailContactOpen);
     }
-    if (companyEmailContactOpen) {
+    if (companyEmailContactOpen && companyEmailContact) {
       setCompanyEmailContactOpen(!companyEmailContactOpen);
       setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
     }
@@ -454,21 +445,26 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
       setCompanyPhoneOpen(!companyPhoneOpen);
     }
-    if (companyPhoneOpen) {
+    if (companyPhoneOpen && companyPhone) {
       setCompanyPhoneOpen(!companyPhoneOpen);
       setConfirmDataOpen(!confirmDataOpen);
     }
-    if (confirmDataOpen) {
+    if (confirmDataOpen && companyName?.name) {
       setConfirmDataOpen(!confirmDataOpen);
       setCompanyNameOpen(!companyNameOpen);
     }
   }, [
     companyNameOpen,
+    companyName,
     companyCpfCnpjOpen,
+    companyCpfCnpj,
     companyNameContactOpen,
+    companyNameContact,
     companyEmailContactOpen,
+    companyEmailContact,
     companyMobilePhoneContactOpen,
     companyPhoneOpen,
+    companyPhone,
     confirmDataOpen,
   ]);
 
@@ -482,23 +478,41 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
 
   // This function clear errors when field is empty
   useEffect(() => {
-    if (companyCpfCnpj === '') {
+    if (!companyName?.name) {
+      setCounterAnswers((state) => state.filter((e) => e !== 'companyName'));
+    }
+    if (!companyCpfCnpj) {
       setIsCompanyCpfValid(null);
       setIsCompanyCnpjValid(null);
+      setCounterAnswers((state) => state.filter((e) => e !== 'companyCpfCnpj'));
+    }
+    if (!companyNameContact) {
+      setCounterAnswers((state) =>
+        state.filter((e) => e !== 'companyNameContact')
+      );
     }
     if (companyEmailContact === '') {
-      setIsCompanyEmailContactValid(true);
+      setIsCompanyEmailContactValid(null);
+      setCounterAnswers((state) =>
+        state.filter((e) => e !== 'companyEmailContact')
+      );
     }
     if (companyMobilePhoneContact === '') {
-      setIsCompanyMobilePhoneContactValid(true);
+      setIsCompanyMobilePhoneContactValid(null);
+      setCounterAnswers((state) =>
+        state.filter((e) => e !== 'companyMobilePhoneContact')
+      );
     }
     if (companyPhone === '') {
       setIsCompanyPhoneValid(true);
+      setCounterAnswers((state) => state.filter((e) => e !== 'companyPhone'));
     }
   }, [
     companyCpfCnpj,
     companyEmailContact,
     companyMobilePhoneContact,
+    companyName,
+    companyNameContact,
     companyPhone,
   ]);
 
@@ -654,15 +668,14 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       helperText={
                         isCompanyCpfValid === false
                           ? 'CPF inválido'
-                          : isCompanyCnpjValid !== null &&
-                            isCompanyCnpjValid !== true
+                          : isCompanyCnpjValid === false
                           ? 'CNPJ inválido'
                           : ' '
                       }
                       value={companyCpfCnpj}
-                      onChange={(e) =>
-                        setCompanyCpfCnpj(formatToCPFOrCNPJ(e.target.value))
-                      }
+                      onChange={(e) => {
+                        setCompanyCpfCnpj(formatToCPFOrCNPJ(e.target.value));
+                      }}
                     />
                   </Grid>
                   <Grid item>
@@ -771,7 +784,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     <FiArrowRight />
                   </div>
                   <div>
-                    Qual o <strong>e-mail</strong> do responsável?
+                    Qual o <strong>e-mail</strong> do cliente?
                   </div>
                 </AskTitle>
                 <Grid container spacing={1} alignItems="flex-end">
@@ -782,9 +795,11 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       autoFocus
                       autoComplete="off"
                       placeholder="Digite aqui"
-                      error={!isCompanyEmailContactValid}
+                      error={isCompanyEmailContactValid === false}
                       helperText={
-                        !isCompanyEmailContactValid ? 'E-mail inválido' : ' '
+                        isCompanyEmailContactValid === false
+                          ? 'E-mail inválido'
+                          : ' '
                       }
                       value={companyEmailContact}
                       onChange={(e) => setCompanyEmailContact(e.target.value)}
@@ -846,18 +861,18 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       autoFocus
                       autoComplete="off"
                       placeholder="Digite aqui"
-                      error={!isCompanyMobilePhoneContactValid}
+                      error={isCompanyMobilePhoneContactValid === false}
                       helperText={
-                        !isCompanyMobilePhoneContactValid
+                        isCompanyMobilePhoneContactValid === false
                           ? 'Telefone inválido'
                           : ' '
                       }
                       value={companyMobilePhoneContact}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setCompanyMobilePhoneContact(
                           formatToPhone(e.target.value)
-                        )
-                      }
+                        );
+                      }}
                       inputProps={{ maxLength: 16 }}
                     />
                   </Grid>
@@ -869,6 +884,11 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                           forceFocusOnInputField(
                             'companyMobilePhoneContact-input'
                           );
+                          setCounterAnswers((state) =>
+                            state.filter(
+                              (e) => e !== 'companyMobilePhoneContact'
+                            )
+                          );
                         }}
                       >
                         <Close />
@@ -876,21 +896,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     )}
                   </Grid>
                 </Grid>
-                {companyMobilePhoneContact !== '' ? (
-                  <SubmitQuestionButton>
-                    <Button onClick={handleSubmitCompanyMobilePhoneContact}>
-                      Continuar
-                    </Button>
-                    <div>
-                      <span>
-                        Pressione <strong>ENTER</strong>
-                      </span>
-                      <img src={EnterIcon} alt="" />
-                    </div>
-                  </SubmitQuestionButton>
-                ) : (
-                  <DisabledButton>Continuar</DisabledButton>
-                )}
+                <SubmitQuestionButton>
+                  <Button onClick={handleSubmitCompanyMobilePhoneContact}>
+                    Continuar
+                  </Button>
+                  <div>
+                    <span>
+                      Pressione <strong>ENTER</strong>
+                    </span>
+                    <img src={EnterIcon} alt="" />
+                  </div>
+                </SubmitQuestionButton>
               </WhatIsCompanyMobilePhoneContact>
             </form>
           )}
@@ -917,14 +933,16 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       autoFocus
                       autoComplete="off"
                       placeholder="Digite aqui"
-                      error={!isCompanyPhoneValid}
+                      error={isCompanyPhoneValid === false}
                       helperText={
-                        !isCompanyPhoneValid ? 'Telefone inválido' : ' '
+                        isCompanyPhoneValid === false
+                          ? 'Telefone inválido'
+                          : ' '
                       }
                       value={companyPhone}
-                      onChange={(e) =>
-                        setCompanyPhone(formatToPhone(e.target.value))
-                      }
+                      onChange={(e) => {
+                        setCompanyPhone(formatToPhone(e.target.value));
+                      }}
                       inputProps={{ maxLength: 14 }}
                     />
                   </Grid>
@@ -960,23 +978,21 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
             </form>
           )}
         </Content>
-        {!confirmDataOpen && (
-          <Footer>
-            <Progress color={color} counterAnswers={counterAnswers}>
-              <span>{counterAnswers} de 6 respondidas</span>
-              <div className="progress-bar" />
-              <div className="bg-progress-bar" />
-            </Progress>
-            <ButtonsControl color={color}>
-              <button type="button" onClick={handleChangeToPreviousQuestion}>
-                <FiChevronUp />
-              </button>
-              <button type="button" onClick={handleChangeToNextQuestion}>
-                <FiChevronDown />
-              </button>
-            </ButtonsControl>
-          </Footer>
-        )}
+        <Footer>
+          <Progress color={color} counterAnswers={counterAnswers.length}>
+            <span>{counterAnswers.length} de 6 respondidas</span>
+            <div className="progress-bar" />
+            <div className="bg-progress-bar" />
+          </Progress>
+          <ButtonsControl color={color}>
+            <button type="button" onClick={handleChangeToPreviousQuestion}>
+              <FiChevronUp />
+            </button>
+            <button type="button" onClick={handleChangeToNextQuestion}>
+              <FiChevronDown />
+            </button>
+          </ButtonsControl>
+        </Footer>
         {confirmDataOpen && (
           <ConfirmData confirmDataOpen={confirmDataOpen} color={color}>
             <QuestionData>
@@ -990,12 +1006,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                 <p>Telefone do responsável: </p>
               </QuestionsContainer>
               <AnswersContainer>
+                {/* <p>Distribuidora Triangulina de Veículos Ltda</p>
+                <p>66.201.161/0001-51</p>
+                <p>Gui</p>
+                <p>mail@mail.com</p>
+                <p>(34) 3315-8200</p> */}
                 <p>{companyName?.name}</p>
                 <p>{companyCpfCnpj}</p>
                 <p>{companyNameContact}</p>
                 <p>{companyEmailContact}</p>
                 <p>{companyPhone}</p>
-                <p>{companyMobilePhoneContact}</p>
+                <p>{companyMobilePhoneContact || '--'}</p>
               </AnswersContainer>
             </QuestionData>
             <SubmitFormButton>
