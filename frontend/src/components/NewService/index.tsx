@@ -9,7 +9,6 @@ import * as themeAugmentation from '@material-ui/lab/themeAugmentation';
 import { createMuiTheme, Grid, IconButton } from '@material-ui/core';
 import NumberFormat from 'react-number-format';
 import { Close } from '@material-ui/icons';
-import { formatToCapitalized } from 'brazilian-values';
 
 import { FaTimes } from 'react-icons/fa';
 
