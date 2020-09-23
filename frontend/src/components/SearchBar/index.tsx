@@ -13,14 +13,12 @@ import {
   Select,
   MenuItem,
   FormControl,
-} from '@material-ui/core';
-import {
   createStyles,
   makeStyles,
   Theme,
   createMuiTheme,
-} from '@material-ui/core/styles';
-import { ThemeProvider } from '@material-ui/styles';
+  ThemeProvider,
+} from '@material-ui/core';
 import { Search, Close } from '@material-ui/icons';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -86,7 +84,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
   const [value, setValue] = useState<ValueState>({
     formattedValue: '',
   });
-  const [status, setStatus] = React.useState('');
+  const [status, setStatus] = useState('');
 
   const sellers = [{ name: 'Christiane' }, { name: 'Tainara' }];
 

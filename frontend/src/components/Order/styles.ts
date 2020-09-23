@@ -88,7 +88,7 @@ export const TitlesForm = styled.div`
 
   p {
     color: #888;
-    line-height: 18px;
+    line-height: 1.6em;
     text-align: right;
   }
 `;
@@ -97,9 +97,9 @@ export const DataForm = styled.div`
   width: 60%;
 
   p {
-    font-size: 12px;
+    font-size: 13px;
+    line-height: 1.6em;
     color: #222;
-    line-height: 18px;
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -140,6 +140,44 @@ export const OrderData = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+export const Status = styled.div`
+  width: 100%;
+
+  .MuiListItem-root.Mui-selected,
+  .MuiListItem-root.Mui-selected:hover {
+    background-color: #222;
+  }
+
+  .MuiFormControl-root {
+    margin: 0;
+  }
+
+  .MuiInput-underline::before,
+  .MuiInput-underline::after,
+  .MuiInput-underline:hover,
+  .MuiInput-underline:hover:not(.Mui-disabled)::before {
+    border: none;
+  }
+
+  .MuiInputBase-input {
+    font-size: 13px;
+    height: 1.6em;
+    padding: 0px 30px 0 4px;
+    margin-bottom: -3px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+
+  .MuiSelect-icon {
+    margin-right: 2px;
+  }
+
+  .MuiSelect-select:focus {
+    background: transparent;
+  }
 `;
 
 export const DeliveryData = styled.div`
