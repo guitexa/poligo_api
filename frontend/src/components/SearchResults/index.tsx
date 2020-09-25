@@ -22,12 +22,14 @@ interface SearchResultsProps {
   color: string;
   orderOpen: boolean;
   setOrderOpen(e: boolean): void;
+  from: string;
 }
 
 const SearchResults: React.FC<SearchResultsProps> = ({
   color,
   orderOpen,
   setOrderOpen,
+  from,
 }) => {
   const [newServiceOpen, setNewServiceOpen] = useState(false);
 
@@ -46,6 +48,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             companyPhone="(34) 3314-5339"
             companyMobilePhoneContact="(34) 9 8834-5339"
             hasServices
+            from={from}
           />
           <HeaderButton
             show={orderOpen && !newServiceOpen}

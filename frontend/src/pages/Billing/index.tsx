@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
+
+import Header from '../../components/Header';
+import SearchBar from '../../components/SearchBar';
+import SearchResults from '../../components/SearchResults';
 
 import { Container } from './styles';
-import Header from '../../components/Header';
 
 const Billing: React.FC = () => {
+  const [orderOpen, setOrderOpen] = useState(false);
+
+  const color = '#c9a100';
+
   return (
     <Container>
-      <Header title="Faturamento" color="#c9a100" />
+      <Header title="Faturamento" color={color} />
+      <SearchBar color={color} />
+      <SearchResults
+        color={color}
+        orderOpen={orderOpen}
+        setOrderOpen={(e) => setOrderOpen(e)}
+        from="Billing"
+      />
     </Container>
   );
 };

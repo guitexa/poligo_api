@@ -564,6 +564,7 @@ const NewOrder: React.FC<NewOrderProps> = ({
           companyEmailContact={companyEmailContact}
           companyPhone={companyPhone}
           companyMobilePhoneContact={companyMobilePhoneContact || '--'}
+          from="Comercial"
         />
       )}
       <ThemeProvider theme={defaultMaterialTheme}>

@@ -83,7 +83,7 @@ export const AddServiceButton = styled.button<AddServiceButtonProps>`
 `;
 
 export const TitlesForm = styled.div`
-  width: 40%;
+  width: 35%;
   padding-right: 10px;
 
   p {
@@ -94,7 +94,7 @@ export const TitlesForm = styled.div`
 `;
 
 export const DataForm = styled.div`
-  width: 60%;
+  width: 65%;
 
   p {
     font-size: 13px;
@@ -103,22 +103,35 @@ export const DataForm = styled.div`
     display: flex;
     justify-content: flex-start;
     align-items: center;
+  }
+
+  .status {
+    font-size: 13px;
+    line-height: 1.6em;
+    color: #222;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
 
     svg {
-      width: 13px;
-      height: 13px;
+      font-size: 13px;
       color: #888;
-      padding: 0 0.5px;
-
-      & + span {
-        margin-left: 5px;
-      }
     }
 
-    span {
-      & + svg {
-        margin-left: 4px;
-      }
+    .faCheck {
+      color: #1b914f;
+    }
+
+    .faRegClock {
+      color: #999;
+    }
+
+    .faTimes {
+      color: #f00;
+      font-size: 15px;
+    }
+    .hiRefresh {
+      color: #000;
     }
   }
 `;
@@ -144,6 +157,7 @@ export const OrderData = styled.div`
 
 export const Status = styled.div`
   width: 100%;
+  padding: 2px 0 3px 0;
 
   .MuiListItem-root.Mui-selected,
   .MuiListItem-root.Mui-selected:hover {
@@ -151,6 +165,7 @@ export const Status = styled.div`
   }
 
   .MuiFormControl-root {
+    min-width: 50px;
     margin: 0;
   }
 
@@ -163,8 +178,8 @@ export const Status = styled.div`
 
   .MuiInputBase-input {
     font-size: 13px;
-    height: 1.6em;
-    padding: 0px 30px 0 4px;
+    height: 1.3em;
+    padding: 0px 30px 0 0;
     margin-bottom: -3px;
     display: flex;
     justify-content: flex-start;

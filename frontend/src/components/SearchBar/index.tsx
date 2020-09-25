@@ -304,11 +304,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
               id="demo-simple-select"
               value={status}
               onChange={(e) => setStatus(e.target.value as string)}
-              displayEmpty
             >
-              <MenuItem value="">
-                <em>&nbsp;</em>
-              </MenuItem>
+              <MenuItem value="">&nbsp;</MenuItem>
               <MenuItem value="Aprovado" style={{ justifyContent: 'center' }}>
                 <FaCheckCircle className={faCheck} />
               </MenuItem>

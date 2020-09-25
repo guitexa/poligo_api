@@ -17,6 +17,9 @@ import {
   FaTimes,
   FaTrashAlt,
 } from 'react-icons/fa';
+import { HiOutlineRefresh } from 'react-icons/hi';
+
+import formatValue from '../../utils/formatValue';
 
 import MaterialTooltip from '../MaterialTooltip';
 import NewService from '../NewService';
@@ -48,6 +51,19 @@ export interface ServiceData {
   value: string;
 }
 
+interface StatusState {
+  order?: ' ' | 'Aguardando' | 'Aprovado' | 'Cancelado' | unknown | undefined;
+  delivery?:
+    | ' '
+    | 'Agendado'
+    | 'Andamento'
+    | 'Concluído'
+    | 'Cancelado'
+    | unknown
+    | undefined;
+  billing?: ' ' | 'Aguardando' | 'Faturado' | 'Cancelado' | unknown | undefined;
+}
+
 interface OrderProps {
   color: string;
   newServiceOpen: boolean;
@@ -59,6 +75,7 @@ interface OrderProps {
   companyPhone: string;
   companyMobilePhoneContact: string;
   hasServices?: boolean;
+  from: string;
 }
 
 const Order: React.FC<OrderProps> = ({
@@ -72,16 +89,21 @@ const Order: React.FC<OrderProps> = ({
   companyPhone,
   companyMobilePhoneContact,
   hasServices,
+  from,
 }) => {
   const [services, setServices] = useState<ServiceData[]>([]);
-  const [status, setStatus] = useState('Aprovado');
+  const [status, setStatus] = useState<StatusState>({
+    order: 'Aprovado',
+    delivery: 'Andamento',
+    billing: 'Faturado',
+  });
 
   useEffect(() => {
     if (hasServices) {
       const sample = {
         name: 'LTCAT',
         description: 'Medições de calor e ruído',
-        value: '11.800,00',
+        value: '11800',
       };
 
       setServices((state) => [...state, sample]);
@@ -166,21 +188,25 @@ const Order: React.FC<OrderProps> = ({
       },
       faCheck: {
         color: '#1b914f',
-        margin: '0 4px 0 -2px',
+        margin: '0 4px 1px 0',
       },
       faRegClock: {
         color: '#999',
-        margin: '0 4px 0 -2px',
+        margin: '0 4px 1px 0',
       },
       faTimes: {
         color: '#f00',
         fontSize: '15px',
-        margin: '0 4px 0 -2px',
+        margin: '0 4px 1px 0',
+      },
+      hiRefresh: {
+        color: '#000',
+        margin: '0 4px 1px 0',
       },
     })
   );
 
-  const { formControl, faCheck, faRegClock, faTimes } = useStyles();
+  const { formControl, faCheck, faRegClock, faTimes, hiRefresh } = useStyles();
 
   return (
     <>
@@ -228,55 +254,153 @@ const Order: React.FC<OrderProps> = ({
                 <p>Christiane de Araujo</p>
                 <p>R$1.500,00</p>
                 <p>12/06/2020</p>
-                <Status>
-                  <FormControl className={formControl}>
-                    <Select
-                      labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value as string)}
-                    >
-                      <MenuItem value="Aprovado">
-                        <FaCheckCircle className={faCheck} />
-                        Aprovado
-                      </MenuItem>
-                      <MenuItem value="Aguardando cliente">
-                        <FaRegClock className={faRegClock} />
-                        Aguardando cliente
-                      </MenuItem>
-                      <MenuItem value="Encerrado">
-                        <FaTimes className={faTimes} />
-                        Encerrado
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-                </Status>
+                {from !== 'Comercial' && status.order === ' ' && <p>--</p>}
+                {from !== 'Comercial' && status.order === 'Aprovado' && (
+                  <div className="status">
+                    <FaCheckCircle className={`faCheck ${faCheck}`} />
+                    <span>Aprovado</span>
+                  </div>
+                )}
+                {from !== 'Comercial' && status.order === 'Aguardando' && (
+                  <div className="status">
+                    <FaRegClock className={`faRegClock ${faRegClock}`} />
+                    <span>Aguardando cliente</span>
+                  </div>
+                )}
+                {from !== 'Comercial' && status.order === 'Cancelado' && (
+                  <div className="status">
+                    <FaTimes className={`faTimes ${faTimes}`} />
+                    <span>Cancelado</span>
+                  </div>
+                )}
+                {from === 'Comercial' && (
+                  <Status>
+                    <FormControl className={formControl}>
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="data-select"
+                        value={status.order}
+                        defaultValue=" "
+                        onChange={(e) => {
+                          setStatus({
+                            ...status,
+                            order: e.target.value,
+                          });
+                        }}
+                      >
+                        <MenuItem value=" ">--</MenuItem>
+                        <MenuItem value="Aprovado">
+                          <FaCheckCircle className={faCheck} />
+                          Aprovado
+                        </MenuItem>
+                        <MenuItem value="Aguardando">
+                          <FaRegClock className={faRegClock} />
+                          Aguardando cliente
+                        </MenuItem>
+                        <MenuItem value="Cancelado">
+                          <FaTimes className={faTimes} />
+                          Cancelado
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Status>
+                )}
                 <p>--</p>
               </DataForm>
             </OrderData>
           </PrimaryContent>
           <SecondaryContent>
-            <AddServiceButton
-              type="button"
-              color={color}
-              onClick={() => setNewServiceOpen(!newServiceOpen)}
-            >
-              <MaterialTooltip title="Adicionar Serviço" arrow placement="top">
-                <FaPlus />
-              </MaterialTooltip>
-            </AddServiceButton>
+            {from === 'Comercial' && (
+              <AddServiceButton
+                type="button"
+                color={color}
+                onClick={() => setNewServiceOpen(!newServiceOpen)}
+              >
+                <MaterialTooltip
+                  title="Adicionar Serviço"
+                  arrow
+                  placement="top"
+                >
+                  <FaPlus />
+                </MaterialTooltip>
+              </AddServiceButton>
+            )}
             <DeliveryData>
               <TitlesForm>
                 <p>Condições de entrega:</p>
                 <p>Data de entrega solicitada:</p>
-                <p>Data de entrega:</p>
+                <p>Data de entrega prevista:</p>
                 <p>Status área técnica:</p>
               </TitlesForm>
               <DataForm>
                 <p>Aguardar pagamento da segunda parcela</p>
                 <p>30/06/2020</p>
                 <p>--</p>
-                <p>--</p>
+                {from !== 'TechnicalArea' && status.delivery === ' ' && (
+                  <p>--</p>
+                )}
+                {from !== 'TechnicalArea' && status.delivery === 'Agendado' && (
+                  <div className="status">
+                    <FaRegClock className={faRegClock} />
+                    <span>Agendado com o cliente</span>
+                  </div>
+                )}
+                {from !== 'TechnicalArea' && status.delivery === 'Andamento' && (
+                  <div className="status">
+                    <HiOutlineRefresh className={`hiRefresh ${hiRefresh}`} />
+                    <span>Em andamento</span>
+                  </div>
+                )}
+                {from !== 'TechnicalArea' && status.delivery === 'Concluído' && (
+                  <div className="status">
+                    <FaCheckCircle className={`faCheck ${faCheck}`} />
+                    <span>Concluído em 30/06/2020</span>
+                  </div>
+                )}
+                {from !== 'TechnicalArea' && status.delivery === 'Cancelado' && (
+                  <div className="status">
+                    <FaTimes className={`faTimes ${faTimes}`} />
+                    <span>Cancelado</span>
+                  </div>
+                )}
+                {from === 'TechnicalArea' && (
+                  <Status>
+                    <FormControl className={formControl}>
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="data-select"
+                        value={status.delivery}
+                        defaultValue=" "
+                        onChange={(e) => {
+                          setStatus({
+                            ...status,
+                            delivery: e.target.value,
+                          });
+                        }}
+                      >
+                        <MenuItem value=" ">--</MenuItem>
+                        <MenuItem value="Agendado">
+                          <FaRegClock className={faRegClock} />
+                          Agendado com o cliente
+                        </MenuItem>
+                        <MenuItem value="Andamento">
+                          <HiOutlineRefresh
+                            className={`hiRefresh ${hiRefresh}`}
+                          />
+                          Em andamento
+                        </MenuItem>
+                        <MenuItem value="Concluído">
+                          <FaCheckCircle className={`faCheck ${faCheck}`} />
+                          Concluído em 30/06/2020
+                        </MenuItem>
+                        <MenuItem value="Cancelado">
+                          <FaTimes className={faTimes} />
+                          Cancelado
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Status>
+                )}
               </DataForm>
             </DeliveryData>
             <BillingData>
@@ -290,7 +414,57 @@ const Order: React.FC<OrderProps> = ({
                 <p>1+3x R$1.325,00</p>
                 <p>Não</p>
                 <p>Entrada para 16/06 e parcelas junto com faturamento</p>
-                <p>--</p>
+                {from !== 'Billing' && status.billing === ' ' && <p>--</p>}
+                {from !== 'Billing' && status.billing === 'Aguardando' && (
+                  <div className="status">
+                    <FaRegClock className={faRegClock} />
+                    <span>Aguardando para faturar</span>
+                  </div>
+                )}
+                {from !== 'Billing' && status.billing === 'Faturado' && (
+                  <div className="status">
+                    <FaCheckCircle className={`faCheck ${faCheck}`} />
+                    <span>Faturado</span>
+                  </div>
+                )}
+                {from !== 'Billing' && status.billing === 'Cancelado' && (
+                  <div className="status">
+                    <FaTimes className={`faTimes ${faTimes}`} />
+                    <span>Cancelado</span>
+                  </div>
+                )}
+                {from === 'Billing' && (
+                  <Status>
+                    <FormControl className={formControl}>
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="data-select"
+                        value={status.billing}
+                        defaultValue=" "
+                        onChange={(e) => {
+                          setStatus({
+                            ...status,
+                            billing: e.target.value,
+                          });
+                        }}
+                      >
+                        <MenuItem value=" ">--</MenuItem>
+                        <MenuItem value="Aguardando">
+                          <FaRegClock className={faRegClock} />
+                          Aguardando para faturar
+                        </MenuItem>
+                        <MenuItem value="Faturado">
+                          <FaCheckCircle className={`faCheck ${faCheck}`} />
+                          Faturado
+                        </MenuItem>
+                        <MenuItem value="Cancelado">
+                          <FaTimes className={faTimes} />
+                          Cancelado
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Status>
+                )}
               </DataForm>
             </BillingData>
           </SecondaryContent>
@@ -309,16 +483,18 @@ const Order: React.FC<OrderProps> = ({
                   <ServiceValue>
                     <div>
                       <span>R$</span>
-                      <span>{service.value}</span>
+                      <span>{formatValue(Number(service.value))}</span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteServiceItem(service.name)}
-                    >
-                      <MaterialTooltip title="Excluir" arrow placement="left">
-                        <FaTrashAlt />
-                      </MaterialTooltip>
-                    </button>
+                    {from === 'Comercial' && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteServiceItem(service.name)}
+                      >
+                        <MaterialTooltip title="Excluir" arrow placement="left">
+                          <FaTrashAlt />
+                        </MaterialTooltip>
+                      </button>
+                    )}
                   </ServiceValue>
                 </ServiceRow>
               ))}

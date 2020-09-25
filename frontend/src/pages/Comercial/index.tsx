@@ -52,6 +52,7 @@ const Comercial: React.FC = () => {
           color={color}
           orderOpen={orderOpen}
           setOrderOpen={(e) => setOrderOpen(e)}
+          from="Comercial"
         />
       </Container>
     </>
