@@ -334,7 +334,7 @@ const NewService: React.FC<NewServiceProps> = ({
     setServices({
       name: service.name,
       description,
-      value: value.formattedValue,
+      value: Number(value.formattedValue),
     });
   }, [description, service, setNewServiceOpen, setServices, value]);
 

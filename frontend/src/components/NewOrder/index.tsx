@@ -20,6 +20,8 @@ import {
   formatToCapitalized,
 } from 'brazilian-values';
 import isEmail from 'validator/es/lib/isEmail';
+import { format } from 'date-fns';
+import formatValue from '../../utils/formatValue';
 
 import EnterIcon from '../../assets/icons/icon-enter.svg';
 
@@ -558,12 +560,16 @@ const NewOrder: React.FC<NewOrderProps> = ({
           color={color}
           newServiceOpen={newServiceOpen}
           setNewServiceOpen={(e) => setNewServiceOpen(e)}
-          companyName={companyName.name}
-          companyCpfCnpj={companyCpfCnpj}
-          companyNameContact={companyNameContact}
-          companyEmailContact={companyEmailContact}
-          companyPhone={companyPhone}
-          companyMobilePhoneContact={companyMobilePhoneContact || '--'}
+          data={{
+            date: new Date(2020, 5, 12),
+            formattedDate: format(new Date(2020, 5, 12), 'dd/MM/yyyy'),
+            companyName: 'Distribuidora Triangulina de Veículos Ltda',
+            service: 'PCA',
+            seller: 'Christiane',
+            value: 3575,
+            formattedValue: formatValue(3575),
+            status: 'Aprovado',
+          }}
           from="Comercial"
         />
       )}

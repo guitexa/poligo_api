@@ -100,9 +100,14 @@ export const DataForm = styled.div`
     font-size: 13px;
     line-height: 1.6em;
     color: #222;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
+    flex: 1;
+    text-align: left;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
   }
 
   .status {
@@ -260,16 +265,24 @@ export const ServiceRow = styled.div<ServiceRowProps>`
 
 export const ServiceName = styled.div`
   width: 20%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  text-align: left;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 `;
 
 export const ServiceDescription = styled.div`
   width: 60%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  text-align: left;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 `;
 
 export const ServiceValue = styled.div`

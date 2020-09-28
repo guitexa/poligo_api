@@ -19,6 +19,7 @@ import {
 } from 'react-icons/fa';
 import { HiOutlineRefresh } from 'react-icons/hi';
 
+import { SearchResult } from '../SearchResults';
 import formatValue from '../../utils/formatValue';
 
 import MaterialTooltip from '../MaterialTooltip';
@@ -48,7 +49,7 @@ import {
 export interface ServiceData {
   name: string;
   description: string;
-  value: string;
+  value: number;
 }
 
 interface StatusState {
@@ -68,12 +69,7 @@ interface OrderProps {
   color: string;
   newServiceOpen: boolean;
   setNewServiceOpen(e: boolean): void;
-  companyName: string;
-  companyCpfCnpj: string;
-  companyNameContact: string;
-  companyEmailContact: string;
-  companyPhone: string;
-  companyMobilePhoneContact: string;
+  data: SearchResult;
   hasServices?: boolean;
   from: string;
 }
@@ -82,12 +78,7 @@ const Order: React.FC<OrderProps> = ({
   color,
   newServiceOpen,
   setNewServiceOpen,
-  companyName,
-  companyCpfCnpj,
-  companyNameContact,
-  companyEmailContact,
-  companyPhone,
-  companyMobilePhoneContact,
+  data,
   hasServices,
   from,
 }) => {
@@ -101,14 +92,15 @@ const Order: React.FC<OrderProps> = ({
   useEffect(() => {
     if (hasServices) {
       const sample = {
-        name: 'LTCAT',
-        description: 'Medições de calor e ruído',
-        value: '11800',
+        name: data.service,
+        description:
+          'Ainda não tem descrição para este serviço, mas pode haver uma descrição bem grande.',
+        value: data.value,
       };
 
       setServices((state) => [...state, sample]);
     }
-  }, [hasServices]);
+  }, [data.formattedValue, data.service, data.value, hasServices]);
 
   const handleDeleteServiceItem = useCallback((serviceName: string) => {
     setServices((state) =>
@@ -232,12 +224,12 @@ const Order: React.FC<OrderProps> = ({
                 <p>WhatsApp:</p>
               </TitlesForm>
               <DataForm>
-                <p>{companyName}</p>
-                <p>{companyCpfCnpj}</p>
-                <p>{companyNameContact}</p>
-                <p>{companyEmailContact}</p>
-                <p>{companyPhone}</p>
-                <p>{companyMobilePhoneContact}</p>
+                <p>{data.companyName}</p>
+                <p>08.692.756/0001-50</p>
+                <p>Marcella</p>
+                <p>emusa@uol.com.br</p>
+                <p>(34) 3314-5339</p>
+                <p>(34) 9 8834-5339</p>
               </DataForm>
             </CompanyData>
             <OrderData>
@@ -251,9 +243,9 @@ const Order: React.FC<OrderProps> = ({
               </TitlesForm>
               <DataForm>
                 <p>6478</p>
-                <p>Christiane de Araujo</p>
-                <p>R$1.500,00</p>
-                <p>12/06/2020</p>
+                <p>{data.seller}</p>
+                <p>R${data.formattedValue}</p>
+                <p>{data.formattedDate}</p>
                 {from !== 'Comercial' && status.order === ' ' && <p>--</p>}
                 {from !== 'Comercial' && status.order === 'Aprovado' && (
                   <div className="status">
@@ -483,7 +475,7 @@ const Order: React.FC<OrderProps> = ({
                   <ServiceValue>
                     <div>
                       <span>R$</span>
-                      <span>{formatValue(Number(service.value))}</span>
+                      <span>{formatValue(service.value)}</span>
                     </div>
                     {from === 'Comercial' && (
                       <button

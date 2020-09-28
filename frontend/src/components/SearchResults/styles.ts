@@ -67,7 +67,7 @@ export const RowResult = styled.button<ContentProps>`
   }
 `;
 
-export const Date = styled.div`
+export const DateField = styled.div`
   width: 9.5%;
   max-width: 100px;
   display: flex;
@@ -77,14 +77,24 @@ export const Date = styled.div`
 
 export const CompanyName = styled.div`
   flex: 1;
-  display: flex;
-  align-items: center;
+  text-align: left;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 `;
 
 export const Service = styled.div`
   flex: 1;
-  display: flex;
-  align-items: center;
+  text-align: left;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
 `;
 
 export const Seller = styled.div`
@@ -92,6 +102,7 @@ export const Seller = styled.div`
   max-width: 200px;
   display: flex;
   align-items: center;
+  text-align: left;
 `;
 
 export const Value = styled.div`
@@ -115,17 +126,17 @@ export const Status = styled.div`
     padding: 0.5px;
   }
 
-  .fa-times {
-    width: 19px;
-    height: 19px;
-    color: #f00;
+  .fa-clock {
+    color: #999;
   }
 
   .fa-check {
     color: #1b914f;
   }
 
-  .fa-clock {
-    color: #999;
+  .fa-times {
+    width: 19px;
+    height: 19px;
+    color: #f00;
   }
 `;
