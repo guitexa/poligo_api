@@ -21,9 +21,7 @@ import {
 } from 'brazilian-values';
 import isEmail from 'validator/es/lib/isEmail';
 import { format } from 'date-fns';
-import formatValue from '../../utils/formatValue';
-
-import EnterIcon from '../../assets/icons/icon-enter.svg';
+import { uuid } from 'uuidv4';
 
 import { useToast } from '../../hooks/toast';
 
@@ -150,55 +148,187 @@ const NewOrder: React.FC<NewOrderProps> = ({
 
   const companyNames: CompanyNameState[] = [
     {
-      name: 'Distribuidora Triangulina de Veículos Ltda',
+      name: 'American Express',
     },
     {
-      name: 'Hidrovacuo Saneamento LTDA',
+      name: 'Anheuser-Busch InBev',
     },
     {
-      name: 'Carré - Arte em Mármore e Granito Ltda',
+      name: 'Bank of America',
     },
     {
-      name: 'Mariangela Borges Alves',
+      name: 'Bank of Communications',
     },
     {
-      name: 'Ergosafety',
+      name: 'Bank of Montreal',
     },
     {
-      name: 'Resolv Prestadora de Serviços Ltda',
+      name: 'Bank of Nova Scotia',
     },
     {
-      name: 'Arko Industria e Comercio de Mineração e Fertilizant...',
+      name: 'Berkshire Hathaway',
     },
     {
-      name: 'Arko Industria e Comercio de Mineração e Fertilizant...',
+      name: 'Bristol-Myers Squibb',
     },
     {
-      name: 'RCM Engenharia e Construções',
+      name: 'Brookfield Asset Management',
     },
     {
-      name: 'Supermotos',
+      name: 'Charter Communications',
     },
     {
-      name: 'Empreiteira Cristal Ltda',
+      name: 'Cisco Systems',
     },
     {
-      name: 'Arko Industria e Comercio de Mineração e Fertilizant...',
+      name: 'Commonwealth Bank',
     },
     {
-      name: 'Rocha Serviços de Limpeza Profissional Eireli',
+      name: 'Costco Wholesale',
     },
     {
-      name: 'Ergosafety Segurança do Trabalho LTDA',
+      name: 'Credit Agricole',
     },
     {
-      name: 'Montana Andaimes',
+      name: 'CVS HealthNestlé',
     },
     {
-      name: 'Composite',
+      name: 'Dell Technologies',
     },
     {
-      name: 'Carré - Arte em Mármore e Granito Ltda',
+      name: 'Deutsche Telekom',
+    },
+    {
+      name: 'Duke Energy',
+    },
+    {
+      name: 'General Electric',
+    },
+    {
+      name: 'General Motors',
+    },
+    {
+      name: 'Generali GroupVisa',
+    },
+    {
+      name: 'GlaxoSmithKline',
+    },
+    {
+      name: 'Goldman Sachs Group',
+    },
+    {
+      name: 'HSBC Holdings',
+    },
+    {
+      name: 'IberdrolaHon Hai Precision',
+    },
+    {
+      name: 'Industrial Bank',
+    },
+    {
+      name: 'Intesa Sanpaolo',
+    },
+    {
+      name: 'Itaú Unibanco Holding',
+    },
+    {
+      name: 'Japan Post Holdings',
+    },
+    {
+      name: 'Johnson & Johnson',
+    },
+    {
+      name: 'JPMorgan Chase',
+    },
+    {
+      name: 'Lloyds Banking Group',
+    },
+    {
+      name: 'Lockheed Martin',
+    },
+    {
+      name: 'LVMH Moët Hennessy Louis Vuitton',
+    },
+    {
+      name: 'MetLifeSumitomo Mitsui Financial',
+    },
+    {
+      name: 'Mitsubishi UFJ Financial',
+    },
+    {
+      name: 'Morgan Stanley',
+    },
+    {
+      name: 'Nippon Telegraph & Tel',
+    },
+    {
+      name: 'PetrobrasProcter & Gamble',
+    },
+    {
+      name: 'Ping An Insurance Group',
+    },
+    {
+      name: 'PNC Financial Services',
+    },
+    {
+      name: 'Prudential Financial',
+    },
+    {
+      name: 'Raytheon Technologies',
+    },
+    {
+      name: 'Reliance Industries',
+    },
+    {
+      name: 'Roche Holding',
+    },
+    {
+      name: 'Samsung Electronics',
+    },
+    {
+      name: 'Saudi Arabian Oil Company',
+    },
+    {
+      name: 'Shanghai Pudong Development',
+    },
+    {
+      name: 'SinopecChevron',
+    },
+    {
+      name: 'Taiwan Semiconductor',
+    },
+    {
+      name: 'TD Bank Group',
+    },
+    {
+      name: 'Tencent HoldingsIBM',
+    },
+    {
+      name: 'Toyota Motor',
+    },
+    {
+      name: 'UnileverCountry Garden Holdings',
+    },
+    {
+      name: 'United Parcel Service',
+    },
+    {
+      name: 'UnitedHealth Group',
+    },
+    {
+      name: 'Verizon CommunicationsRoyal Dutch Shell',
+    },
+    {
+      name: 'Volkswagen Group',
+    },
+    {
+      name: 'Walgreens Boots Alliance',
+    },
+    {
+      name: 'Westpac Banking Group',
+    },
+    {
+      name: 'Zurich Insurance Group',
     },
   ];
 
@@ -561,14 +691,11 @@ const NewOrder: React.FC<NewOrderProps> = ({
           newServiceOpen={newServiceOpen}
           setNewServiceOpen={(e) => setNewServiceOpen(e)}
           data={{
-            date: new Date(2020, 5, 12),
-            formattedDate: format(new Date(2020, 5, 12), 'dd/MM/yyyy'),
-            companyName: 'Distribuidora Triangulina de Veículos Ltda',
-            service: 'PCA',
+            id: uuid(),
+            date: new Date(),
+            formattedDate: format(new Date(), 'dd/MM/yyyy'),
+            companyName: companyName.name,
             seller: 'Christiane',
-            value: 3575,
-            formattedValue: formatValue(3575),
-            status: 'Aprovado',
           }}
           from="Comercial"
         />
@@ -593,6 +720,7 @@ const NewOrder: React.FC<NewOrderProps> = ({
                   </AskTitle>
                   <Autocomplete
                     openText=""
+                    clearText=""
                     clearOnBlur={false}
                     value={companyName}
                     onChange={(event, newCompanyName) => {
@@ -602,6 +730,9 @@ const NewOrder: React.FC<NewOrderProps> = ({
                         });
                       } else if (newCompanyName) {
                         setCompanyName(newCompanyName);
+                      }
+                      if (!newCompanyName) {
+                        setCompanyName({} as CompanyNameState);
                       }
                     }}
                     filterOptions={(options, params) => {
@@ -662,9 +793,9 @@ const NewOrder: React.FC<NewOrderProps> = ({
                       </Button>
                       <div>
                         <span>
-                          Pressione <strong>ENTER</strong>
+                          pressione <strong>ENTER</strong>
                         </span>
-                        <img src={EnterIcon} alt="" />
+                        <span>↵</span>
                       </div>
                     </SubmitQuestionButton>
                   ) : (
@@ -734,9 +865,9 @@ const NewOrder: React.FC<NewOrderProps> = ({
                       </Button>
                       <div>
                         <span>
-                          Pressione <strong>ENTER</strong>
+                          pressione <strong>ENTER</strong>
                         </span>
-                        <img src={EnterIcon} alt="" />
+                        <span>↵</span>
                       </div>
                     </SubmitQuestionButton>
                   ) : (
@@ -801,9 +932,9 @@ const NewOrder: React.FC<NewOrderProps> = ({
                       </Button>
                       <div>
                         <span>
-                          Pressione <strong>ENTER</strong>
+                          pressione <strong>ENTER</strong>
                         </span>
-                        <img src={EnterIcon} alt="" />
+                        <span>↵</span>
                       </div>
                     </SubmitQuestionButton>
                   ) : (
@@ -867,9 +998,9 @@ const NewOrder: React.FC<NewOrderProps> = ({
                       </Button>
                       <div>
                         <span>
-                          Pressione <strong>ENTER</strong>
+                          pressione <strong>ENTER</strong>
                         </span>
-                        <img src={EnterIcon} alt="" />
+                        <span>↵</span>
                       </div>
                     </SubmitQuestionButton>
                   ) : (
@@ -944,9 +1075,9 @@ const NewOrder: React.FC<NewOrderProps> = ({
                     </Button>
                     <div>
                       <span>
-                        Pressione <strong>ENTER</strong>
+                        pressione <strong>ENTER</strong>
                       </span>
-                      <img src={EnterIcon} alt="" />
+                      <span>↵</span>
                     </div>
                   </SubmitQuestionButton>
                 </WhatIsCompanyMobilePhoneContact>
@@ -1008,9 +1139,9 @@ const NewOrder: React.FC<NewOrderProps> = ({
                       </Button>
                       <div>
                         <span>
-                          Pressione <strong>ENTER</strong>
+                          pressione <strong>ENTER</strong>
                         </span>
-                        <img src={EnterIcon} alt="" />
+                        <span>↵</span>
                       </div>
                     </SubmitQuestionButton>
                   ) : (
@@ -1060,9 +1191,9 @@ const NewOrder: React.FC<NewOrderProps> = ({
                 <Button onClick={handleSubmitForm}>Criar pedido</Button>
                 <div>
                   <span>
-                    Pressione <strong>ENTER</strong>
+                    pressione <strong>ENTER</strong>
                   </span>
-                  <img src={EnterIcon} alt="" />
+                  <span>↵</span>
                 </div>
               </SubmitFormButton>
             </ConfirmData>

@@ -43,7 +43,7 @@ export const Header = styled.div<HeaderProps>`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
 
   strong {
     font-size: 20px;

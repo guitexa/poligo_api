@@ -22,14 +22,15 @@ import {
 } from './styles';
 
 export interface SearchResult {
+  id: string;
   date: Date;
   formattedDate: string;
   companyName: string;
-  service: string;
+  service?: string;
   seller: string;
-  value: number;
-  formattedValue: string;
-  status: 'Aguardando' | 'Aprovado' | 'Cancelado';
+  value?: number;
+  formattedValue?: string;
+  status?: 'Aguardando' | 'Aprovado' | 'Cancelado';
 }
 
 interface SearchResultsProps {
@@ -50,6 +51,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   const searchResults: SearchResult[] = [
     {
+      id: '1',
       date: new Date(2020, 5, 12),
       formattedDate: format(new Date(2020, 5, 12), 'dd/MM/yyyy'),
       companyName:
@@ -61,6 +63,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '2',
       date: new Date(2020, 5, 12),
       formattedDate: format(new Date(2020, 5, 12), 'dd/MM/yyyy'),
       companyName: 'Anheuser-Busch InBev',
@@ -72,6 +75,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '3',
       date: new Date(2020, 5, 10),
       formattedDate: format(new Date(2020, 5, 10), 'dd/MM/yyyy'),
       companyName: 'Brookfield Asset Management',
@@ -82,6 +86,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '4',
       date: new Date(2020, 5, 10),
       formattedDate: format(new Date(2020, 5, 10), 'dd/MM/yyyy'),
       companyName: 'Charter Communications',
@@ -92,6 +97,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '5',
       date: new Date(2020, 5, 9),
       formattedDate: format(new Date(2020, 5, 9), 'dd/MM/yyyy'),
       companyName: 'Dell Technologies',
@@ -102,6 +108,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '6',
       date: new Date(2020, 5, 9),
       formattedDate: format(new Date(2020, 5, 9), 'dd/MM/yyyy'),
       companyName: 'Johnson & Johnson',
@@ -112,6 +119,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '7',
       date: new Date(2020, 5, 4),
       formattedDate: format(new Date(2020, 5, 4), 'dd/MM/yyyy'),
       companyName: 'MetLifeSumitomo Mitsui Financial',
@@ -122,6 +130,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aguardando',
     },
     {
+      id: '8',
       date: new Date(2020, 5, 4),
       formattedDate: format(new Date(2020, 5, 4), 'dd/MM/yyyy'),
       companyName: 'Minsheng BankBritish American Tobacco',
@@ -132,6 +141,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '9',
       date: new Date(2020, 4, 28),
       formattedDate: format(new Date(2020, 4, 28), 'dd/MM/yyyy'),
       companyName: 'RCM Engenharia e Construções',
@@ -142,6 +152,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '10',
       date: new Date(2020, 4, 20),
       formattedDate: format(new Date(2020, 4, 20), 'dd/MM/yyyy'),
       companyName: 'Verizon CommunicationsRoyal Dutch Shell',
@@ -152,6 +163,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Cancelado',
     },
     {
+      id: '11',
       date: new Date(2020, 4, 20),
       formattedDate: format(new Date(2020, 4, 20), 'dd/MM/yyyy'),
       companyName: 'UnileverCountry Garden Holdings',
@@ -162,6 +174,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '12',
       date: new Date(2020, 4, 14),
       formattedDate: format(new Date(2020, 4, 14), 'dd/MM/yyyy'),
       companyName: 'Shanghai Pudong Development',
@@ -172,6 +185,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '13',
       date: new Date(2020, 4, 14),
       formattedDate: format(new Date(2020, 4, 14), 'dd/MM/yyyy'),
       companyName: 'LVMH Moët Hennessy Louis Vuitton',
@@ -182,6 +196,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aguardando',
     },
     {
+      id: '14',
       date: new Date(2020, 4, 11),
       formattedDate: format(new Date(2020, 4, 11), 'dd/MM/yyyy'),
       companyName: 'Walgreens Boots Alliance',
@@ -192,6 +207,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aprovado',
     },
     {
+      id: '15',
       date: new Date(2020, 4, 7),
       formattedDate: format(new Date(2020, 4, 7), 'dd/MM/yyyy'),
       companyName: 'Saudi Arabian Oil Company',
@@ -202,6 +218,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Aguardando',
     },
     {
+      id: '16',
       date: new Date(2020, 4, 6),
       formattedDate: format(new Date(2020, 4, 6), 'dd/MM/yyyy'),
       companyName: 'Commonwealth State Construction Engineering',
@@ -212,6 +229,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       status: 'Cancelado',
     },
     {
+      id: '17',
       date: new Date(2020, 4, 5),
       formattedDate: format(new Date(2020, 4, 5), 'dd/MM/yyyy'),
       companyName: 'Lloyds Pacific InsuranceSAIC Motor',
@@ -253,7 +271,6 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             newServiceOpen={newServiceOpen}
             setNewServiceOpen={(e) => setNewServiceOpen(e)}
             data={dataOpen}
-            hasServices
             from={from}
           />
           <HeaderButton
@@ -272,17 +289,24 @@ const SearchResults: React.FC<SearchResultsProps> = ({
               type="button"
               color={color}
               onClick={() => handleOpenOrder(result)}
-              key={result.formattedValue}
+              key={result.id}
             >
               <DateField>{result.formattedDate}</DateField>
               <CompanyName>{result.companyName}</CompanyName>
               <Service>{result.service}</Service>
               <Seller>{result.seller}</Seller>
-              <Value>
-                <div>R$</div>
-                <div>{result.formattedValue}</div>
-              </Value>
-              <Status>{statusReturn(result.status)}</Status>
+              {(from === 'Comercial' || from === 'Billing') && (
+                <Value>
+                  <div>R$</div>
+                  <div>{result.formattedValue}</div>
+                </Value>
+              )}
+              {from === 'TechnicalArea' && (
+                <DateField>{result.formattedDate}</DateField>
+              )}
+              <Status>
+                {result.status ? statusReturn(result.status) : 'Aguardando'}
+              </Status>
             </RowResult>
           ))}
         </Content>

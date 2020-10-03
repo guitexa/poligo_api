@@ -292,8 +292,8 @@ export const ServiceValue = styled.div`
   justify-content: space-between;
   align-items: center;
 
-  div {
-    width: 70%;
+  div:first-child {
+    width: 60%;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -312,11 +312,15 @@ export const ServiceValue = styled.div`
     }
 
     svg {
-      width: 18px;
-      height: 18px;
       color: transparent;
-      padding: 0 0.5px;
-      margin-left: 5px;
+    }
+
+    .faEdit {
+      width: 23px;
+    }
+
+    .faTrashAlt {
+      width: 18px;
     }
   }
 `;

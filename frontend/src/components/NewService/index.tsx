@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useCallback } from 'react';
+import React, { useState, ChangeEvent, useCallback, useEffect } from 'react';
 import TextField from '@material-ui/core/TextField';
 import { createFilterOptions, Autocomplete } from '@material-ui/lab';
 import parse from 'autosuggest-highlight/parse';
@@ -10,6 +10,7 @@ import { createMuiTheme, Grid, IconButton } from '@material-ui/core';
 import NumberFormat from 'react-number-format';
 import { Close } from '@material-ui/icons';
 import { FaTimes } from 'react-icons/fa';
+import { uuid } from 'uuidv4';
 
 import { ServiceData } from '../Order';
 import Button from '../Button';
@@ -29,6 +30,9 @@ interface NewServiceProps {
   color: string;
   setNewServiceOpen(e: boolean): void;
   setServices(e: ServiceData): void;
+  setEditedServices(e: ServiceData): void;
+  serviceToEdit: ServiceData;
+  setServiceToEdit(e: ServiceData): void;
 }
 
 interface ServiceState {
@@ -76,6 +80,9 @@ const NewService: React.FC<NewServiceProps> = ({
   color,
   setNewServiceOpen,
   setServices,
+  setEditedServices,
+  serviceToEdit,
+  setServiceToEdit,
 }) => {
   const [service, setService] = useState<ServiceState>({} as ServiceState);
   const [description, setDescription] = useState('');
@@ -329,21 +336,81 @@ const NewService: React.FC<NewServiceProps> = ({
     });
   };
 
+  // Verifica se tem serviço para ser alterado e seta os campos do modal com esses valores
+  useEffect(() => {
+    if (
+      serviceToEdit.name &&
+      serviceToEdit.description &&
+      serviceToEdit.value
+    ) {
+      setService({
+        name: serviceToEdit.name,
+      });
+      setDescription(serviceToEdit.description);
+      setValue({
+        formattedValue: String(serviceToEdit.value),
+      });
+    }
+  }, [serviceToEdit]);
+
+  // Fecha o modal e envia os dados para a Order
   const handleAddNewService = useCallback(() => {
     setNewServiceOpen(false);
     setServices({
+      id: uuid(),
       name: service.name,
       description,
       value: Number(value.formattedValue),
     });
   }, [description, service, setNewServiceOpen, setServices, value]);
 
+  const handleEditService = useCallback(() => {
+    setNewServiceOpen(false);
+    setEditedServices({
+      id: serviceToEdit.id,
+      name: service.name,
+      description,
+      value: Number(value.formattedValue),
+    });
+    setServiceToEdit({} as ServiceData);
+  }, [
+    setNewServiceOpen,
+    setEditedServices,
+    serviceToEdit.id,
+    service.name,
+    description,
+    value.formattedValue,
+    setServiceToEdit,
+  ]);
+
+  const handleCloseWindow = useCallback(() => {
+    setNewServiceOpen(false);
+    setService({
+      name: '',
+    });
+    setDescription('');
+    setValue({
+      formattedValue: '',
+    });
+    setServiceToEdit({} as ServiceData);
+  }, [setServiceToEdit, setNewServiceOpen]);
+
+  console.log(service);
+  console.log(service.name);
+  console.log(service.inputValue);
+
   return (
     <ThemeProvider theme={defaultMaterialTheme}>
       <ModalContainer>
         <Header color={color}>
-          <strong>ADICIONAR SERVIÇO</strong>
-          <button type="button" onClick={() => setNewServiceOpen(false)}>
+          {serviceToEdit.name &&
+          serviceToEdit.description &&
+          serviceToEdit.value ? (
+            <strong>ALTERAR SERVIÇO</strong>
+          ) : (
+            <strong>ADICIONAR SERVIÇO</strong>
+          )}
+          <button type="button" onClick={() => handleCloseWindow()}>
             <FaTimes />
           </button>
         </Header>
@@ -351,10 +418,10 @@ const NewService: React.FC<NewServiceProps> = ({
           <form onSubmit={(e) => e.preventDefault()}>
             <Service>
               <Autocomplete
-                openOnFocus={service === null}
                 openText=""
-                id="input-service"
+                clearText=""
                 clearOnBlur={false}
+                id="input-service"
                 value={service}
                 onChange={(event, newService) => {
                   if (newService && newService.inputValue) {
@@ -363,6 +430,9 @@ const NewService: React.FC<NewServiceProps> = ({
                     });
                   } else if (newService) {
                     setService(newService);
+                  }
+                  if (!newService) {
+                    setService({} as ServiceState);
                   }
                 }}
                 filterOptions={(options, params) => {
@@ -447,9 +517,22 @@ const NewService: React.FC<NewServiceProps> = ({
                 </Grid>
               </Grid>
             </Value>
-            {service.name && description && value.formattedValue ? (
-              <Button onClick={handleAddNewService}>Adicionar</Button>
-            ) : (
+            {serviceToEdit.name &&
+              serviceToEdit.description &&
+              serviceToEdit.value && (
+                <Button onClick={handleEditService}>Alterar</Button>
+              )}
+            {service.name &&
+              description &&
+              value.formattedValue &&
+              !serviceToEdit.name &&
+              !serviceToEdit.description &&
+              !serviceToEdit.value && (
+                <Button onClick={handleAddNewService}>Adicionar</Button>
+              )}
+            {(service.name === undefined ||
+              !description ||
+              !value.formattedValue) && (
               <DisabledButton>Adicionar</DisabledButton>
             )}
           </form>

@@ -47,7 +47,7 @@ const Comercial: React.FC = () => {
             color={color}
           />
         </Header>
-        <SearchBar color={color} />
+        <SearchBar color={color} from="Comercial" />
         <SearchResults
           color={color}
           orderOpen={orderOpen}

@@ -14,7 +14,7 @@ const TechnicalArea: React.FC = () => {
   return (
     <Container>
       <Header title="Área Técnica" color={color} />
-      <SearchBar color={color} />
+      <SearchBar color={color} from="TechnicalArea" />
       <SearchResults
         color={color}
         orderOpen={orderOpen}

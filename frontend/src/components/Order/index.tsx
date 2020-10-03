@@ -16,6 +16,7 @@ import {
   FaRegClock,
   FaTimes,
   FaTrashAlt,
+  FaEdit,
 } from 'react-icons/fa';
 import { HiOutlineRefresh } from 'react-icons/hi';
 
@@ -47,6 +48,7 @@ import {
 } from './styles';
 
 export interface ServiceData {
+  id: string;
   name: string;
   description: string;
   value: number;
@@ -70,7 +72,6 @@ interface OrderProps {
   newServiceOpen: boolean;
   setNewServiceOpen(e: boolean): void;
   data: SearchResult;
-  hasServices?: boolean;
   from: string;
 }
 
@@ -79,10 +80,12 @@ const Order: React.FC<OrderProps> = ({
   newServiceOpen,
   setNewServiceOpen,
   data,
-  hasServices,
   from,
 }) => {
   const [services, setServices] = useState<ServiceData[]>([]);
+  const [serviceToEdit, setServiceToEdit] = useState<ServiceData>(
+    {} as ServiceData
+  );
   const [status, setStatus] = useState<StatusState>({
     order: 'Aprovado',
     delivery: 'Andamento',
@@ -90,22 +93,34 @@ const Order: React.FC<OrderProps> = ({
   });
 
   useEffect(() => {
-    if (hasServices) {
+    if (data.service && data.value && data.id) {
       const sample = {
+        id: data.id,
         name: data.service,
         description:
-          'Ainda não tem descrição para este serviço, mas pode haver uma descrição bem grande.',
+          'descrição-qualquer-que-depois-vai-buscar-no-banco-de-dados',
         value: data.value,
       };
 
       setServices((state) => [...state, sample]);
     }
-  }, [data.formattedValue, data.service, data.value, hasServices]);
+  }, [data]);
 
-  const handleDeleteServiceItem = useCallback((serviceName: string) => {
-    setServices((state) =>
-      state.filter((service) => service.name !== serviceName)
-    );
+  const handleDeleteServiceItem = useCallback((serviceID: string) => {
+    setServices((state) => state.filter((service) => service.id !== serviceID));
+  }, []);
+
+  const handleEditServiceItem = useCallback(
+    (dataToEdit: ServiceData) => {
+      setServiceToEdit(dataToEdit);
+      setNewServiceOpen(!newServiceOpen);
+    },
+    [newServiceOpen, setNewServiceOpen]
+  );
+
+  const handleEditedService = useCallback((e: ServiceData) => {
+    setServices((state) => state.filter((service) => service.id !== e.id));
+    setServices((state) => [...state, e]);
   }, []);
 
   const defaultMaterialTheme = createMuiTheme({
@@ -208,6 +223,9 @@ const Order: React.FC<OrderProps> = ({
             color={color}
             setNewServiceOpen={(e) => setNewServiceOpen(e)}
             setServices={(e) => setServices((state) => [...state, e])}
+            setEditedServices={(e) => handleEditedService(e)}
+            serviceToEdit={serviceToEdit}
+            setServiceToEdit={(e) => setServiceToEdit(e)}
           />
         </OrderOverlapping>
       )}
@@ -244,7 +262,11 @@ const Order: React.FC<OrderProps> = ({
               <DataForm>
                 <p>6478</p>
                 <p>{data.seller}</p>
-                <p>R${data.formattedValue}</p>
+                {from === 'Comercial' || from === 'Billing' ? (
+                  <p>R${data.formattedValue}</p>
+                ) : (
+                  <p>--</p>
+                )}
                 <p>{data.formattedDate}</p>
                 {from !== 'Comercial' && status.order === ' ' && <p>--</p>}
                 {from !== 'Comercial' && status.order === 'Aprovado' && (
@@ -403,9 +425,19 @@ const Order: React.FC<OrderProps> = ({
                 <p>Status financeiro:</p>
               </TitlesForm>
               <DataForm>
-                <p>1+3x R$1.325,00</p>
-                <p>Não</p>
-                <p>Entrada para 16/06 e parcelas junto com faturamento</p>
+                {from === 'Comercial' || from === 'Billing' ? (
+                  <>
+                    <p>1+3x R$1.325,00</p>
+                    <p>Não</p>
+                    <p>Entrada para 16/06 e parcelas junto com faturamento</p>
+                  </>
+                ) : (
+                  <>
+                    <p>--</p>
+                    <p>--</p>
+                    <p>--</p>
+                  </>
+                )}
                 {from !== 'Billing' && status.billing === ' ' && <p>--</p>}
                 {from !== 'Billing' && status.billing === 'Aguardando' && (
                   <div className="status">
@@ -469,7 +501,7 @@ const Order: React.FC<OrderProps> = ({
             {services &&
               services.length > 0 &&
               services.map((service) => (
-                <ServiceRow color={color} key={service.name}>
+                <ServiceRow color={color} key={service.id}>
                   <ServiceName>{service.name}</ServiceName>
                   <ServiceDescription>{service.description}</ServiceDescription>
                   <ServiceValue>
@@ -478,14 +510,32 @@ const Order: React.FC<OrderProps> = ({
                       <span>{formatValue(service.value)}</span>
                     </div>
                     {from === 'Comercial' && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteServiceItem(service.name)}
-                      >
-                        <MaterialTooltip title="Excluir" arrow placement="left">
-                          <FaTrashAlt />
-                        </MaterialTooltip>
-                      </button>
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => handleEditServiceItem(service)}
+                        >
+                          <MaterialTooltip
+                            title="Alterar"
+                            arrow
+                            placement="left"
+                          >
+                            <FaEdit className="faEdit" />
+                          </MaterialTooltip>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteServiceItem(service.id)}
+                        >
+                          <MaterialTooltip
+                            title="Excluir"
+                            arrow
+                            placement="left"
+                          >
+                            <FaTrashAlt className="faTrashAlt" />
+                          </MaterialTooltip>
+                        </button>
+                      </div>
                     )}
                   </ServiceValue>
                 </ServiceRow>

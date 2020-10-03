@@ -40,6 +40,7 @@ import {
 
 interface SearchBarProps {
   color: string;
+  from: string;
 }
 
 interface ValueState {
@@ -77,10 +78,11 @@ function NumberFormatCustom(props: NumberFormatCustomProps): JSX.Element {
   );
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [companyName, setCompanyName] = useState('');
   const [service, setService] = useState('');
+  const [seller, setSeller] = useState('');
   const [value, setValue] = useState<ValueState>({
     formattedValue: '',
   });
@@ -174,6 +176,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
     });
   };
 
+  const handleChangeSeller = useCallback((event, selectedSeller) => {
+    setSeller(selectedSeller !== null ? selectedSeller.name : '');
+  }, []);
+
   return (
     <Container color={color}>
       <ThemeProvider theme={defaultMaterialTheme}>
@@ -236,14 +242,86 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
           </Grid>
         </Service>
         <Seller>
+          {/* <Autocomplete
+          openText=""
+          clearText=""
+          clearOnBlur={false}
+          value={seller}
+          onChange={(event, newCompanyName) => {
+            if (newCompanyName && newCompanyName.inputValue) {
+              setCompanyName({
+                name: newCompanyName.inputValue,
+              });
+            } else if (newCompanyName) {
+              setCompanyName(newCompanyName);
+            }
+            if (!newCompanyName) {
+              setCompanyName({} as CompanyNameState);
+            }
+          }}
+          filterOptions={(options, params) => {
+            const filtered = filter(
+              options,
+              params
+            ) as CompanyNameState[];
+
+            if (params.inputValue !== '') {
+              filtered.push({
+                inputValue: params.inputValue,
+                name: `Adicionar ${params.inputValue}`,
+              });
+            }
+
+            return filtered;
+          }}
+          options={companyNames}
+          noOptionsText=""
+          getOptionLabel={({ name, inputValue }) => {
+            if (inputValue) {
+              return inputValue;
+            }
+            return name;
+          }}
+          renderInput={(params) => (
+            <TextField
+              name="companyName"
+              autoFocus
+              autoComplete="off"
+              placeholder="Escreva ou selecione uma opção"
+              helperText=" "
+              {...params}
+            />
+          )}
+          renderOption={({ name }, { inputValue }) => {
+            const matches = match(name, inputValue);
+            const parts = parse(name, matches);
+
+            return (
+              <div>
+                {parts.map(({ highlight, text }) => (
+                  <span
+                    key={text}
+                    style={{ fontWeight: highlight ? 700 : 400 }}
+                  >
+                    {text}
+                  </span>
+                ))}
+              </div>
+            );
+          }}
+        /> */}
           <Autocomplete
             openText=""
-            id="input-sellers"
+            clearText=""
             clearOnBlur={false}
-            options={sellers}
+            id="input-sellers"
+            options={sellers || []}
             getOptionLabel={({ name }) => name}
+            onChange={handleChangeSeller}
             noOptionsText=""
-            renderInput={(params) => <TextField {...params} label="Vendedor" />}
+            renderInput={(params) => (
+              <TextField {...params} label="Vendedor" value={seller} />
+            )}
             renderOption={({ name }, { inputValue }) => {
               const matches = match(name, inputValue);
               const parts = parse(name, matches);
@@ -265,37 +343,57 @@ const SearchBar: React.FC<SearchBarProps> = ({ color }) => {
             }}
           />
         </Seller>
-        <Value>
-          <Grid container spacing={1} alignItems="flex-end">
-            <Grid item>
-              <TextField
-                label="Valor"
-                value={value.formattedValue}
-                onChange={handleChangeValue}
-                name="formattedValue"
-                id="formatted-formattedValue-input"
-                InputProps={{
-                  inputComponent: NumberFormatCustom as any,
+        {(from === 'Comercial' || from === 'Billing') && (
+          <Value>
+            <Grid container spacing={1} alignItems="flex-end">
+              <Grid item>
+                <TextField
+                  label="Valor"
+                  value={value.formattedValue}
+                  onChange={handleChangeValue}
+                  name="formattedValue"
+                  id="formatted-formattedValue-input"
+                  InputProps={{
+                    inputComponent: NumberFormatCustom as any,
+                  }}
+                />
+              </Grid>
+              <Grid item>
+                {value.formattedValue ? (
+                  <IconButton
+                    onClick={() => {
+                      setValue({
+                        formattedValue: '',
+                      });
+                    }}
+                  >
+                    <Close />
+                  </IconButton>
+                ) : (
+                  <Search />
+                )}
+              </Grid>
+            </Grid>
+          </Value>
+        )}
+        {from === 'TechnicalArea' && (
+          <Date>
+            <MuiPickersUtilsProvider utils={DateFnsUtils}>
+              <KeyboardDatePicker
+                disableToolbar
+                variant="inline"
+                id="date-picker-inline"
+                label="Data"
+                format="dd/MM/yyyy"
+                value={selectedDate}
+                onChange={handleDateChange}
+                KeyboardButtonProps={{
+                  'aria-label': 'change date',
                 }}
               />
-            </Grid>
-            <Grid item>
-              {value.formattedValue ? (
-                <IconButton
-                  onClick={() => {
-                    setValue({
-                      formattedValue: '',
-                    });
-                  }}
-                >
-                  <Close />
-                </IconButton>
-              ) : (
-                <Search />
-              )}
-            </Grid>
-          </Grid>
-        </Value>
+            </MuiPickersUtilsProvider>
+          </Date>
+        )}
         <Status value={!!status}>
           <FormControl className={formControl}>
             <InputLabel id="demo-simple-select-label">Status</InputLabel>

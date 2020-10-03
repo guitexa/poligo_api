@@ -134,15 +134,20 @@ export const SubmitQuestionButton = styled.div`
     display: flex;
     justify-content: flex-start;
     align-items: flex-end;
+    margin-left: 20px;
 
-    span {
-      margin: 0 7px 0 15px;
+    span:nth-child(1) {
       font-size: 13px;
     }
 
-    img {
-      height: 17px;
+    span:nth-child(2) {
+      margin-left: 5px;
+      font-size: 17px;
     }
+
+    /* img {
+      height: 17px;
+    } */
   }
 `;
 

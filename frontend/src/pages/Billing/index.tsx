@@ -14,7 +14,7 @@ const Billing: React.FC = () => {
   return (
     <Container>
       <Header title="Faturamento" color={color} />
-      <SearchBar color={color} />
+      <SearchBar color={color} from="Billing" />
       <SearchResults
         color={color}
         orderOpen={orderOpen}
