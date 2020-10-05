@@ -395,10 +395,6 @@ const NewService: React.FC<NewServiceProps> = ({
     setServiceToEdit({} as ServiceData);
   }, [setServiceToEdit, setNewServiceOpen]);
 
-  console.log(service);
-  console.log(service.name);
-  console.log(service.inputValue);
-
   return (
     <ThemeProvider theme={defaultMaterialTheme}>
       <ModalContainer>

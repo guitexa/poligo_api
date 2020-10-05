@@ -4,6 +4,10 @@ interface ContainerProps {
   color: string;
 }
 
+interface DateProps {
+  isFilled: boolean;
+}
+
 interface StatusProps {
   value: boolean;
 }
@@ -35,7 +39,7 @@ export const Container = styled.div<ContainerProps>`
   }
 `;
 
-export const Date = styled.div`
+export const Date = styled.div<DateProps>`
   width: 9.5%;
   max-width: 100px;
 
@@ -46,7 +50,7 @@ export const Date = styled.div`
   }
 
   .MuiInputLabel-formControl {
-    transform: translate(0, 17px) scale(1.1);
+    transform: translate(0, 16px) scale(1.1);
   }
   .MuiInputLabel-shrink {
     transform: translate(0.5px, 1.5px) scale(0.9);
@@ -57,24 +61,34 @@ export const Date = styled.div`
     display: none;
   }
 
+  .MuiGrid-container {
+    flex-wrap: inherit;
+  }
+
   .MuiInputBase-input {
     font-size: 0.8rem;
-    height: 1.85em;
+    height: 1.8em;
     padding: 0px 0 0 4px;
     margin-right: -10px;
   }
 
   .MuiIconButton-root {
-    padding: 6px;
-    margin: 0 -2px -2px 0;
+    padding: ${({ isFilled }) => (isFilled ? '3px' : '6px')};
+    margin: ${({ isFilled }) => (isFilled ? '0 0 -1px -25px' : '0 -2px 1px 0')};
+    display: ${({ isFilled }) => (isFilled ? 'none' : 'flex')};
+  }
+
+  .close-button {
+    display: ${({ isFilled }) => (isFilled ? 'flex' : 'none')};
   }
 
   .MuiSvgIcon-root {
-    font-size: 1.1rem;
+    font-size: ${({ isFilled }) => (isFilled ? '1.23rem' : '1rem')};
+    margin-top: '2px';
   }
 
   .MuiInputBase-root {
-    margin-top: 4px;
+    margin-top: 4.5px;
   }
 `;
 
@@ -218,7 +232,7 @@ export const Service = styled.div`
   }
 `;
 
-export const Seller = styled.div`
+export const Professional = styled.div`
   width: 14%;
   max-width: 200px;
 

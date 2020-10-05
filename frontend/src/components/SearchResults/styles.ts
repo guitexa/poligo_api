@@ -97,7 +97,7 @@ export const Service = styled.div`
   -webkit-box-orient: vertical;
 `;
 
-export const Seller = styled.div`
+export const Professional = styled.div`
   width: 14%;
   max-width: 200px;
   display: flex;

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, ChangeEvent } from 'react';
+import React, { useCallback } from 'react';
 import 'date-fns';
 import DateFnsUtils from '@date-io/date-fns';
 import {
@@ -28,12 +28,14 @@ import match from 'autosuggest-highlight/match';
 import { FaCheckCircle, FaRegClock, FaTimes } from 'react-icons/fa';
 import NumberFormat from 'react-number-format';
 
+import { useSearch } from '../../hooks/search';
+
 import {
   Container,
   Date,
   CompanyName,
   Service,
-  Seller,
+  Professional,
   Value,
   Status,
 } from './styles';
@@ -41,10 +43,6 @@ import {
 interface SearchBarProps {
   color: string;
   from: string;
-}
-
-interface ValueState {
-  formattedValue: string;
 }
 
 interface NumberFormatCustomProps {
@@ -79,20 +77,41 @@ function NumberFormatCustom(props: NumberFormatCustomProps): JSX.Element {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [companyName, setCompanyName] = useState('');
-  const [service, setService] = useState('');
-  const [seller, setSeller] = useState('');
-  const [value, setValue] = useState<ValueState>({
-    formattedValue: '',
-  });
-  const [status, setStatus] = useState('');
-
   const sellers = [{ name: 'Christiane' }, { name: 'Tainara' }];
+  const technicals = [{ name: 'Leandro' }, { name: 'Aline' }];
 
-  const handleDateChange = useCallback((date: Date | null) => {
-    setSelectedDate(date);
-  }, []);
+  const {
+    selectedDate,
+    selectedDeliveryDate,
+    companyName,
+    service,
+    seller,
+    technical,
+    value,
+    status,
+    searchDate,
+    searchDeliveryDate,
+    searchCompanyName,
+    searchService,
+    searchSeller,
+    searchTechnical,
+    searchValue,
+    searchStatus,
+  } = useSearch();
+
+  const handleDateChange = useCallback(
+    (date: Date | null) => {
+      searchDate(date);
+    },
+    [searchDate]
+  );
+
+  const handleDeliveryDateChange = useCallback(
+    (date: Date | null) => {
+      searchDeliveryDate(date);
+    },
+    [searchDeliveryDate]
+  );
 
   const defaultMaterialTheme = createMuiTheme({
     palette: {
@@ -169,35 +188,52 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
 
   const { formControl, faCheck, faRegClock, faTimes } = useStyles();
 
-  const handleChangeValue = (event: ChangeEvent<HTMLInputElement>): void => {
-    setValue({
-      ...value,
-      [event.target.name]: event.target.value,
-    });
-  };
+  const handleChangeSeller = useCallback(
+    (event, selectedSeller) => {
+      searchSeller(selectedSeller !== null ? selectedSeller.name : '');
+    },
+    [searchSeller]
+  );
 
-  const handleChangeSeller = useCallback((event, selectedSeller) => {
-    setSeller(selectedSeller !== null ? selectedSeller.name : '');
-  }, []);
+  const handleChangeTechnical = useCallback(
+    (event, selectedTechnical) => {
+      searchTechnical(selectedTechnical !== null ? selectedTechnical.name : '');
+    },
+    [searchTechnical]
+  );
 
   return (
     <Container color={color}>
       <ThemeProvider theme={defaultMaterialTheme}>
-        <Date>
-          <MuiPickersUtilsProvider utils={DateFnsUtils}>
-            <KeyboardDatePicker
-              disableToolbar
-              variant="inline"
-              id="date-picker-inline"
-              label="Data"
-              format="dd/MM/yyyy"
-              value={selectedDate}
-              onChange={handleDateChange}
-              KeyboardButtonProps={{
-                'aria-label': 'change date',
-              }}
-            />
-          </MuiPickersUtilsProvider>
+        <Date isFilled={!!selectedDate}>
+          <Grid container alignItems="flex-end">
+            <Grid item>
+              <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                <KeyboardDatePicker
+                  disableToolbar
+                  variant="dialog"
+                  id="date-picker-inline"
+                  label="Data"
+                  format="dd/MM/yyyy"
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  KeyboardButtonProps={{
+                    'aria-label': 'change date',
+                  }}
+                />
+              </MuiPickersUtilsProvider>
+            </Grid>
+            <Grid item>
+              {selectedDate && (
+                <IconButton
+                  className="close-button"
+                  onClick={() => searchDate(null)}
+                >
+                  <Close />
+                </IconButton>
+              )}
+            </Grid>
+          </Grid>
         </Date>
         <CompanyName>
           <Grid container spacing={1} alignItems="flex-end">
@@ -206,12 +242,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
                 id="input-with-icon-grid-company-name"
                 label="Razão Social"
                 value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
+                onChange={(e) => searchCompanyName(e.target.value)}
               />
             </Grid>
             <Grid item>
               {companyName ? (
-                <IconButton onClick={() => setCompanyName('')}>
+                <IconButton onClick={() => searchCompanyName('')}>
                   <Close />
                 </IconButton>
               ) : (
@@ -227,12 +263,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
                 id="input-with-icon-grid-service"
                 label="Serviço"
                 value={service}
-                onChange={(e) => setService(e.target.value)}
+                onChange={(e) => searchService(e.target.value)}
               />
             </Grid>
             <Grid item>
               {service ? (
-                <IconButton onClick={() => setService('')}>
+                <IconButton onClick={() => searchService('')}>
                   <Close />
                 </IconButton>
               ) : (
@@ -241,158 +277,136 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
             </Grid>
           </Grid>
         </Service>
-        <Seller>
-          {/* <Autocomplete
-          openText=""
-          clearText=""
-          clearOnBlur={false}
-          value={seller}
-          onChange={(event, newCompanyName) => {
-            if (newCompanyName && newCompanyName.inputValue) {
-              setCompanyName({
-                name: newCompanyName.inputValue,
-              });
-            } else if (newCompanyName) {
-              setCompanyName(newCompanyName);
-            }
-            if (!newCompanyName) {
-              setCompanyName({} as CompanyNameState);
-            }
-          }}
-          filterOptions={(options, params) => {
-            const filtered = filter(
-              options,
-              params
-            ) as CompanyNameState[];
-
-            if (params.inputValue !== '') {
-              filtered.push({
-                inputValue: params.inputValue,
-                name: `Adicionar ${params.inputValue}`,
-              });
-            }
-
-            return filtered;
-          }}
-          options={companyNames}
-          noOptionsText=""
-          getOptionLabel={({ name, inputValue }) => {
-            if (inputValue) {
-              return inputValue;
-            }
-            return name;
-          }}
-          renderInput={(params) => (
-            <TextField
-              name="companyName"
-              autoFocus
-              autoComplete="off"
-              placeholder="Escreva ou selecione uma opção"
-              helperText=" "
-              {...params}
-            />
-          )}
-          renderOption={({ name }, { inputValue }) => {
-            const matches = match(name, inputValue);
-            const parts = parse(name, matches);
-
-            return (
-              <div>
-                {parts.map(({ highlight, text }) => (
-                  <span
-                    key={text}
-                    style={{ fontWeight: highlight ? 700 : 400 }}
-                  >
-                    {text}
-                  </span>
-                ))}
-              </div>
-            );
-          }}
-        /> */}
-          <Autocomplete
-            openText=""
-            clearText=""
-            clearOnBlur={false}
-            id="input-sellers"
-            options={sellers || []}
-            getOptionLabel={({ name }) => name}
-            onChange={handleChangeSeller}
-            noOptionsText=""
-            renderInput={(params) => (
-              <TextField {...params} label="Vendedor" value={seller} />
-            )}
-            renderOption={({ name }, { inputValue }) => {
-              const matches = match(name, inputValue);
-              const parts = parse(name, matches);
-
-              return (
-                <div>
-                  {parts.map(({ highlight, text }) => (
-                    <span
-                      key={text}
-                      style={{
-                        fontWeight: highlight ? 700 : 400,
-                      }}
-                    >
-                      {text}
-                    </span>
-                  ))}
-                </div>
-              );
-            }}
-          />
-        </Seller>
         {(from === 'Comercial' || from === 'Billing') && (
-          <Value>
-            <Grid container spacing={1} alignItems="flex-end">
-              <Grid item>
-                <TextField
-                  label="Valor"
-                  value={value.formattedValue}
-                  onChange={handleChangeValue}
-                  name="formattedValue"
-                  id="formatted-formattedValue-input"
-                  InputProps={{
-                    inputComponent: NumberFormatCustom as any,
-                  }}
-                />
-              </Grid>
-              <Grid item>
-                {value.formattedValue ? (
-                  <IconButton
-                    onClick={() => {
-                      setValue({
-                        formattedValue: '',
-                      });
-                    }}
-                  >
-                    <Close />
-                  </IconButton>
-                ) : (
-                  <Search />
+          <>
+            <Professional>
+              <Autocomplete
+                openText=""
+                clearText=""
+                clearOnBlur={false}
+                id="input-sellers"
+                options={sellers || []}
+                getOptionLabel={({ name }) => name}
+                onChange={handleChangeSeller}
+                noOptionsText=""
+                renderInput={(params) => (
+                  <TextField {...params} label="Vendedor" value={seller} />
                 )}
-              </Grid>
-            </Grid>
-          </Value>
-        )}
-        {from === 'TechnicalArea' && (
-          <Date>
-            <MuiPickersUtilsProvider utils={DateFnsUtils}>
-              <KeyboardDatePicker
-                disableToolbar
-                variant="inline"
-                id="date-picker-inline"
-                label="Data"
-                format="dd/MM/yyyy"
-                value={selectedDate}
-                onChange={handleDateChange}
-                KeyboardButtonProps={{
-                  'aria-label': 'change date',
+                renderOption={({ name }, { inputValue }) => {
+                  const matches = match(name, inputValue);
+                  const parts = parse(name, matches);
+
+                  return (
+                    <div>
+                      {parts.map(({ highlight, text }) => (
+                        <span
+                          key={text}
+                          style={{
+                            fontWeight: highlight ? 700 : 400,
+                          }}
+                        >
+                          {text}
+                        </span>
+                      ))}
+                    </div>
+                  );
                 }}
               />
-            </MuiPickersUtilsProvider>
-          </Date>
+            </Professional>
+            <Value>
+              <Grid container spacing={1} alignItems="flex-end">
+                <Grid item>
+                  <TextField
+                    label="Valor"
+                    value={value}
+                    onChange={(e) => searchValue(e.target.value)}
+                    name="formattedValue"
+                    id="formatted-formattedValue-input"
+                    InputProps={{
+                      inputComponent: NumberFormatCustom as any,
+                    }}
+                  />
+                </Grid>
+                <Grid item>
+                  {value ? (
+                    <IconButton onClick={() => searchValue('')}>
+                      <Close />
+                    </IconButton>
+                  ) : (
+                    <Search />
+                  )}
+                </Grid>
+              </Grid>
+            </Value>
+          </>
+        )}
+        {from === 'TechnicalArea' && (
+          <>
+            <Professional>
+              <Autocomplete
+                openText=""
+                clearText=""
+                clearOnBlur={false}
+                id="input-technical"
+                options={technicals || []}
+                getOptionLabel={({ name }) => name}
+                onChange={handleChangeTechnical}
+                noOptionsText=""
+                renderInput={(params) => (
+                  <TextField {...params} label="Executante" value={technical} />
+                )}
+                renderOption={({ name }, { inputValue }) => {
+                  const matches = match(name, inputValue);
+                  const parts = parse(name, matches);
+
+                  return (
+                    <div>
+                      {parts.map(({ highlight, text }) => (
+                        <span
+                          key={text}
+                          style={{
+                            fontWeight: highlight ? 700 : 400,
+                          }}
+                        >
+                          {text}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                }}
+              />
+            </Professional>
+            <Date isFilled={!!selectedDeliveryDate}>
+              <Grid container alignItems="flex-end">
+                <Grid item>
+                  <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                    <KeyboardDatePicker
+                      disableToolbar
+                      variant="dialog"
+                      id="date-picker-inline"
+                      label="Entrega"
+                      format="dd/MM/yyyy"
+                      value={selectedDeliveryDate}
+                      onChange={handleDeliveryDateChange}
+                      KeyboardButtonProps={{
+                        'aria-label': 'change date',
+                      }}
+                    />
+                  </MuiPickersUtilsProvider>
+                </Grid>
+                <Grid item>
+                  {selectedDeliveryDate && (
+                    <IconButton
+                      className="close-button"
+                      onClick={() => searchDeliveryDate(null)}
+                    >
+                      <Close />
+                    </IconButton>
+                  )}
+                </Grid>
+              </Grid>
+            </Date>
+          </>
         )}
         <Status value={!!status}>
           <FormControl className={formControl}>
@@ -401,7 +415,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
               labelId="demo-simple-select-label"
               id="demo-simple-select"
               value={status}
-              onChange={(e) => setStatus(e.target.value as string)}
+              onChange={(e) => searchStatus(e.target.value as string)}
             >
               <MenuItem value="">&nbsp;</MenuItem>
               <MenuItem value="Aprovado" style={{ justifyContent: 'center' }}>
@@ -410,7 +424,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
               <MenuItem value="Aguardando" style={{ justifyContent: 'center' }}>
                 <FaRegClock className={faRegClock} />
               </MenuItem>
-              <MenuItem value="Encerrado" style={{ justifyContent: 'center' }}>
+              <MenuItem value="Cancelado" style={{ justifyContent: 'center' }}>
                 <FaTimes className={faTimes} />
               </MenuItem>
             </Select>
