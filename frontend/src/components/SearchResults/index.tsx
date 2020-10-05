@@ -29,6 +29,11 @@ export interface SearchResult {
   deliveryDate?: Date;
   formattedDeliveryDate?: string;
   companyName: string;
+  companyCpfCnpj?: string;
+  companyNameContact?: string;
+  companyEmailContact?: string;
+  companyMobilePhoneContact?: string;
+  companyPhone?: string;
   service?: string;
   seller: string;
   technical?: string;
@@ -100,6 +105,10 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       deliveryDate: new Date(2020, 5, 10),
       formattedDeliveryDate: format(new Date(2020, 5, 10), 'dd/MM/yyyy'),
       companyName: 'Brookfield Asset Management',
+      companyCpfCnpj: '34.345.234/0001-42',
+      companyNameContact: 'Eduard Rothbard',
+      companyEmailContact: 'eduard@rothbard.com',
+      companyPhone: '(34) 3315-9090',
       service: 'Treinamento designado de Cipa',
       seller: 'Christiane',
       technical: 'Aline',
@@ -114,6 +123,11 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       deliveryDate: new Date(2020, 5, 10),
       formattedDeliveryDate: format(new Date(2020, 5, 10), 'dd/MM/yyyy'),
       companyName: 'Charter Communications',
+      companyCpfCnpj: '12.984.184/0001-15',
+      companyNameContact: 'Mark Hoppe',
+      companyEmailContact: 'mark@hoppe.com',
+      companyPhone: '(34) 3315-8345',
+      companyMobilePhoneContact: '(34) 9 9776-3247',
       service: 'Adendo PPRA/PCMSO',
       seller: 'Christiane',
       technical: 'Aline',
@@ -154,10 +168,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
       date: new Date(2020, 5, 4),
       formattedDate: format(new Date(2020, 5, 4), 'dd/MM/yyyy'),
       companyName: 'MetLifeSumitomo Mitsui Financial',
-      service: 'Treinamento designado de Cipa',
       seller: 'Christiane',
-      value: 800,
-      formattedValue: formatValue(800),
       status: 'Aguardando',
     },
     {
@@ -571,13 +582,13 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             >
               <DateField>{result.formattedDate}</DateField>
               <CompanyName>{result.companyName}</CompanyName>
-              <Service>{result.service}</Service>
+              <Service>{result.service || ''}</Service>
               {(from === 'Comercial' || from === 'Billing') && (
                 <>
                   <Professional>{result.seller}</Professional>
                   <Value>
-                    <div>R$</div>
-                    <div>{result.formattedValue}</div>
+                    <div>{result.formattedValue ? 'R$' : ''}</div>
+                    <div>{result.formattedValue || ''}</div>
                   </Value>
                 </>
               )}

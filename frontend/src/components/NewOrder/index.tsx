@@ -24,6 +24,7 @@ import { format } from 'date-fns';
 import { uuid } from 'uuidv4';
 
 import { useToast } from '../../hooks/toast';
+import { useAuth } from '../../hooks/auth';
 
 import Order from '../Order';
 import Button from '../Button';
@@ -109,6 +110,7 @@ const NewOrder: React.FC<NewOrderProps> = ({
   const [counterAnswers, setCounterAnswers] = useState<string[]>([]);
 
   const { addToast } = useToast();
+  const { user } = useAuth();
 
   const defaultMaterialTheme = createMuiTheme({
     palette: {
@@ -695,7 +697,13 @@ const NewOrder: React.FC<NewOrderProps> = ({
             date: new Date(),
             formattedDate: format(new Date(), 'dd/MM/yyyy'),
             companyName: companyName.name,
-            seller: 'Christiane',
+            seller: user.name,
+            status: 'Aguardando',
+            companyCpfCnpj,
+            companyNameContact,
+            companyEmailContact,
+            companyMobilePhoneContact,
+            companyPhone,
           }}
           from="Comercial"
         />
