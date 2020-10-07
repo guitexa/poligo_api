@@ -235,14 +235,18 @@ const Order: React.FC<OrderProps> = ({
             <CompanyData>
               <TitlesForm>
                 <p>Razão social:</p>
-                <p>CNPJ:</p>
+                {data.companyCpfCnpj && data.companyCpfCnpj?.length > 14 ? (
+                  <p>CNPJ:</p>
+                ) : (
+                  <p>CPF:</p>
+                )}
                 <p>Contato:</p>
                 <p>E-mail:</p>
                 <p>Telefone:</p>
                 <p>Celular:</p>
               </TitlesForm>
               <DataForm>
-                <p>{data.companyName}</p>
+                <p>{data.companyName || '--'}</p>
                 <p>{data.companyCpfCnpj || '--'}</p>
                 <p>{data.companyNameContact || '--'}</p>
                 <p>{data.companyEmailContact || '--'}</p>

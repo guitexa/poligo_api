@@ -1,27 +1,22 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { Autocomplete, createFilterOptions } from '@material-ui/lab';
 import {
   ThemeProvider,
   createMuiTheme,
-  Grid,
-  TextField,
-  IconButton,
+  TextField as OriginalTextField,
 } from '@material-ui/core';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
 import { FiArrowRight, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { Close } from '@material-ui/icons';
-import {
-  isCNPJ,
-  isCPF,
-  isPhone,
-  formatToPhone,
-  formatToCPFOrCNPJ,
-  formatToCapitalized,
-} from 'brazilian-values';
+import { isCNPJ, isCPF, isPhone, formatToCapitalized } from 'brazilian-values';
 import isEmail from 'validator/es/lib/isEmail';
 import { format } from 'date-fns';
 import { uuid } from 'uuidv4';
+
+import { Form } from '@unform/web';
+import { FormHandles } from '@unform/core';
+import { TextField } from 'unform-material-ui';
+import InputMask, { Props as InputProps } from 'react-input-mask';
 
 import { useToast } from '../../hooks/toast';
 import { useAuth } from '../../hooks/auth';
@@ -35,7 +30,8 @@ import {
   Content,
   AskTitle,
   WhatIsCompanyName,
-  WhatIsCompanyCpfCnpj,
+  WhatIsCompanyCnpj,
+  WhatIsCompanyCpf,
   WhatIsCompanyNameContact,
   WhatIsCompanyEmailContact,
   WhatIsCompanyMobilePhoneContact,
@@ -56,6 +52,15 @@ interface CompanyNameState {
   name: string;
 }
 
+interface InputData {
+  companyCnpjData: string;
+  companyCpfData: string;
+  companyNameContactData: string;
+  companyEmailContactData: string;
+  companyPhoneData: string;
+  companyMobilePhoneContactData: string;
+}
+
 interface NewOrderProps {
   color: string;
   newServiceOpen: boolean;
@@ -71,46 +76,39 @@ const NewOrder: React.FC<NewOrderProps> = ({
   const [companyName, setCompanyName] = useState<CompanyNameState>(
     {} as CompanyNameState
   );
-  const [companyCpfCnpj, setCompanyCpfCnpj] = useState('');
+  const [companyCnpj, setCompanyCnpj] = useState('');
+  const [companyCpf, setCompanyCpf] = useState('');
   const [companyNameContact, setCompanyNameContact] = useState('');
   const [companyEmailContact, setCompanyEmailContact] = useState('');
+  const [companyPhone, setCompanyPhone] = useState('');
   const [companyMobilePhoneContact, setCompanyMobilePhoneContact] = useState(
     ''
   );
-  const [companyPhone, setCompanyPhone] = useState('');
 
   const [companyNameOpen, setCompanyNameOpen] = useState(true);
-  const [companyCpfCnpjOpen, setCompanyCpfCnpjOpen] = useState(false);
+  const [companyCnpjOpen, setCompanyCnpjOpen] = useState(false);
+  const [companyCpfOpen, setCompanyCpfOpen] = useState(false);
   const [companyNameContactOpen, setCompanyNameContactOpen] = useState(false);
   const [companyEmailContactOpen, setCompanyEmailContactOpen] = useState(false);
+  const [companyPhoneOpen, setCompanyPhoneOpen] = useState(false);
   const [
     companyMobilePhoneContactOpen,
     setCompanyMobilePhoneContactOpen,
   ] = useState(false);
-  const [companyPhoneOpen, setCompanyPhoneOpen] = useState(false);
   const [confirmDataOpen, setConfirmDataOpen] = useState(false);
 
-  const [isCompanyCpfValid, setIsCompanyCpfValid] = useState<boolean | null>(
-    null
-  );
-  const [isCompanyCnpjValid, setIsCompanyCnpjValid] = useState<boolean | null>(
-    null
-  );
-  const [isCompanyEmailContactValid, setIsCompanyEmailContactValid] = useState<
-    boolean | null
-  >(null);
-  const [
-    isCompanyMobilePhoneContactValid,
-    setIsCompanyMobilePhoneContactValid,
-  ] = useState<boolean | null>(null);
-  const [isCompanyPhoneValid, setIsCompanyPhoneValid] = useState<
-    boolean | null
-  >(null);
-
   const [counterAnswers, setCounterAnswers] = useState<string[]>([]);
+  const [confirmDataHasOpened, setConfirmDataHasOpened] = useState(false);
 
   const { addToast } = useToast();
   const { user } = useAuth();
+
+  const companyCnpjRef = useRef<FormHandles>(null);
+  const companyCpfRef = useRef<FormHandles>(null);
+  const companyNameContactRef = useRef<FormHandles>(null);
+  const companyEmailContactRef = useRef<FormHandles>(null);
+  const companyPhoneRef = useRef<FormHandles>(null);
+  const companyMobilePhoneContactRef = useRef<FormHandles>(null);
 
   const defaultMaterialTheme = createMuiTheme({
     palette: {
@@ -335,181 +333,359 @@ const NewOrder: React.FC<NewOrderProps> = ({
   ];
 
   const handleShowData = useCallback(() => {
-    if (
-      (counterAnswers.includes('companyName') &&
-        counterAnswers.includes('companyCpfCnpj') &&
-        counterAnswers.includes('companyNameContact') &&
-        counterAnswers.includes('companyEmailContact') &&
-        counterAnswers.includes('companyPhone')) ||
-      counterAnswers.includes('companyMobilePhoneContact')
-    ) {
-      setCompanyNameOpen(false);
-      setCompanyCpfCnpjOpen(false);
-      setCompanyNameContactOpen(false);
-      setCompanyEmailContactOpen(false);
-      setCompanyMobilePhoneContactOpen(false);
-      setCompanyPhoneOpen(false);
-      setConfirmDataOpen(true);
-    }
-  }, [counterAnswers]);
+    setCompanyNameOpen(false);
+    setCompanyCnpjOpen(false);
+    setCompanyCpfOpen(false);
+    setCompanyNameContactOpen(false);
+    setCompanyEmailContactOpen(false);
+    setCompanyMobilePhoneContactOpen(false);
+    setCompanyPhoneOpen(false);
+    setConfirmDataOpen(true);
+  }, []);
 
   const handleSubmitCompanyName = useCallback(() => {
     if (companyName.name) {
       setCompanyNameOpen(!companyNameOpen); // Close question opened
-      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Open next question
+      setCompanyCnpjOpen(!companyCnpjOpen); // Open next question
 
       if (!counterAnswers.find((e) => e === 'companyName')) {
         setCounterAnswers((state) => [...state, 'companyName']); // Set as answered
       }
     }
 
-    handleShowData();
+    if (
+      confirmDataHasOpened &&
+      (counterAnswers.includes('companyCnpj') ||
+        counterAnswers.includes('companyCpf')) &&
+      counterAnswers.includes('companyNameContact') &&
+      counterAnswers.includes('companyEmailContact') &&
+      (counterAnswers.includes('companyPhone') ||
+        counterAnswers.includes('companyMobilePhoneContact'))
+    ) {
+      handleShowData();
+    }
   }, [
-    companyName,
-    handleShowData,
+    companyName.name,
+    confirmDataHasOpened,
+    counterAnswers,
     companyNameOpen,
-    companyCpfCnpjOpen,
-    counterAnswers,
-  ]);
-
-  const handleSubmitCompanyCpfCnpj = useCallback(() => {
-    if (companyCpfCnpj) {
-      if (isCNPJ(companyCpfCnpj)) {
-        setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
-        setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
-        setIsCompanyCnpjValid(true);
-
-        if (isCompanyCpfValid === true) {
-          setIsCompanyCpfValid(false);
-        }
-
-        if (!counterAnswers.find((e) => e === 'companyCpfCnpj')) {
-          setCounterAnswers((state) => [...state, 'companyCpfCnpj']); // Set as answered
-        }
-      } else if (companyCpfCnpj.length > 14) {
-        setIsCompanyCnpjValid(false);
-        setIsCompanyCpfValid(null);
-      }
-
-      if (isCPF(companyCpfCnpj)) {
-        setCompanyCpfCnpjOpen(!companyCpfCnpjOpen); // Close question opened
-        setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
-        setIsCompanyCpfValid(true);
-
-        if (isCompanyCnpjValid === true) {
-          setIsCompanyCnpjValid(false);
-        }
-
-        if (!counterAnswers.find((e) => e === 'companyCpfCnpj')) {
-          setCounterAnswers((state) => [...state, 'companyCpfCnpj']); // Set as answered
-        }
-      } else if (companyCpfCnpj.length <= 14) {
-        setIsCompanyCpfValid(false);
-        setIsCompanyCnpjValid(null);
-      }
-    }
-
-    handleShowData();
-  }, [
-    companyCpfCnpj,
-    companyCpfCnpjOpen,
-    companyNameContactOpen,
-    counterAnswers,
+    companyCnpjOpen,
     handleShowData,
-    isCompanyCnpjValid,
-    isCompanyCpfValid,
   ]);
 
-  const handleSubmitCompanyNameContact = useCallback(() => {
-    if (companyNameContact && companyNameContactOpen) {
-      setCompanyNameContactOpen(!companyNameContactOpen); // Close question opened
-      setCompanyEmailContactOpen(!companyEmailContactOpen); // Open next question
+  const handleSubmitCompanyCnpj = useCallback(
+    ({ companyCnpjData }: InputData) => {
+      if (companyCnpjData) {
+        if (isCNPJ(companyCnpjData)) {
+          companyCnpjRef.current?.setErrors({});
+          setCompanyCnpjOpen(!companyCnpjOpen); // Close question opened
+          setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
 
-      if (!counterAnswers.find((e) => e === 'companyNameContact')) {
-        setCounterAnswers((state) => [...state, 'companyNameContact']); // Set as answered
-      }
-    }
+          setCompanyCnpj(companyCnpjData);
 
-    handleShowData();
-  }, [
-    companyNameContact,
-    companyNameContactOpen,
-    handleShowData,
-    companyEmailContactOpen,
-    counterAnswers,
-  ]);
+          if (!counterAnswers.find((e) => e === 'companyCnpj')) {
+            setCounterAnswers((state) => [...state, 'companyCnpj']); // Set as answered
+          }
 
-  const handleSubmitCompanyEmailContact = useCallback(() => {
-    if (companyEmailContact && companyEmailContactOpen) {
-      if (isEmail(companyEmailContact)) {
-        setCompanyEmailContactOpen(!companyEmailContactOpen); // Close question opened
-        setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Open next question
-        setIsCompanyEmailContactValid(true);
-
-        if (!counterAnswers.find((e) => e === 'companyEmailContact')) {
-          setCounterAnswers((state) => [...state, 'companyEmailContact']); // Set as answered
+          if (
+            confirmDataHasOpened &&
+            counterAnswers.includes('companyName') &&
+            counterAnswers.includes('companyNameContact') &&
+            counterAnswers.includes('companyEmailContact') &&
+            (counterAnswers.includes('companyPhone') ||
+              counterAnswers.includes('companyMobilePhoneContact'))
+          ) {
+            handleShowData();
+          }
+        } else {
+          companyCnpjRef.current?.setErrors({
+            companyCnpjData: 'CNPJ inválido',
+          });
         }
       } else {
-        setIsCompanyEmailContactValid(false);
+        setCompanyCnpjOpen(!companyCnpjOpen); // Close question opened
+        setCompanyCpfOpen(!companyCpfOpen); // Close question opened
+
+        setCompanyCnpj('');
+        setCounterAnswers((state) => state.filter((e) => e !== 'companyCnpj'));
       }
-    }
+    },
+    [
+      companyCnpjOpen,
+      companyCpfOpen,
+      companyNameContactOpen,
+      confirmDataHasOpened,
+      counterAnswers,
+      handleShowData,
+    ]
+  );
 
-    handleShowData();
-  }, [
-    companyEmailContact,
-    companyEmailContactOpen,
-    companyMobilePhoneContactOpen,
-    counterAnswers,
-    handleShowData,
-  ]);
+  const handleSubmitCompanyCpf = useCallback(
+    ({ companyCpfData }: InputData) => {
+      if (companyCpfData) {
+        if (isCPF(companyCpfData)) {
+          companyCpfRef.current?.setErrors({});
+          setCompanyCpfOpen(!companyCpfOpen); // Close question opened
+          setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
 
-  const handleSubmitCompanyMobilePhoneContact = useCallback(() => {
-    if (companyMobilePhoneContact) {
-      if (isPhone(companyMobilePhoneContact)) {
-        setIsCompanyMobilePhoneContactValid(true);
+          setCompanyCpf(companyCpfData);
 
-        if (!counterAnswers.find((e) => e === 'companyMobilePhoneContact')) {
-          setCounterAnswers((state) => [...state, 'companyMobilePhoneContact']); // Set as answered
+          if (!counterAnswers.find((e) => e === 'companyCpf')) {
+            setCounterAnswers((state) => [...state, 'companyCpf']); // Set as answered
+          }
+
+          if (
+            confirmDataHasOpened &&
+            counterAnswers.includes('companyName') &&
+            counterAnswers.includes('companyNameContact') &&
+            counterAnswers.includes('companyEmailContact') &&
+            (counterAnswers.includes('companyPhone') ||
+              counterAnswers.includes('companyMobilePhoneContact'))
+          ) {
+            handleShowData();
+          }
+        } else {
+          companyCpfRef.current?.setErrors({
+            companyCpfData: 'CPF inválido',
+          });
         }
       } else {
-        setIsCompanyMobilePhoneContactValid(false);
+        companyCpfRef.current?.setErrors({
+          companyCpfData: 'Favor preencher um CPF, ou CNPJ',
+        });
+        setCompanyCpf('');
+        setCounterAnswers((state) => state.filter((e) => e !== 'companyCpf'));
       }
-    }
+    },
+    [
+      companyCpfOpen,
+      companyNameContactOpen,
+      confirmDataHasOpened,
+      counterAnswers,
+      handleShowData,
+    ]
+  );
 
-    setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Close question opened
-    setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
-    handleShowData();
-  }, [
-    companyMobilePhoneContact,
-    companyMobilePhoneContactOpen,
-    companyPhoneOpen,
-    counterAnswers,
-    handleShowData,
-  ]);
+  const handleSubmitCompanyNameContact = useCallback(
+    ({ companyNameContactData }: InputData) => {
+      if (companyNameContactData) {
+        companyNameContactRef.current?.setErrors({});
+        setCompanyNameContactOpen(!companyNameContactOpen); // Close question opened
+        setCompanyEmailContactOpen(!companyEmailContactOpen); // Open next question
 
-  const handleSubmitCompanyPhone = useCallback(() => {
-    if (companyPhone && companyPhoneOpen) {
-      if (isPhone(companyPhone)) {
+        setCompanyNameContact(
+          formatToCapitalized(companyNameContactData, {
+            trimTrailingWhiteSpaces: false,
+          })
+        );
+
+        if (!counterAnswers.find((e) => e === 'companyNameContact')) {
+          setCounterAnswers((state) => [...state, 'companyNameContact']); // Set as answered
+        }
+
+        if (
+          confirmDataHasOpened &&
+          counterAnswers.includes('companyName') &&
+          (counterAnswers.includes('companyCnpj') ||
+            counterAnswers.includes('companyCpf')) &&
+          counterAnswers.includes('companyEmailContact') &&
+          (counterAnswers.includes('companyPhone') ||
+            counterAnswers.includes('companyMobilePhoneContact'))
+        ) {
+          handleShowData();
+        }
+      } else {
+        companyNameContactRef.current?.setErrors({
+          companyNameContactData: 'Favor preencher um nome',
+        });
+      }
+    },
+    [
+      companyNameContactOpen,
+      companyEmailContactOpen,
+      counterAnswers,
+      confirmDataHasOpened,
+      handleShowData,
+    ]
+  );
+
+  const handleSubmitCompanyEmailContact = useCallback(
+    ({ companyEmailContactData }: InputData) => {
+      if (companyEmailContactData) {
+        if (isEmail(companyEmailContactData)) {
+          companyEmailContactRef.current?.setErrors({});
+          setCompanyEmailContactOpen(!companyEmailContactOpen); // Close question opened
+          setCompanyPhoneOpen(!companyPhoneOpen); // Open next question
+
+          setCompanyEmailContact(companyEmailContactData);
+
+          if (!counterAnswers.find((e) => e === 'companyEmailContact')) {
+            setCounterAnswers((state) => [...state, 'companyEmailContact']); // Set as answered
+          }
+
+          if (
+            confirmDataHasOpened &&
+            counterAnswers.includes('companyName') &&
+            (counterAnswers.includes('companyCnpj') ||
+              counterAnswers.includes('companyCpf')) &&
+            counterAnswers.includes('companyNameContact') &&
+            (counterAnswers.includes('companyPhone') ||
+              counterAnswers.includes('companyMobilePhoneContact'))
+          ) {
+            handleShowData();
+          }
+        } else {
+          companyEmailContactRef.current?.setErrors({
+            companyEmailContactData: 'Favor preencher um e-mail válido',
+          });
+        }
+      } else {
+        companyEmailContactRef.current?.setErrors({
+          companyEmailContactData: 'Favor preencher um e-mail',
+        });
+      }
+    },
+    [
+      companyEmailContactOpen,
+      companyPhoneOpen,
+      counterAnswers,
+      confirmDataHasOpened,
+      handleShowData,
+    ]
+  );
+
+  const handleSubmitCompanyPhone = useCallback(
+    ({ companyPhoneData }: InputData) => {
+      if (companyPhoneData.length > 1) {
+        if (isPhone(companyPhoneData)) {
+          companyPhoneRef.current?.setErrors({});
+          setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
+          setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Open next question
+
+          setCompanyPhone(companyPhoneData);
+
+          if (!counterAnswers.find((e) => e === 'companyPhone')) {
+            setCounterAnswers((state) => [...state, 'companyPhone']); // Set as answered
+          }
+
+          if (
+            confirmDataHasOpened &&
+            counterAnswers.includes('companyName') &&
+            (counterAnswers.includes('companyCnpj') ||
+              counterAnswers.includes('companyCpf')) &&
+            counterAnswers.includes('companyNameContact') &&
+            counterAnswers.includes('companyEmailContact')
+          ) {
+            handleShowData();
+          }
+        } else {
+          companyPhoneRef.current?.setErrors({
+            companyPhoneData: 'Favor preencher um telefone fixo válido',
+          });
+        }
+      } else if (companyMobilePhoneContact) {
+        setCompanyPhone('');
+        setCounterAnswers((state) => state.filter((e) => e !== 'companyPhone'));
+
+        if (
+          confirmDataHasOpened &&
+          counterAnswers.includes('companyName') &&
+          (counterAnswers.includes('companyCnpj') ||
+            counterAnswers.includes('companyCpf')) &&
+          counterAnswers.includes('companyNameContact') &&
+          counterAnswers.includes('companyEmailContact')
+        ) {
+          handleShowData();
+        }
+      } else {
         setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
-        setConfirmDataOpen(!confirmDataOpen); // Open next question
-        setIsCompanyPhoneValid(true);
+        setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Open next question
 
-        if (!counterAnswers.find((e) => e === 'companyPhone')) {
-          setCounterAnswers((state) => [...state, 'companyPhone']); // Set as answered
+        setCompanyPhone('');
+        setCounterAnswers((state) => state.filter((e) => e !== 'companyPhone'));
+      }
+    },
+    [
+      companyMobilePhoneContact,
+      companyPhoneOpen,
+      companyMobilePhoneContactOpen,
+      counterAnswers,
+      confirmDataHasOpened,
+      handleShowData,
+    ]
+  );
+
+  const handleSubmitCompanyMobilePhoneContact = useCallback(
+    ({ companyMobilePhoneContactData }: InputData) => {
+      if (companyMobilePhoneContactData.length > 1) {
+        if (isPhone(companyMobilePhoneContactData)) {
+          companyMobilePhoneContactRef.current?.setErrors({});
+          setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Close question opened
+          setConfirmDataOpen(!confirmDataOpen); // Open next question
+
+          setConfirmDataHasOpened(true);
+
+          setCompanyMobilePhoneContact(companyMobilePhoneContactData);
+
+          if (!counterAnswers.find((e) => e === 'companyMobilePhoneContact')) {
+            setCounterAnswers((state) => [
+              ...state,
+              'companyMobilePhoneContact',
+            ]); // Set as answered
+          }
+
+          if (
+            confirmDataHasOpened &&
+            counterAnswers.includes('companyName') &&
+            (counterAnswers.includes('companyCnpj') ||
+              counterAnswers.includes('companyCpf')) &&
+            counterAnswers.includes('companyNameContact') &&
+            counterAnswers.includes('companyEmailContact')
+          ) {
+            handleShowData();
+          }
+        } else {
+          companyMobilePhoneContactRef.current?.setErrors({
+            companyMobilePhoneContactData:
+              'Favor preencher um telefone celular válido',
+          });
+        }
+      } else if (companyPhone) {
+        setCompanyMobilePhoneContact('');
+        setCounterAnswers((state) =>
+          state.filter((e) => e !== 'companyMobilePhoneContact')
+        );
+
+        if (
+          confirmDataHasOpened &&
+          counterAnswers.includes('companyName') &&
+          (counterAnswers.includes('companyCnpj') ||
+            counterAnswers.includes('companyCpf')) &&
+          counterAnswers.includes('companyNameContact') &&
+          counterAnswers.includes('companyEmailContact')
+        ) {
+          handleShowData();
         }
       } else {
-        setIsCompanyPhoneValid(false);
+        setCompanyMobilePhoneContact('');
+        setCounterAnswers((state) =>
+          state.filter((e) => e !== 'companyMobilePhoneContact')
+        );
+        companyMobilePhoneContactRef.current?.setErrors({
+          companyMobilePhoneContactData:
+            'Favor preencher um telefone celular, ou fixo',
+        });
       }
-    }
-
-    handleShowData();
-  }, [
-    companyPhone,
-    companyPhoneOpen,
-    handleShowData,
-    confirmDataOpen,
-    counterAnswers,
-  ]);
+    },
+    [
+      companyPhone,
+      companyMobilePhoneContactOpen,
+      confirmDataOpen,
+      counterAnswers,
+      confirmDataHasOpened,
+      handleShowData,
+    ]
+  );
 
   const handleSubmitForm = useCallback(() => {
     addToast({
@@ -524,60 +700,87 @@ const NewOrder: React.FC<NewOrderProps> = ({
     if (
       companyNameOpen &&
       companyName.name &&
-      companyCpfCnpj &&
+      (companyCnpj || companyCpf) &&
       companyNameContact &&
       companyEmailContact &&
-      companyPhone
+      (companyPhone || companyMobilePhoneContact)
     ) {
       setCompanyNameOpen(!companyNameOpen);
       setConfirmDataOpen(!confirmDataOpen);
     }
-    if (companyCpfCnpjOpen) {
-      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
+    if (companyCnpjOpen) {
+      setCompanyCnpjOpen(!companyCnpjOpen);
       setCompanyNameOpen(!companyNameOpen);
     }
-    if (companyNameContactOpen) {
+    if (companyCpfOpen && !companyCpf) {
+      setCompanyCpfOpen(!companyCpfOpen);
+      setCompanyCnpjOpen(!companyCnpjOpen);
+    }
+    if (companyCpfOpen && companyCpf) {
+      setCompanyCpfOpen(!companyCpfOpen);
+      setCompanyNameOpen(!companyNameOpen);
+    }
+    if (companyNameContactOpen && companyCnpj) {
       setCompanyNameContactOpen(!companyNameContactOpen);
-      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
+      setCompanyCnpjOpen(!companyCnpjOpen);
+    }
+    if (companyNameContactOpen && companyCpf) {
+      setCompanyNameContactOpen(!companyNameContactOpen);
+      setCompanyCpfOpen(!companyCpfOpen);
     }
     if (companyEmailContactOpen) {
       setCompanyEmailContactOpen(!companyEmailContactOpen);
       setCompanyNameContactOpen(!companyNameContactOpen);
     }
-    if (companyMobilePhoneContactOpen) {
-      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
-      setCompanyEmailContactOpen(!companyEmailContactOpen);
-    }
     if (companyPhoneOpen) {
       setCompanyPhoneOpen(!companyPhoneOpen);
+      setCompanyEmailContactOpen(!companyEmailContactOpen);
+    }
+    if (companyMobilePhoneContactOpen) {
       setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
+      setCompanyPhoneOpen(!companyPhoneOpen);
     }
     if (confirmDataOpen) {
       setConfirmDataOpen(!confirmDataOpen);
-      setCompanyPhoneOpen(!companyPhoneOpen);
+      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
     }
   }, [
     companyNameOpen,
-    companyName,
-    companyCpfCnpjOpen,
-    companyCpfCnpj,
-    companyNameContactOpen,
+    companyName.name,
+    companyCnpj,
+    companyCpf,
     companyNameContact,
-    companyEmailContactOpen,
     companyEmailContact,
-    companyMobilePhoneContactOpen,
-    companyPhoneOpen,
     companyPhone,
+    companyMobilePhoneContact,
+    companyCnpjOpen,
+    companyCpfOpen,
+    companyNameContactOpen,
+    companyEmailContactOpen,
+    companyPhoneOpen,
+    companyMobilePhoneContactOpen,
     confirmDataOpen,
   ]);
 
   const handleChangeToNextQuestion = useCallback(() => {
-    if (companyNameOpen && companyName.name) {
+    if (companyNameOpen && companyName.name && companyCnpj) {
       setCompanyNameOpen(!companyNameOpen);
-      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
+      setCompanyCnpjOpen(!companyCnpjOpen);
     }
-    if (companyCpfCnpjOpen && companyCpfCnpj) {
-      setCompanyCpfCnpjOpen(!companyCpfCnpjOpen);
+    if (companyNameOpen && companyName.name && companyCpf) {
+      setCompanyNameOpen(!companyNameOpen);
+      setCompanyCpfOpen(!companyCpfOpen);
+    }
+    if (companyCnpjOpen && !companyCnpj) {
+      setCompanyCnpjOpen(!companyCnpjOpen);
+      setCompanyCpfOpen(!companyCpfOpen);
+    }
+    if (companyCnpjOpen && companyCnpj) {
+      setCompanyCnpjOpen(!companyCnpjOpen);
+      setCompanyNameContactOpen(!companyNameContactOpen);
+    }
+    if (companyCpfOpen && companyCpf) {
+      setCompanyCpfOpen(!companyCpfOpen);
       setCompanyNameContactOpen(!companyNameContactOpen);
     }
     if (companyNameContactOpen && companyNameContact) {
@@ -586,14 +789,17 @@ const NewOrder: React.FC<NewOrderProps> = ({
     }
     if (companyEmailContactOpen && companyEmailContact) {
       setCompanyEmailContactOpen(!companyEmailContactOpen);
-      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
-    }
-    if (companyMobilePhoneContactOpen) {
-      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
       setCompanyPhoneOpen(!companyPhoneOpen);
     }
-    if (companyPhoneOpen && companyPhone) {
+    if (companyPhoneOpen) {
       setCompanyPhoneOpen(!companyPhoneOpen);
+      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
+    }
+    if (
+      companyMobilePhoneContactOpen &&
+      (companyMobilePhoneContact || companyPhoneOpen)
+    ) {
+      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
       setConfirmDataOpen(!confirmDataOpen);
     }
     if (confirmDataOpen && companyName.name) {
@@ -602,66 +808,27 @@ const NewOrder: React.FC<NewOrderProps> = ({
     }
   }, [
     companyNameOpen,
-    companyName,
-    companyCpfCnpjOpen,
-    companyCpfCnpj,
+    companyName.name,
+    companyCnpjOpen,
+    companyCpfOpen,
+    companyCpf,
+    companyCnpj,
     companyNameContactOpen,
     companyNameContact,
     companyEmailContactOpen,
     companyEmailContact,
-    companyMobilePhoneContactOpen,
     companyPhoneOpen,
-    companyPhone,
+    companyMobilePhoneContactOpen,
+    companyMobilePhoneContact,
     confirmDataOpen,
   ]);
 
-  const forceFocusOnInputField = useCallback((id: string): void => {
-    const getElement = document.getElementById(id);
-
-    if (getElement !== null) {
-      getElement.focus();
-    }
-  }, []);
-
-  // This function clear errors when field is empty
+  // This function clear answer when field is empty
   useEffect(() => {
     if (!companyName.name) {
       setCounterAnswers((state) => state.filter((e) => e !== 'companyName'));
     }
-    if (!companyCpfCnpj) {
-      setIsCompanyCpfValid(null);
-      setIsCompanyCnpjValid(null);
-      setCounterAnswers((state) => state.filter((e) => e !== 'companyCpfCnpj'));
-    }
-    if (!companyNameContact) {
-      setCounterAnswers((state) =>
-        state.filter((e) => e !== 'companyNameContact')
-      );
-    }
-    if (companyEmailContact === '') {
-      setIsCompanyEmailContactValid(null);
-      setCounterAnswers((state) =>
-        state.filter((e) => e !== 'companyEmailContact')
-      );
-    }
-    if (companyMobilePhoneContact === '') {
-      setIsCompanyMobilePhoneContactValid(null);
-      setCounterAnswers((state) =>
-        state.filter((e) => e !== 'companyMobilePhoneContact')
-      );
-    }
-    if (companyPhone === '') {
-      setIsCompanyPhoneValid(true);
-      setCounterAnswers((state) => state.filter((e) => e !== 'companyPhone'));
-    }
-  }, [
-    companyCpfCnpj,
-    companyEmailContact,
-    companyMobilePhoneContact,
-    companyName,
-    companyNameContact,
-    companyPhone,
-  ]);
+  }, [companyName]);
 
   // Monitor keyboard events
   const eventKeyPress = useCallback(
@@ -685,6 +852,53 @@ const NewOrder: React.FC<NewOrderProps> = ({
   );
   document.onkeydown = eventKeyPress;
 
+  const InputWithCNPJMask = useCallback((props: InputProps): JSX.Element => {
+    return (
+      <InputMask
+        {...props}
+        mask="99.999.999/9999-99"
+        maskChar={null}
+        style={{ border: 'none' }}
+      />
+    );
+  }, []);
+
+  const InputWithCPFMask = useCallback((props: InputProps): JSX.Element => {
+    return (
+      <InputMask
+        {...props}
+        mask="999.999.999-99"
+        maskChar={null}
+        style={{ border: 'none' }}
+      />
+    );
+  }, []);
+
+  const InputWithPhoneMask = useCallback((props: InputProps): JSX.Element => {
+    return (
+      <InputMask
+        {...props}
+        mask="(99) 9999-9999"
+        maskChar={null}
+        style={{ border: 'none' }}
+      />
+    );
+  }, []);
+
+  const InputWithMobilePhoneMask = useCallback(
+    (props: InputProps): JSX.Element => {
+      return (
+        <InputMask
+          {...props}
+          mask="(99) 9 9999-9999"
+          maskChar={null}
+          style={{ border: 'none' }}
+        />
+      );
+    },
+    []
+  );
+
   return (
     <>
       {orderOpen && (
@@ -699,7 +913,7 @@ const NewOrder: React.FC<NewOrderProps> = ({
             companyName: companyName.name,
             seller: user.name,
             status: 'Aguardando',
-            companyCpfCnpj,
+            companyCpfCnpj: companyCnpj || companyCpf,
             companyNameContact,
             companyEmailContact,
             companyMobilePhoneContact,
@@ -767,7 +981,7 @@ const NewOrder: React.FC<NewOrderProps> = ({
                       return name;
                     }}
                     renderInput={(params) => (
-                      <TextField
+                      <OriginalTextField
                         name="companyName"
                         autoFocus
                         autoComplete="off"
@@ -812,81 +1026,90 @@ const NewOrder: React.FC<NewOrderProps> = ({
                 </WhatIsCompanyName>
               </form>
             )}
-            {companyCpfCnpjOpen && (
-              <form
-                onSubmit={(e) => e.preventDefault()}
+            {companyCnpjOpen && (
+              <Form
+                ref={companyCnpjRef}
                 className="individual-form"
+                onSubmit={handleSubmitCompanyCnpj}
               >
-                <WhatIsCompanyCpfCnpj companyCpfCnpjOpen={companyCpfCnpjOpen}>
+                <WhatIsCompanyCnpj companyCnpjOpen={companyCnpjOpen}>
                   <AskTitle>
                     <div>
                       <span>2</span>
                       <FiArrowRight />
                     </div>
                     <div>
-                      Qual o <strong>CNPJ</strong> ou <strong>CPF</strong> do
-                      cliente?
+                      Qual o <strong>CNPJ</strong> do cliente?
                     </div>
                   </AskTitle>
-                  <Grid container spacing={1} alignItems="flex-end">
-                    <Grid item>
-                      <TextField
-                        id="companyCpfCnpj-input"
-                        name="companyCpfCnpj"
-                        autoFocus
-                        autoComplete="off"
-                        placeholder="Digite aqui"
-                        error={
-                          isCompanyCpfValid === false ||
-                          isCompanyCnpjValid === false
-                        }
-                        helperText={
-                          isCompanyCpfValid === false
-                            ? 'CPF inválido'
-                            : isCompanyCnpjValid === false
-                            ? 'CNPJ inválido'
-                            : ' '
-                        }
-                        value={companyCpfCnpj}
-                        onChange={(e) => {
-                          setCompanyCpfCnpj(formatToCPFOrCNPJ(e.target.value));
-                        }}
-                      />
-                    </Grid>
-                    <Grid item>
-                      {companyCpfCnpj && (
-                        <IconButton
-                          onClick={() => {
-                            setCompanyCpfCnpj('');
-                            forceFocusOnInputField('companyCpfCnpj-input');
-                          }}
-                        >
-                          <Close />
-                        </IconButton>
-                      )}
-                    </Grid>
-                  </Grid>
-                  {companyCpfCnpj !== '' ? (
-                    <SubmitQuestionButton>
-                      <Button onClick={handleSubmitCompanyCpfCnpj}>
-                        Continuar
-                      </Button>
-                      <div>
-                        <span>
-                          pressione <strong>ENTER</strong>
-                        </span>
-                        <span>↵</span>
-                      </div>
-                    </SubmitQuestionButton>
-                  ) : (
-                    <DisabledButton>Continuar</DisabledButton>
-                  )}
-                </WhatIsCompanyCpfCnpj>
-              </form>
+                  <TextField
+                    id="companyCnpj-input"
+                    name="companyCnpjData"
+                    autoFocus
+                    autoComplete="off"
+                    placeholder="Digite aqui"
+                    defaultValue={companyCnpj}
+                    InputProps={{
+                      inputComponent: InputWithCNPJMask as any,
+                    }}
+                    helperText=" "
+                  />
+                  <SubmitQuestionButton>
+                    <Button>Continuar</Button>
+                    <div>
+                      <span>
+                        pressione <strong>ENTER</strong>
+                      </span>
+                      <span>↵</span>
+                    </div>
+                  </SubmitQuestionButton>
+                </WhatIsCompanyCnpj>
+              </Form>
+            )}
+            {companyCpfOpen && (
+              <Form
+                ref={companyCpfRef}
+                className="individual-form"
+                onSubmit={handleSubmitCompanyCpf}
+              >
+                <WhatIsCompanyCpf companyCpfOpen={companyCpfOpen}>
+                  <AskTitle>
+                    <div>
+                      <span>2</span>
+                      <FiArrowRight />
+                    </div>
+                    <div>
+                      Qual o <strong>CPF</strong> do cliente?
+                    </div>
+                  </AskTitle>
+                  <TextField
+                    id="companyCpf-input"
+                    name="companyCpfData"
+                    autoFocus
+                    autoComplete="off"
+                    placeholder="Digite aqui"
+                    defaultValue={companyCpf}
+                    InputProps={{
+                      inputComponent: InputWithCPFMask as any,
+                    }}
+                    helperText=" "
+                  />
+                  <SubmitQuestionButton>
+                    <Button>Continuar</Button>
+                    <div>
+                      <span>
+                        pressione <strong>ENTER</strong>
+                      </span>
+                      <span>↵</span>
+                    </div>
+                  </SubmitQuestionButton>
+                </WhatIsCompanyCpf>
+              </Form>
             )}
             {companyNameContactOpen && (
-              <form
-                onSubmit={(e) => e.preventDefault()}
+              <Form
+                ref={companyNameContactRef}
+                onSubmit={handleSubmitCompanyNameContact}
                 className="individual-form"
               >
                 <WhatIsCompanyNameContact
@@ -901,59 +1124,31 @@ const NewOrder: React.FC<NewOrderProps> = ({
                       Qual o <strong>nome</strong> do responsável?
                     </div>
                   </AskTitle>
-                  <Grid container spacing={1} alignItems="flex-end">
-                    <Grid item>
-                      <TextField
-                        id="companyNameContact-input"
-                        name="companyNameContact"
-                        autoFocus
-                        autoComplete="off"
-                        placeholder="Digite aqui"
-                        helperText=" "
-                        value={companyNameContact}
-                        onChange={(e) => {
-                          setCompanyNameContact(
-                            formatToCapitalized(e.target.value, {
-                              trimTrailingWhiteSpaces: false,
-                            })
-                          );
-                        }}
-                      />
-                    </Grid>
-                    <Grid item>
-                      {companyNameContact && (
-                        <IconButton
-                          onClick={() => {
-                            setCompanyNameContact('');
-                            forceFocusOnInputField('companyNameContact-input');
-                          }}
-                        >
-                          <Close />
-                        </IconButton>
-                      )}
-                    </Grid>
-                  </Grid>
-                  {companyNameContact !== '' ? (
-                    <SubmitQuestionButton>
-                      <Button onClick={handleSubmitCompanyNameContact}>
-                        Continuar
-                      </Button>
-                      <div>
-                        <span>
-                          pressione <strong>ENTER</strong>
-                        </span>
-                        <span>↵</span>
-                      </div>
-                    </SubmitQuestionButton>
-                  ) : (
-                    <DisabledButton>Continuar</DisabledButton>
-                  )}
+                  <TextField
+                    id="companyNameContact-input"
+                    name="companyNameContactData"
+                    autoFocus
+                    autoComplete="off"
+                    placeholder="Digite aqui"
+                    defaultValue={companyNameContact}
+                    helperText=" "
+                  />
+                  <SubmitQuestionButton>
+                    <Button>Continuar</Button>
+                    <div>
+                      <span>
+                        pressione <strong>ENTER</strong>
+                      </span>
+                      <span>↵</span>
+                    </div>
+                  </SubmitQuestionButton>
                 </WhatIsCompanyNameContact>
-              </form>
+              </Form>
             )}
             {companyEmailContactOpen && (
-              <form
-                onSubmit={(e) => e.preventDefault()}
+              <Form
+                ref={companyEmailContactRef}
+                onSubmit={handleSubmitCompanyEmailContact}
                 className="individual-form"
               >
                 <WhatIsCompanyEmailContact
@@ -968,58 +1163,71 @@ const NewOrder: React.FC<NewOrderProps> = ({
                       Qual o <strong>e-mail</strong> do cliente?
                     </div>
                   </AskTitle>
-                  <Grid container spacing={1} alignItems="flex-end">
-                    <Grid item>
-                      <TextField
-                        id="companyEmailContact-input"
-                        name="companyEmailContact"
-                        autoFocus
-                        autoComplete="off"
-                        placeholder="Digite aqui"
-                        error={isCompanyEmailContactValid === false}
-                        helperText={
-                          isCompanyEmailContactValid === false
-                            ? 'E-mail inválido'
-                            : ' '
-                        }
-                        value={companyEmailContact}
-                        onChange={(e) => setCompanyEmailContact(e.target.value)}
-                      />
-                    </Grid>
-                    <Grid item>
-                      {companyEmailContact && (
-                        <IconButton
-                          onClick={() => {
-                            setCompanyEmailContact('');
-                            forceFocusOnInputField('companyEmailContact-input');
-                          }}
-                        >
-                          <Close />
-                        </IconButton>
-                      )}
-                    </Grid>
-                  </Grid>
-                  {companyEmailContact !== '' ? (
-                    <SubmitQuestionButton>
-                      <Button onClick={handleSubmitCompanyEmailContact}>
-                        Continuar
-                      </Button>
-                      <div>
-                        <span>
-                          pressione <strong>ENTER</strong>
-                        </span>
-                        <span>↵</span>
-                      </div>
-                    </SubmitQuestionButton>
-                  ) : (
-                    <DisabledButton>Continuar</DisabledButton>
-                  )}
+                  <TextField
+                    id="companyEmailContact-input"
+                    name="companyEmailContactData"
+                    autoFocus
+                    autoComplete="off"
+                    placeholder="Digite aqui"
+                    defaultValue={companyEmailContact}
+                    helperText=" "
+                  />
+                  <SubmitQuestionButton>
+                    <Button>Continuar</Button>
+                    <div>
+                      <span>
+                        pressione <strong>ENTER</strong>
+                      </span>
+                      <span>↵</span>
+                    </div>
+                  </SubmitQuestionButton>
                 </WhatIsCompanyEmailContact>
-              </form>
+              </Form>
+            )}
+            {companyPhoneOpen && (
+              <Form
+                ref={companyPhoneRef}
+                onSubmit={handleSubmitCompanyPhone}
+                className="individual-form"
+              >
+                <WhatIsCompanyPhone companyPhoneOpen={companyPhoneOpen}>
+                  <AskTitle>
+                    <div>
+                      <span>5</span>
+                      <FiArrowRight />
+                    </div>
+                    <div>
+                      Qual o <strong>telefone fixo</strong> do cliente?
+                    </div>
+                  </AskTitle>
+                  <TextField
+                    id="companyPhone-input"
+                    name="companyPhoneData"
+                    autoFocus
+                    autoComplete="off"
+                    placeholder="Digite aqui"
+                    defaultValue={companyPhone}
+                    InputProps={{
+                      inputComponent: InputWithPhoneMask as any,
+                    }}
+                    helperText=" "
+                  />
+                  <SubmitQuestionButton>
+                    <Button>Continuar</Button>
+                    <div>
+                      <span>
+                        pressione <strong>ENTER</strong>
+                      </span>
+                      <span>↵</span>
+                    </div>
+                  </SubmitQuestionButton>
+                </WhatIsCompanyPhone>
+              </Form>
             )}
             {companyMobilePhoneContactOpen && (
-              <form
-                onSubmit={(e) => e.preventDefault()}
+              <Form
+                ref={companyMobilePhoneContactRef}
+                onSubmit={handleSubmitCompanyMobilePhoneContact}
                 className="individual-form"
               >
                 <WhatIsCompanyMobilePhoneContact
@@ -1027,60 +1235,27 @@ const NewOrder: React.FC<NewOrderProps> = ({
                 >
                   <AskTitle>
                     <div>
-                      <span>5</span>
+                      <span>6</span>
                       <FiArrowRight />
                     </div>
                     <div>
                       Qual o <strong>telefone celular</strong> do responsável?
                     </div>
                   </AskTitle>
-                  <Grid container spacing={1} alignItems="flex-end">
-                    <Grid item>
-                      <TextField
-                        id="companyMobilePhoneContact-input"
-                        name="companyMobilePhoneContact"
-                        autoFocus
-                        autoComplete="off"
-                        placeholder="Digite aqui"
-                        error={isCompanyMobilePhoneContactValid === false}
-                        helperText={
-                          isCompanyMobilePhoneContactValid === false
-                            ? 'Telefone inválido'
-                            : ' '
-                        }
-                        value={companyMobilePhoneContact}
-                        onChange={(e) => {
-                          setCompanyMobilePhoneContact(
-                            formatToPhone(e.target.value)
-                          );
-                        }}
-                        inputProps={{ maxLength: 16 }}
-                      />
-                    </Grid>
-                    <Grid item>
-                      {companyMobilePhoneContact && (
-                        <IconButton
-                          onClick={() => {
-                            setCompanyMobilePhoneContact('');
-                            forceFocusOnInputField(
-                              'companyMobilePhoneContact-input'
-                            );
-                            setCounterAnswers((state) =>
-                              state.filter(
-                                (e) => e !== 'companyMobilePhoneContact'
-                              )
-                            );
-                          }}
-                        >
-                          <Close />
-                        </IconButton>
-                      )}
-                    </Grid>
-                  </Grid>
+                  <TextField
+                    id="companyMobilePhoneContact-input"
+                    name="companyMobilePhoneContactData"
+                    autoFocus
+                    autoComplete="off"
+                    placeholder="Digite aqui"
+                    defaultValue={companyMobilePhoneContact}
+                    InputProps={{
+                      inputComponent: InputWithMobilePhoneMask as any,
+                    }}
+                    helperText=" "
+                  />
                   <SubmitQuestionButton>
-                    <Button onClick={handleSubmitCompanyMobilePhoneContact}>
-                      Continuar
-                    </Button>
+                    <Button>Continuar</Button>
                     <div>
                       <span>
                         pressione <strong>ENTER</strong>
@@ -1089,74 +1264,7 @@ const NewOrder: React.FC<NewOrderProps> = ({
                     </div>
                   </SubmitQuestionButton>
                 </WhatIsCompanyMobilePhoneContact>
-              </form>
-            )}
-            {companyPhoneOpen && (
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="individual-form"
-              >
-                <WhatIsCompanyPhone companyPhoneOpen={companyPhoneOpen}>
-                  <AskTitle>
-                    <div>
-                      <span>6</span>
-                      <FiArrowRight />
-                    </div>
-                    <div>
-                      Qual o <strong>telefone fixo</strong> do cliente?
-                    </div>
-                  </AskTitle>
-                  <Grid container spacing={1} alignItems="flex-end">
-                    <Grid item>
-                      <TextField
-                        id="companyPhone-input"
-                        name="companyPhone"
-                        autoFocus
-                        autoComplete="off"
-                        placeholder="Digite aqui"
-                        error={isCompanyPhoneValid === false}
-                        helperText={
-                          isCompanyPhoneValid === false
-                            ? 'Telefone inválido'
-                            : ' '
-                        }
-                        value={companyPhone}
-                        onChange={(e) => {
-                          setCompanyPhone(formatToPhone(e.target.value));
-                        }}
-                        inputProps={{ maxLength: 14 }}
-                      />
-                    </Grid>
-                    <Grid item>
-                      {companyPhone && (
-                        <IconButton
-                          onClick={() => {
-                            setCompanyPhone('');
-                            forceFocusOnInputField('companyPhone-input');
-                          }}
-                        >
-                          <Close />
-                        </IconButton>
-                      )}
-                    </Grid>
-                  </Grid>
-                  {companyPhone !== '' ? (
-                    <SubmitQuestionButton>
-                      <Button onClick={handleSubmitCompanyPhone}>
-                        Continuar
-                      </Button>
-                      <div>
-                        <span>
-                          pressione <strong>ENTER</strong>
-                        </span>
-                        <span>↵</span>
-                      </div>
-                    </SubmitQuestionButton>
-                  ) : (
-                    <DisabledButton>Continuar</DisabledButton>
-                  )}
-                </WhatIsCompanyPhone>
-              </form>
+              </Form>
             )}
           </Content>
           <Footer>
@@ -1179,20 +1287,24 @@ const NewOrder: React.FC<NewOrderProps> = ({
               <QuestionData>
                 <QuestionsContainer>
                   <p>Razão Social: </p>
-                  {isCompanyCnpjValid && <p>CNPJ: </p>}
-                  {isCompanyCpfValid && <p>CPF: </p>}
+                  {companyCnpj && <p>CNPJ: </p>}
+                  {companyCpf && <p>CPF: </p>}
                   <p>Nome do responsável: </p>
                   <p>E-mail do responsável: </p>
-                  <p>Telefone da empresa: </p>
-                  <p>Telefone do responsável: </p>
+                  {companyPhone && <p>Telefone da empresa: </p>}
+                  {companyMobilePhoneContact && (
+                    <p>Telefone do responsável: </p>
+                  )}
                 </QuestionsContainer>
                 <AnswersContainer>
                   <p>{companyName.name}</p>
-                  <p>{companyCpfCnpj}</p>
+                  <p>{companyCnpj || companyCpf}</p>
                   <p>{companyNameContact}</p>
                   <p>{companyEmailContact}</p>
-                  <p>{companyPhone}</p>
-                  <p>{companyMobilePhoneContact || '--'}</p>
+                  {companyPhone && <p>{companyPhone}</p>}
+                  {companyMobilePhoneContact && (
+                    <p>{companyMobilePhoneContact}</p>
+                  )}
                 </AnswersContainer>
               </QuestionData>
               <SubmitFormButton>

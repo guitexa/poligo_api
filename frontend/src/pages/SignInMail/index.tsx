@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { FiMail } from 'react-icons/fi';
 import { FormHandles } from '@unform/core';
 import { Form } from '@unform/web';
@@ -12,7 +12,6 @@ import Logo from '../../assets/logo.svg';
 
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import DisabledButton from '../../components/DisabledButton';
 
 import { Container, Content } from './styles';
 
@@ -21,8 +20,6 @@ interface SignInFormData {
 }
 
 const SignInMail: React.FC = () => {
-  const [inputValue, setInputValue] = useState('');
-
   const formRef = useRef<FormHandles>(null);
 
   const { addToast } = useToast();
@@ -75,15 +72,9 @@ const SignInMail: React.FC = () => {
               icon={FiMail}
               autoFocus
               placeholder="Digite seu e-mail"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
             />
             <a href="/">Esqueceu seu e-mail?</a>
-            {inputValue ? (
-              <Button>Continuar</Button>
-            ) : (
-              <DisabledButton>Continuar</DisabledButton>
-            )}
+            <Button>Continuar</Button>
           </Form>
         </div>
       </Content>
