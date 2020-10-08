@@ -12,7 +12,6 @@ import { isCNPJ, isCPF, isPhone, formatToCapitalized } from 'brazilian-values';
 import isEmail from 'validator/es/lib/isEmail';
 import { format } from 'date-fns';
 import { uuid } from 'uuidv4';
-
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import { TextField } from 'unform-material-ui';
