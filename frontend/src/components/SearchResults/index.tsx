@@ -492,31 +492,31 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     });
   }
 
-  if (companyName.length > 0) {
+  if (companyName.length > 2) {
     searchResults = searchResults.filter((i) => {
       return i.companyName.toLowerCase().match(companyName.toLowerCase());
     });
   }
 
-  if (service.length > 0) {
+  if (service.length > 2) {
     searchResults = searchResults.filter((i) => {
       return i.service?.toLowerCase().match(service.toLowerCase());
     });
   }
 
-  if (seller.length > 0) {
+  if (seller) {
     searchResults = searchResults.filter((i) => {
       return i.seller?.toLowerCase().match(seller.toLowerCase());
     });
   }
 
-  if (technical.length > 0) {
+  if (technical) {
     searchResults = searchResults.filter((i) => {
       return i.technical?.toLowerCase().match(technical.toLowerCase());
     });
   }
 
-  if (value.length > 0) {
+  if (value.length > 4) {
     searchResults = searchResults.filter((i) => {
       return i.formattedValue
         ?.toLowerCase()
@@ -524,7 +524,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     });
   }
 
-  if (status.length > 0) {
+  if (status) {
     searchResults = searchResults.filter((i) => {
       return i.status?.toLowerCase().match(status.toLowerCase());
     });
