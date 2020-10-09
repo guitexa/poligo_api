@@ -87,7 +87,7 @@ const Order: React.FC<OrderProps> = ({
     {} as ServiceData
   );
   const [status, setStatus] = useState<StatusState>({
-    order: data.status || 'Aguardando',
+    order: data.status || ' ',
     delivery: 'Andamento',
     billing: 'Faturado',
   });
@@ -264,8 +264,8 @@ const Order: React.FC<OrderProps> = ({
                 <p>Data de aprovação:</p>
               </TitlesForm>
               <DataForm>
-                <p>{data.id}</p>
-                <p>{data.seller}</p>
+                <p>{data.id || '--'}</p>
+                <p>{data.seller || '--'}</p>
                 {from === 'Comercial' || from === 'Billing' ? (
                   <p>
                     {data.formattedValue ? `R$${data.formattedValue}` : '--'}
@@ -273,7 +273,7 @@ const Order: React.FC<OrderProps> = ({
                 ) : (
                   <p>--</p>
                 )}
-                <p>{data.formattedDate}</p>
+                <p>{data.formattedDate || '--'}</p>
                 {from !== 'Comercial' && status.order === ' ' && <p>--</p>}
                 {from !== 'Comercial' && status.order === 'Aprovado' && (
                   <div className="status">

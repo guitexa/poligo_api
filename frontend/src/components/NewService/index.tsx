@@ -24,7 +24,6 @@ import { uuid } from 'uuidv4';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import { TextField } from 'unform-material-ui';
-import InputMask, { Props as InputProps } from 'react-input-mask';
 
 import { ServiceData } from '../Order';
 import Button from '../Button';

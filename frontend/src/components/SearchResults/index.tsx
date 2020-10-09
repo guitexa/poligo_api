@@ -560,7 +560,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
             newServiceOpen={newServiceOpen}
             setNewServiceOpen={(e) => setNewServiceOpen(e)}
             data={dataOpen}
-            from="Comercial"
+            from={from}
           />
           <HeaderButton
             show={orderOpen && !newServiceOpen}
