@@ -48,7 +48,7 @@ export const Tooltip = styled(MaterialTooltip)`
   height: 20px;
 
   svg {
-    color: #c53030;
+    color: #9d1309;
     margin: 0 12px 0 10px;
   }
 `;

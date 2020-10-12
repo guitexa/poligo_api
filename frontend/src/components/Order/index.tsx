@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Select,
   MenuItem,
@@ -19,12 +25,20 @@ import {
   FaEdit,
 } from 'react-icons/fa';
 import { HiOutlineRefresh } from 'react-icons/hi';
+import { Form } from '@unform/web';
+import { FormHandles } from '@unform/core';
+import { isValid } from 'date-fns';
 
 import { SearchResult } from '../SearchResults';
 import formatValue from '../../utils/formatValue';
+import formatValueCurrency from '../../utils/formatValueCurrency';
+import convertDate from '../../utils/convertDate';
 
+import { useToast } from '../../hooks/toast';
 import MaterialTooltip from '../MaterialTooltip';
 import NewService from '../NewService';
+import InputAsText from '../InputAsText';
+import InputAsTextWithMask from '../InputAsTextWithMask';
 
 import {
   OrderOverlapping,
@@ -65,6 +79,15 @@ interface StatusState {
     | unknown
     | undefined;
   billing?: ' ' | 'Aguardando' | 'Faturado' | 'Cancelado' | unknown | undefined;
+  payment?: ' ' | 'Aguardando' | 'Pago' | 'Cancelado' | unknown | undefined;
+}
+
+interface InputData {
+  deliveryConditionsData: string;
+  requestedDeliveryDateData: string;
+  deliveryDateData: string;
+  paymentWayData: string;
+  dueDateData: string;
 }
 
 interface OrderProps {
@@ -82,15 +105,36 @@ const Order: React.FC<OrderProps> = ({
   data,
   from,
 }) => {
-  const [services, setServices] = useState<ServiceData[]>([]);
-  const [serviceToEdit, setServiceToEdit] = useState<ServiceData>(
-    {} as ServiceData
-  );
   const [status, setStatus] = useState<StatusState>({
     order: data.status || ' ',
     delivery: 'Andamento',
     billing: 'Faturado',
+    payment: 'Pago',
   });
+
+  const [approvedDate, setApprovedDate] = useState('');
+
+  const [deliveryConditions, setDeliveryConditions] = useState('');
+  const [requestedDeliveryDate, setRequestedDeliveryDate] = useState(
+    '10/10/2020'
+  );
+  const [deliveryDate, setDeliveryDate] = useState('10/10/2020');
+
+  const [paymentWay, setPaymentWay] = useState('');
+  const [dueDate, setDueDate] = useState('');
+
+  const [services, setServices] = useState<ServiceData[]>([]);
+  const [serviceToEdit, setServiceToEdit] = useState<ServiceData>(
+    {} as ServiceData
+  );
+
+  const deliveryConditionsRef = useRef<FormHandles>(null);
+  const requestedDeliveryDateRef = useRef<FormHandles>(null);
+  const deliveryDateRef = useRef<FormHandles>(null);
+  const paymentWayRef = useRef<FormHandles>(null);
+  const dueDateRef = useRef<FormHandles>(null);
+
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (data.service && data.value && data.id) {
@@ -103,6 +147,13 @@ const Order: React.FC<OrderProps> = ({
       };
 
       setServices((state) => [...state, sample]);
+
+      setApprovedDate('10/09/2020');
+
+      setDeliveryConditions('Aguardar pagamento da segunda parcela');
+      setRequestedDeliveryDate('10/10/2020'); // Não está definido esse valor aqui
+      setPaymentWay('1+3x R$1.325,00');
+      setDueDate('Entrada para 16/06 e parcelas junto com faturamento');
     }
   }, [data]);
 
@@ -215,6 +266,140 @@ const Order: React.FC<OrderProps> = ({
 
   const { formControl, faCheck, faRegClock, faTimes, hiRefresh } = useStyles();
 
+  const submitDeliveryConditions = useCallback(
+    ({ deliveryConditionsData }: InputData) => {
+      if (deliveryConditions !== deliveryConditionsData) {
+        setDeliveryConditions(deliveryConditionsData);
+
+        addToast({
+          type: 'success',
+          description: 'Pedido atualizado com sucesso!',
+        });
+      }
+    },
+    [addToast, deliveryConditions]
+  );
+
+  const onDeliveryConditionsSubmit = useCallback(() => {
+    deliveryConditionsRef.current?.submitForm();
+  }, []);
+
+  const submitRequestedDeliveryDate = useCallback(
+    ({ requestedDeliveryDateData }: InputData) => {
+      const year = new Date(
+        convertDate(requestedDeliveryDateData)
+      ).getFullYear();
+      const month = new Date(convertDate(requestedDeliveryDateData)).getMonth();
+      const day =
+        new Date(convertDate(requestedDeliveryDateData)).getDate() + 1;
+      if (requestedDeliveryDate !== requestedDeliveryDateData) {
+        if (isValid(new Date(year, month, day))) {
+          requestedDeliveryDateRef.current?.setErrors({});
+          setRequestedDeliveryDate(requestedDeliveryDateData);
+
+          addToast({
+            type: 'success',
+            description: 'Pedido atualizado com sucesso!',
+          });
+        } else {
+          setRequestedDeliveryDate(requestedDeliveryDateData);
+          requestedDeliveryDateRef.current?.setErrors({
+            requestedDeliveryDateData: 'Data inválida',
+          });
+        }
+      } else if (!requestedDeliveryDateData) {
+        setRequestedDeliveryDate('');
+        requestedDeliveryDateRef.current?.setErrors({});
+      }
+    },
+    [addToast, requestedDeliveryDate]
+  );
+
+  const onRequestedDeliveryDateSubmit = useCallback(() => {
+    requestedDeliveryDateRef.current?.submitForm();
+  }, [requestedDeliveryDateRef]);
+
+  const submitDeliveryDate = useCallback(
+    ({ deliveryDateData }: InputData) => {
+      const year = new Date(convertDate(deliveryDateData)).getFullYear();
+      const month = new Date(convertDate(deliveryDateData)).getMonth();
+      const day = new Date(convertDate(deliveryDateData)).getDate() + 1;
+      if (deliveryDate !== deliveryDateData) {
+        if (isValid(new Date(year, month, day))) {
+          deliveryDateRef.current?.setErrors({});
+          setDeliveryDate(deliveryDateData);
+
+          addToast({
+            type: 'success',
+            description: 'Pedido atualizado com sucesso!',
+          });
+        } else {
+          setDeliveryDate(deliveryDateData);
+          deliveryDateRef.current?.setErrors({
+            deliveryDateData: 'Data inválida',
+          });
+        }
+      } else if (!deliveryDateData) {
+        setDeliveryDate('');
+        deliveryDateRef.current?.setErrors({});
+      }
+    },
+    [addToast, deliveryDate]
+  );
+
+  const onDeliveryDateSubmit = useCallback(() => {
+    deliveryDateRef.current?.submitForm();
+  }, []);
+
+  const submitPaymentWay = useCallback(
+    ({ paymentWayData }: InputData) => {
+      if (paymentWay !== paymentWayData) {
+        setPaymentWay(paymentWayData);
+
+        addToast({
+          type: 'success',
+          description: 'Pedido atualizado com sucesso!',
+        });
+      }
+    },
+    [addToast, paymentWay]
+  );
+
+  const onPaymentWaySubmit = useCallback(() => {
+    paymentWayRef.current?.submitForm();
+  }, []);
+
+  const submitDueDate = useCallback(
+    ({ dueDateData }: InputData) => {
+      if (dueDate !== dueDateData) {
+        setDueDate(dueDateData);
+
+        addToast({
+          type: 'success',
+          description: 'Pedido atualizado com sucesso!',
+        });
+      }
+    },
+    [addToast, dueDate]
+  );
+
+  const onDueDateSubmit = useCallback(() => {
+    dueDateRef.current?.submitForm();
+  }, []);
+
+  const totalValue = useMemo(() => {
+    if (services.length > 0 && (from === 'Comercial' || from === 'Billing')) {
+      const total = services
+        .map((service) => service.value)
+        .reduce((accumulator, serviceValue) => {
+          return accumulator + serviceValue;
+        }, 0);
+
+      return formatValueCurrency(total);
+    }
+    return '--';
+  }, [from, services]);
+
   return (
     <>
       {newServiceOpen && (
@@ -246,12 +431,12 @@ const Order: React.FC<OrderProps> = ({
                 <p>Celular:</p>
               </TitlesForm>
               <DataForm>
-                <p>{data.companyName || '--'}</p>
-                <p>{data.companyCpfCnpj || '--'}</p>
-                <p>{data.companyNameContact || '--'}</p>
-                <p>{data.companyEmailContact || '--'}</p>
-                <p>{data.companyPhone || '--'}</p>
-                <p>{data.companyMobilePhoneContact || '--'}</p>
+                <p>{data.companyName}</p>
+                <p>{data.companyCpfCnpj}</p>
+                <p>{data.companyNameContact}</p>
+                <p>{data.companyEmailContact}</p>
+                <p>{data.companyPhone}</p>
+                <p>{data.companyMobilePhoneContact}</p>
               </DataForm>
             </CompanyData>
             <OrderData>
@@ -264,16 +449,10 @@ const Order: React.FC<OrderProps> = ({
                 <p>Data de aprovação:</p>
               </TitlesForm>
               <DataForm>
-                <p>{data.id || '--'}</p>
-                <p>{data.seller || '--'}</p>
-                {from === 'Comercial' || from === 'Billing' ? (
-                  <p>
-                    {data.formattedValue ? `R$${data.formattedValue}` : '--'}
-                  </p>
-                ) : (
-                  <p>--</p>
-                )}
-                <p>{data.formattedDate || '--'}</p>
+                <p>{data.id}</p>
+                <p>{data.seller}</p>
+                <p>{totalValue}</p>
+                <p>{data.formattedDate}</p>
                 {from !== 'Comercial' && status.order === ' ' && <p>--</p>}
                 {from !== 'Comercial' && status.order === 'Aprovado' && (
                   <div className="status">
@@ -325,7 +504,7 @@ const Order: React.FC<OrderProps> = ({
                     </FormControl>
                   </Status>
                 )}
-                <p>--</p>
+                <p>{approvedDate}</p>
               </DataForm>
             </OrderData>
           </PrimaryContent>
@@ -349,13 +528,68 @@ const Order: React.FC<OrderProps> = ({
               <TitlesForm>
                 <p>Condições de entrega:</p>
                 <p>Data de entrega solicitada:</p>
-                <p>Data de entrega prevista:</p>
+                <p>
+                  Data de entrega
+                  {status.delivery !== 'Concluído' && ' prevista'}:
+                </p>
                 <p>Status área técnica:</p>
               </TitlesForm>
               <DataForm>
-                <p>Aguardar pagamento da segunda parcela</p>
-                <p>30/06/2020</p>
-                <p>--</p>
+                {from === 'Comercial' && (
+                  <>
+                    <Form
+                      ref={deliveryConditionsRef}
+                      onSubmit={submitDeliveryConditions}
+                    >
+                      <InputAsText
+                        name="deliveryConditionsData"
+                        onBlur={onDeliveryConditionsSubmit}
+                        defaultValue={deliveryConditions}
+                      />
+                    </Form>
+                    <Form
+                      ref={requestedDeliveryDateRef}
+                      onSubmit={submitRequestedDeliveryDate}
+                    >
+                      <InputAsTextWithMask
+                        name="requestedDeliveryDateData"
+                        onBlur={onRequestedDeliveryDateSubmit}
+                        defaultValue={requestedDeliveryDate}
+                        mask="99/99/9999"
+                        maskChar={null}
+                        styled={{ width: '6em' }}
+                      />
+                    </Form>
+                    <p>{deliveryDate}</p>
+                  </>
+                )}
+                {from === 'Billing' && (
+                  <>
+                    <p>{deliveryConditions}</p>
+                    <p>{requestedDeliveryDate}</p>
+                    <p>{deliveryDate}</p>
+                  </>
+                )}
+                {from === 'TechnicalArea' && (
+                  <>
+                    <p>{deliveryConditions}</p>
+                    <p>{requestedDeliveryDate}</p>
+                    {status.delivery !== 'Concluído' ? (
+                      <Form ref={deliveryDateRef} onSubmit={submitDeliveryDate}>
+                        <InputAsTextWithMask
+                          name="deliveryDateData"
+                          onBlur={onDeliveryDateSubmit}
+                          defaultValue={deliveryDate}
+                          mask="99/99/9999"
+                          maskChar={null}
+                          styled={{ width: '6em' }}
+                        />
+                      </Form>
+                    ) : (
+                      <p>{deliveryDate}</p>
+                    )}
+                  </>
+                )}
                 {from !== 'TechnicalArea' && status.delivery === ' ' && (
                   <p>--</p>
                 )}
@@ -374,7 +608,7 @@ const Order: React.FC<OrderProps> = ({
                 {from !== 'TechnicalArea' && status.delivery === 'Concluído' && (
                   <div className="status">
                     <FaCheckCircle className={`faCheck ${faCheck}`} />
-                    <span>Concluído em 30/06/2020</span>
+                    <span>Concluído</span>
                   </div>
                 )}
                 {from !== 'TechnicalArea' && status.delivery === 'Cancelado' && (
@@ -411,7 +645,7 @@ const Order: React.FC<OrderProps> = ({
                         </MenuItem>
                         <MenuItem value="Concluído">
                           <FaCheckCircle className={`faCheck ${faCheck}`} />
-                          Concluído em 30/06/2020
+                          Concluído
                         </MenuItem>
                         <MenuItem value="Cancelado">
                           <FaTimes className={faTimes} />
@@ -426,20 +660,37 @@ const Order: React.FC<OrderProps> = ({
             <BillingData>
               <TitlesForm>
                 <p>Forma de pagamento:</p>
-                <p>Emitir NF:</p>
                 <p>Vencimento:</p>
+                <p>Status faturamento:</p>
                 <p>Status financeiro:</p>
               </TitlesForm>
               <DataForm>
-                {from === 'Comercial' || from === 'Billing' ? (
+                {from === 'Comercial' && (
                   <>
-                    <p>1+3x R$1.325,00</p>
-                    <p>Não</p>
-                    <p>Entrada para 16/06 e parcelas junto com faturamento</p>
+                    <Form ref={paymentWayRef} onSubmit={submitPaymentWay}>
+                      <InputAsText
+                        name="paymentWayData"
+                        onBlur={onPaymentWaySubmit}
+                        defaultValue={paymentWay}
+                      />
+                    </Form>
+                    <Form ref={dueDateRef} onSubmit={submitDueDate}>
+                      <InputAsText
+                        name="dueDateData"
+                        onBlur={onDueDateSubmit}
+                        defaultValue={dueDate}
+                      />
+                    </Form>
                   </>
-                ) : (
+                )}
+                {from === 'Billing' && (
                   <>
-                    <p>--</p>
+                    <p>{paymentWay}</p>
+                    <p>{dueDate}</p>
+                  </>
+                )}
+                {from === 'TechnicalArea' && (
+                  <>
                     <p>--</p>
                     <p>--</p>
                   </>
@@ -448,7 +699,7 @@ const Order: React.FC<OrderProps> = ({
                 {from !== 'Billing' && status.billing === 'Aguardando' && (
                   <div className="status">
                     <FaRegClock className={faRegClock} />
-                    <span>Aguardando para faturar</span>
+                    <span>Aguardando para Faturar</span>
                   </div>
                 )}
                 {from !== 'Billing' && status.billing === 'Faturado' && (
@@ -481,11 +732,62 @@ const Order: React.FC<OrderProps> = ({
                         <MenuItem value=" ">--</MenuItem>
                         <MenuItem value="Aguardando">
                           <FaRegClock className={faRegClock} />
-                          Aguardando para faturar
+                          Aguardando para Faturar
                         </MenuItem>
                         <MenuItem value="Faturado">
                           <FaCheckCircle className={`faCheck ${faCheck}`} />
                           Faturado
+                        </MenuItem>
+                        <MenuItem value="Cancelado">
+                          <FaTimes className={faTimes} />
+                          Cancelado
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Status>
+                )}
+                {from !== 'Billing' && status.payment === ' ' && <p>--</p>}
+                {from !== 'Billing' && status.payment === 'Aguardando' && (
+                  <div className="status">
+                    <FaRegClock className={faRegClock} />
+                    <span>Aguardando Pagamento</span>
+                  </div>
+                )}
+                {from !== 'Billing' && status.payment === 'Pago' && (
+                  <div className="status">
+                    <FaCheckCircle className={`faCheck ${faCheck}`} />
+                    <span>Pago</span>
+                  </div>
+                )}
+                {from !== 'Billing' && status.payment === 'Cancelado' && (
+                  <div className="status">
+                    <FaTimes className={`faTimes ${faTimes}`} />
+                    <span>Cancelado</span>
+                  </div>
+                )}
+                {from === 'Billing' && (
+                  <Status>
+                    <FormControl className={formControl}>
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="data-select"
+                        value={status.payment}
+                        defaultValue=" "
+                        onChange={(e) => {
+                          setStatus({
+                            ...status,
+                            billing: e.target.value,
+                          });
+                        }}
+                      >
+                        <MenuItem value=" ">--</MenuItem>
+                        <MenuItem value="Aguardando">
+                          <FaRegClock className={faRegClock} />
+                          Aguardando Pagamento
+                        </MenuItem>
+                        <MenuItem value="Pago">
+                          <FaCheckCircle className={`faCheck ${faCheck}`} />
+                          Pago
                         </MenuItem>
                         <MenuItem value="Cancelado">
                           <FaTimes className={faTimes} />

@@ -28,6 +28,7 @@ import { TextField } from 'unform-material-ui';
 import { ServiceData } from '../Order';
 import Button from '../Button';
 import DisabledButton from '../DisabledButton';
+import { useToast } from '../../hooks/toast';
 
 import {
   ModalContainer,
@@ -108,6 +109,8 @@ const NewService: React.FC<NewServiceProps> = ({
   });
 
   const descriptionRef = useRef<FormHandles>(null);
+
+  const { addToast } = useToast();
 
   const services: ServiceState[] = [
     {
@@ -388,6 +391,11 @@ const NewService: React.FC<NewServiceProps> = ({
           value: Number(value.formattedValue),
         });
         setServiceToEdit({} as ServiceData);
+
+        addToast({
+          type: 'success',
+          description: 'Serviço alterado com sucesso!',
+        });
       } else {
         setDescription(descriptionData);
         setNewServiceOpen(false);
@@ -397,9 +405,15 @@ const NewService: React.FC<NewServiceProps> = ({
           description: descriptionData,
           value: Number(value.formattedValue),
         });
+
+        addToast({
+          type: 'success',
+          description: 'Serviço criado com sucesso!',
+        });
       }
     },
     [
+      addToast,
       service.name,
       serviceToEdit.description,
       serviceToEdit.id,

@@ -664,6 +664,12 @@ const NewOrder: React.FC<NewOrderProps> = ({
           counterAnswers.includes('companyEmailContact')
         ) {
           handleShowData();
+        } else {
+          companyMobilePhoneContactRef.current?.setErrors({});
+          setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Close question opened
+          setConfirmDataOpen(!confirmDataOpen); // Open next question
+
+          setConfirmDataHasOpened(true);
         }
       } else {
         setCompanyMobilePhoneContact('');

@@ -34,8 +34,8 @@ const MaterialToast: React.FC<ToastContent> = ({ open, toastContent }) => {
           horizontal: 'center',
         }}
         open={open}
-        autoHideDuration={3000}
-        onClose={handleClose}
+        autoHideDuration={2000}
+        onClose={() => setTimeout(handleClose, 2000)}
         TransitionComponent={SlideTransition}
       >
         <Alert severity={toastContent.type}>{toastContent.description}</Alert>

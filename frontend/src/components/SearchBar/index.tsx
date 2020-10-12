@@ -211,7 +211,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
               <MuiPickersUtilsProvider utils={DateFnsUtils}>
                 <KeyboardDatePicker
                   disableToolbar
-                  variant="dialog"
+                  variant="inline"
                   id="date-picker-inline"
                   label="Data"
                   format="dd/MM/yyyy"
