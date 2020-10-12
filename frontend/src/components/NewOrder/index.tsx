@@ -693,13 +693,20 @@ const NewOrder: React.FC<NewOrderProps> = ({
   );
 
   const handleSubmitForm = useCallback(() => {
-    addToast({
-      type: 'success',
-      description: 'Pedido criado com sucesso!',
-    });
-    setConfirmDataOpen(false);
-    setOrderOpen(true);
-  }, [addToast, setOrderOpen]);
+    try {
+      addToast({
+        type: 'success',
+        description: 'Pedido criado com sucesso!',
+      });
+      setConfirmDataOpen(false);
+      setOrderOpen(true);
+    } catch (err) {
+      addToast({
+        type: 'error',
+        description: 'Erro inesperado ao criar o pedido',
+      });
+    }
+  }, [addToast]);
 
   const handleChangeToPreviousQuestion = useCallback(() => {
     if (
