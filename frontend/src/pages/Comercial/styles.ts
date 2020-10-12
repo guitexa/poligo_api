@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const OrderOverlapping = styled.div`
+export const NewOrderOverlap = styled.div`
   position: absolute;
   top: 0;
   right: 0;
@@ -8,12 +8,6 @@ export const OrderOverlapping = styled.div`
   width: 100vw;
   height: 100vh;
   z-index: 200;
-
-  & > button {
-    position: absolute;
-    top: 8px;
-    right: 15px;
-  }
 `;
 
 export const Container = styled.div`

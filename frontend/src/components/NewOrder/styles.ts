@@ -56,14 +56,22 @@ const opacityEffect = keyframes`
   }
 `;
 
+export const NewOrderOverlap = styled.div`
+  > button {
+    position: absolute;
+    top: 8px;
+    right: 15px;
+  }
+`;
+
 export const Container = styled.div`
   position: absolute;
   display: flex;
   top: 50px;
   right: 0;
   left: 0;
-  width: 100vw;
   bottom: 0;
+  width: 100vw;
   overflow: hidden;
   z-index: -1;
   background: #fff;

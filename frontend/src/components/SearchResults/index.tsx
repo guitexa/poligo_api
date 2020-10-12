@@ -5,12 +5,12 @@ import { IconBaseProps } from 'react-icons';
 
 import formatValue from '../../utils/formatValue';
 import { useSearch } from '../../hooks/search';
+import { useOverlap } from '../../hooks/overlap';
 
 import Order from '../Order';
-import HeaderButton from '../HeaderButton';
 
 import {
-  OrderOverlapping,
+  OrderOverlap,
   Container,
   Content,
   RowResult,
@@ -44,18 +44,10 @@ export interface SearchResult {
 
 interface SearchResultsProps {
   color: string;
-  orderOpen: boolean;
-  setOrderOpen(e: boolean): void;
   from: string;
 }
 
-const SearchResults: React.FC<SearchResultsProps> = ({
-  color,
-  orderOpen,
-  setOrderOpen,
-  from,
-}) => {
-  const [newServiceOpen, setNewServiceOpen] = useState(false);
+const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
   const [dataOpen, setDataOpen] = useState<SearchResult>({} as SearchResult);
 
   const {
@@ -68,6 +60,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     value,
     status,
   } = useSearch();
+
+  const { orderOpen, overlapOrderOpen } = useOverlap();
 
   let searchResults: SearchResult[] = [
     {
@@ -546,30 +540,17 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   const handleOpenOrder = useCallback(
     (data: SearchResult) => {
       setDataOpen(data);
-      setOrderOpen(!orderOpen);
+      overlapOrderOpen(!orderOpen);
     },
-    [orderOpen, setOrderOpen]
+    [orderOpen, overlapOrderOpen]
   );
 
   return (
     <>
       {orderOpen && (
-        <OrderOverlapping>
-          <Order
-            color={color}
-            newServiceOpen={newServiceOpen}
-            setNewServiceOpen={(e) => setNewServiceOpen(e)}
-            data={dataOpen}
-            from={from}
-          />
-          <HeaderButton
-            show={orderOpen && !newServiceOpen}
-            handleClick={(e) => setOrderOpen(!e)}
-            type="button"
-            icon={FaTimes}
-            color={color}
-          />
-        </OrderOverlapping>
+        <OrderOverlap>
+          <Order color={color} data={dataOpen} from={from} />
+        </OrderOverlap>
       )}
       <Container>
         <Content>

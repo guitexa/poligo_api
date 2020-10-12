@@ -9,7 +9,15 @@ interface AddServiceButtonProps {
   color: string;
 }
 
-export const OrderOverlapping = styled.div`
+export const OrderOverlap = styled.div`
+  > button {
+    position: absolute;
+    top: 8px;
+    right: 15px;
+  }
+`;
+
+export const NewServiceOverlap = styled.div`
   position: absolute;
   top: 0;
   right: 0;

@@ -35,13 +35,17 @@ import formatValueCurrency from '../../utils/formatValueCurrency';
 import convertDate from '../../utils/convertDate';
 
 import { useToast } from '../../hooks/toast';
+import { useOverlap } from '../../hooks/overlap';
+
 import MaterialTooltip from '../MaterialTooltip';
 import NewService from '../NewService';
 import InputAsText from '../InputAsText';
 import InputAsTextWithMask from '../InputAsTextWithMask';
+import HeaderButton from '../HeaderButton';
 
 import {
-  OrderOverlapping,
+  OrderOverlap,
+  NewServiceOverlap,
   Container,
   PrimaryContent,
   CompanyData,
@@ -92,19 +96,11 @@ interface InputData {
 
 interface OrderProps {
   color: string;
-  newServiceOpen: boolean;
-  setNewServiceOpen(e: boolean): void;
   data: SearchResult;
   from: string;
 }
 
-const Order: React.FC<OrderProps> = ({
-  color,
-  newServiceOpen,
-  setNewServiceOpen,
-  data,
-  from,
-}) => {
+const Order: React.FC<OrderProps> = ({ color, data, from }) => {
   const [status, setStatus] = useState<StatusState>({
     order: data.status || ' ',
     delivery: 'Andamento',
@@ -112,7 +108,7 @@ const Order: React.FC<OrderProps> = ({
     payment: 'Pago',
   });
 
-  const [approvedDate, setApprovedDate] = useState('');
+  const [approvedDate, setApprovedDate] = useState('10/10/2020');
 
   const [deliveryConditions, setDeliveryConditions] = useState('');
   const [requestedDeliveryDate, setRequestedDeliveryDate] = useState(
@@ -135,6 +131,12 @@ const Order: React.FC<OrderProps> = ({
   const dueDateRef = useRef<FormHandles>(null);
 
   const { addToast } = useToast();
+  const {
+    orderOpen,
+    newServiceOpen,
+    overlapOrderOpen,
+    overlapNewServiceOpen,
+  } = useOverlap();
 
   useEffect(() => {
     if (data.service && data.value && data.id) {
@@ -164,9 +166,9 @@ const Order: React.FC<OrderProps> = ({
   const handleEditServiceItem = useCallback(
     (dataToEdit: ServiceData) => {
       setServiceToEdit(dataToEdit);
-      setNewServiceOpen(!newServiceOpen);
+      overlapNewServiceOpen(!newServiceOpen);
     },
-    [newServiceOpen, setNewServiceOpen]
+    [newServiceOpen, overlapNewServiceOpen]
   );
 
   const handleEditedService = useCallback((e: ServiceData) => {
@@ -401,19 +403,26 @@ const Order: React.FC<OrderProps> = ({
   }, [from, services]);
 
   return (
-    <>
+    <OrderOverlap>
       {newServiceOpen && (
-        <OrderOverlapping>
+        <NewServiceOverlap>
           <NewService
             color={color}
-            setNewServiceOpen={(e) => setNewServiceOpen(e)}
+            setNewServiceOpen={(e) => overlapNewServiceOpen(e)}
             setServices={(e) => setServices((state) => [...state, e])}
             setEditedServices={(e) => handleEditedService(e)}
             serviceToEdit={serviceToEdit}
             setServiceToEdit={(e) => setServiceToEdit(e)}
           />
-        </OrderOverlapping>
+        </NewServiceOverlap>
       )}
+      <HeaderButton
+        show={orderOpen && !newServiceOpen}
+        handleClick={(e) => overlapOrderOpen(!e)}
+        type="button"
+        icon={FaTimes}
+        color={color}
+      />
       <Container>
         <ThemeProvider theme={defaultMaterialTheme}>
           <PrimaryContent>
@@ -435,8 +444,8 @@ const Order: React.FC<OrderProps> = ({
                 <p>{data.companyCpfCnpj}</p>
                 <p>{data.companyNameContact}</p>
                 <p>{data.companyEmailContact}</p>
-                <p>{data.companyPhone}</p>
-                <p>{data.companyMobilePhoneContact}</p>
+                <p>{data.companyPhone || '--'}</p>
+                <p>{data.companyMobilePhoneContact || '--'}</p>
               </DataForm>
             </CompanyData>
             <OrderData>
@@ -513,7 +522,7 @@ const Order: React.FC<OrderProps> = ({
               <AddServiceButton
                 type="button"
                 color={color}
-                onClick={() => setNewServiceOpen(!newServiceOpen)}
+                onClick={() => overlapNewServiceOpen(!newServiceOpen)}
               >
                 <MaterialTooltip
                   title="Adicionar Serviço"
@@ -851,7 +860,7 @@ const Order: React.FC<OrderProps> = ({
           </ServicesOrderContent>
         </ThemeProvider>
       </Container>
-    </>
+    </OrderOverlap>
   );
 };
 

@@ -7,11 +7,11 @@ import {
 } from '@material-ui/core';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
+import { FaTimes } from 'react-icons/fa';
 import { FiArrowRight, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { isCNPJ, isCPF, isPhone, formatToCapitalized } from 'brazilian-values';
 import isEmail from 'validator/es/lib/isEmail';
 import { format } from 'date-fns';
-import { uuid } from 'uuidv4';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import { TextField } from 'unform-material-ui';
@@ -19,12 +19,15 @@ import InputMask, { Props as InputProps } from 'react-input-mask';
 
 import { useToast } from '../../hooks/toast';
 import { useAuth } from '../../hooks/auth';
+import { useOverlap } from '../../hooks/overlap';
 
+import HeaderButton from '../HeaderButton';
 import Order from '../Order';
 import Button from '../Button';
 import DisabledButton from '../DisabledButton';
 
 import {
+  NewOrderOverlap,
   Container,
   Content,
   AskTitle,
@@ -62,15 +65,9 @@ interface InputData {
 
 interface NewOrderProps {
   color: string;
-  newServiceOpen: boolean;
-  setNewServiceOpen(e: boolean): void;
 }
 
-const NewOrder: React.FC<NewOrderProps> = ({
-  color,
-  newServiceOpen,
-  setNewServiceOpen,
-}) => {
+const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [orderOpen, setOrderOpen] = useState(false);
   const [companyName, setCompanyName] = useState<CompanyNameState>(
     {} as CompanyNameState
@@ -101,6 +98,7 @@ const NewOrder: React.FC<NewOrderProps> = ({
 
   const { addToast } = useToast();
   const { user } = useAuth();
+  const { newOrderOpen, overlapNewOrderOpen } = useOverlap();
 
   const companyCnpjRef = useRef<FormHandles>(null);
   const companyCpfRef = useRef<FormHandles>(null);
@@ -912,19 +910,16 @@ const NewOrder: React.FC<NewOrderProps> = ({
   );
 
   return (
-    <>
+    <NewOrderOverlap>
       {orderOpen && (
         <Order
           color={color}
-          newServiceOpen={newServiceOpen}
-          setNewServiceOpen={(e) => setNewServiceOpen(e)}
           data={{
-            id: uuid(),
+            id: '31',
             date: new Date(),
             formattedDate: format(new Date(), 'dd/MM/yyyy'),
             companyName: companyName.name,
             seller: user.name,
-            status: 'Aguardando',
             companyCpfCnpj: companyCnpj || companyCpf,
             companyNameContact,
             companyEmailContact,
@@ -934,6 +929,13 @@ const NewOrder: React.FC<NewOrderProps> = ({
           from="Comercial"
         />
       )}
+      <HeaderButton
+        show={newOrderOpen}
+        handleClick={(e) => overlapNewOrderOpen(!e)}
+        type="button"
+        icon={FaTimes}
+        color={color}
+      />
       <ThemeProvider theme={defaultMaterialTheme}>
         <Container>
           <Content color={color}>
@@ -1332,7 +1334,7 @@ const NewOrder: React.FC<NewOrderProps> = ({
           )}
         </Container>
       </ThemeProvider>
-    </>
+    </NewOrderOverlap>
   );
 };
 

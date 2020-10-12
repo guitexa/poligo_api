@@ -4,14 +4,8 @@ interface ContentProps {
   color: string;
 }
 
-export const OrderOverlapping = styled.div`
+export const OrderOverlap = styled.div`
   z-index: 100;
-
-  & > button {
-    position: absolute;
-    top: 8px;
-    right: 15px;
-  }
 `;
 
 export const Container = styled.div`
