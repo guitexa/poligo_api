@@ -14,20 +14,20 @@ interface UserState {
   user: User;
 }
 
-interface SignInCredencials {
-  email: string;
-  password: string;
-}
-
 interface SignInMailCredencials {
   email: string;
+}
+
+interface signInPasswordCredencials {
+  email: string;
+  password: string;
 }
 
 interface AuthContextData {
   user: User;
   token: string;
-  signIn(credentials: SignInCredencials): Promise<void>;
   signInMail(email: SignInMailCredencials): Promise<void>;
+  signInPassword(credentials: signInPasswordCredencials): Promise<void>;
   signOut(): void;
 }
 
@@ -54,19 +54,6 @@ export const AuthProvider: React.FC = ({ children }) => {
     return {} as UserState;
   });
 
-  const signIn = useCallback(async ({ email, password }) => {
-    const response = await api.post('/sessions-password', {
-      email,
-      password,
-    });
-
-    const { token } = response.data;
-
-    localStorage.setItem('@Poligo:token', token);
-
-    setDataToken({ token });
-  }, []);
-
   const signInMail = useCallback(async ({ email }) => {
     const response = await api.post('/sessions-mail', {
       email,
@@ -77,6 +64,19 @@ export const AuthProvider: React.FC = ({ children }) => {
     localStorage.setItem('@Poligo:user', JSON.stringify(user));
 
     setDataUser({ user });
+  }, []);
+
+  const signInPassword = useCallback(async ({ email, password }) => {
+    const response = await api.post('/sessions-password', {
+      email,
+      password,
+    });
+
+    const { token } = response.data;
+
+    localStorage.setItem('@Poligo:token', token);
+
+    setDataToken({ token });
   }, []);
 
   const signOut = useCallback(() => {
@@ -92,8 +92,8 @@ export const AuthProvider: React.FC = ({ children }) => {
       value={{
         user: dataUser.user,
         token: dataToken.token,
-        signIn,
         signInMail,
+        signInPassword,
         signOut,
       }}
     >
