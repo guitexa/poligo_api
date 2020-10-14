@@ -19,11 +19,6 @@ export default class CreatePermissions1602643038960
             type: 'varchar',
           },
           {
-            name: 'user_id',
-            type: 'uuid',
-            isNullable: true,
-          },
-          {
             name: 'created_at',
             type: 'timestamp',
             default: 'now()',

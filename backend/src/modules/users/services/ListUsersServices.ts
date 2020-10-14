@@ -1,0 +1,17 @@
+import { injectable, inject } from 'tsyringe';
+
+import User from '@modules/users/infra/typeorm/entities/User';
+
+import IUsersRepository from '../repositories/IUsersRepository';
+
+@injectable()
+export default class ListUsersServices {
+  constructor(
+    @inject('UsersRepository')
+    private usersRepository: IUsersRepository,
+  ) {}
+
+  public async execute(): Promise<User[] | undefined> {
+    return this.usersRepository.findAll();
+  }
+}

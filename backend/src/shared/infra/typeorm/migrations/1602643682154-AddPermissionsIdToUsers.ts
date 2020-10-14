@@ -28,25 +28,11 @@ export default class AddPermissionsIdToUsers1602643682154
         onUpdate: 'CASCADE',
       }),
     );
-
-    await queryRunner.createForeignKey(
-      'permissions',
-      new TableForeignKey({
-        name: 'User',
-        columnNames: ['user_id'],
-        referencedTableName: 'users',
-        referencedColumnNames: ['id'],
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      }),
-    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropForeignKey('permissions', 'User');
+    await queryRunner.dropForeignKey('permissions', 'Users');
 
     await queryRunner.dropForeignKey('users', 'UserPermissions');
-
-    await queryRunner.dropColumn('users', 'permissions_id');
   }
 }

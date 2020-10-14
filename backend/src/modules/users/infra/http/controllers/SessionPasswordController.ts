@@ -11,13 +11,13 @@ export default class SessionPasswordController {
       AuthenticateUserPasswordService,
     );
 
-    const { user, token } = await authenticateUserPassword.execute({
-      email,
-      password,
-    });
+    const { user, token, permissions } = await authenticateUserPassword.execute(
+      {
+        email,
+        password,
+      },
+    );
 
-    delete user.password;
-
-    return res.json({ user, token });
+    return res.json({ user, token, permissions });
   }
 }
