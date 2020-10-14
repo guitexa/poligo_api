@@ -425,7 +425,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
       />
       <Container>
         <ThemeProvider theme={defaultMaterialTheme}>
-          <PrimaryContent>
+          <PrimaryContent isModalOpen={newServiceOpen}>
             <CompanyData>
               <TitlesForm>
                 <p>Razão social:</p>
@@ -517,7 +517,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
               </DataForm>
             </OrderData>
           </PrimaryContent>
-          <SecondaryContent>
+          <SecondaryContent isModalOpen={newServiceOpen}>
             {from === 'Comercial' && (
               <AddServiceButton
                 type="button"
@@ -809,7 +809,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
               </DataForm>
             </BillingData>
           </SecondaryContent>
-          <ServicesOrderContent>
+          <ServicesOrderContent isModalOpen={newServiceOpen}>
             <TitleRow>
               <ServiceName>SERVIÇO</ServiceName>
               <ServiceDescription>DESCRIÇÃO DO SERVIÇO</ServiceDescription>

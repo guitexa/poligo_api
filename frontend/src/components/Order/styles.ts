@@ -1,5 +1,17 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { shade } from 'polished';
+
+interface PrimaryContentProps {
+  isModalOpen: boolean;
+}
+
+interface SecondaryContentProps {
+  isModalOpen: boolean;
+}
+
+interface ServicesOrderContentProps {
+  isModalOpen: boolean;
+}
 
 interface ServiceRowProps {
   color: string;
@@ -48,18 +60,32 @@ export const Container = styled.div`
   z-index: 100;
 `;
 
-export const PrimaryContent = styled.div`
+export const PrimaryContent = styled.div<PrimaryContentProps>`
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: 0.2s all;
+
+  ${({ isModalOpen }) =>
+    isModalOpen &&
+    css`
+      filter: blur(2px);
+    `};
 `;
 
-export const SecondaryContent = styled.div`
+export const SecondaryContent = styled.div<SecondaryContentProps>`
   width: 100%;
   display: flex;
   align-items: flex-end;
   position: relative;
+  transition: 0.2s all;
+
+  ${({ isModalOpen }) =>
+    isModalOpen &&
+    css`
+      filter: blur(2px);
+    `};
 `;
 
 export const AddServiceButton = styled.button<AddServiceButtonProps>`
@@ -229,10 +255,17 @@ export const BillingData = styled.div`
   align-items: center;
 `;
 
-export const ServicesOrderContent = styled.div`
+export const ServicesOrderContent = styled.div<ServicesOrderContentProps>`
   width: 100%;
   padding-bottom: 30px;
   overflow-y: auto;
+  transition: 0.2s all;
+
+  ${({ isModalOpen }) =>
+    isModalOpen &&
+    css`
+      filter: blur(2px);
+    `};
 `;
 
 export const TitleRow = styled.div`
