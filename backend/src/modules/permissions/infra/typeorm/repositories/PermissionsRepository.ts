@@ -44,8 +44,6 @@ export default class PermissionsRepository implements IPermissionsRepository {
   }
 
   public async findAll(): Promise<Permission[] | undefined> {
-    const permissions = this.ormRepository.find();
-
-    return permissions;
+    return this.ormRepository.find();
   }
 }

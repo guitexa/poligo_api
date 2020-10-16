@@ -10,7 +10,7 @@ interface IRequest {
 }
 
 @injectable()
-export default class CreatePermissionServices {
+export default class CreatePermissionService {
   constructor(
     @inject('PermissionsRepository')
     private permissionsRepository: IPermissionsRepository,

@@ -25,8 +25,15 @@ describe('ListUsers', () => {
       permissions_id: permission.id,
     });
 
+    const userOne = await fakeUsersRepository.create({
+      name: 'John Doe',
+      email: 'johndoe@mail.com',
+      password: '123456',
+      permissions_id: permission.id,
+    });
+
     const users = await listUsers.execute();
 
-    expect(users).toEqual(expect.arrayContaining([loggedUser]));
+    expect(users).toEqual(expect.arrayContaining([loggedUser, userOne]));
   });
 });

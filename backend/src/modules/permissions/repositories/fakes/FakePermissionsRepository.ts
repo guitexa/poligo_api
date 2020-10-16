@@ -1,3 +1,5 @@
+import { uuid } from 'uuidv4';
+
 import IPermissionsRepository from '@modules/permissions/repositories/IPermissionsRepository';
 import ICreatePermissionDTO from '@modules/permissions/dtos/ICreatePermissionDTO';
 import Permission from '../../infra/typeorm/entities/Permission';
@@ -11,7 +13,7 @@ export default class FakePermissionsRepository
   ): Promise<Permission> {
     const permission = new Permission();
 
-    Object.assign(permission, permissionName);
+    Object.assign(permission, { id: uuid() }, permissionName);
 
     this.permissionRepository.push(permission);
 
