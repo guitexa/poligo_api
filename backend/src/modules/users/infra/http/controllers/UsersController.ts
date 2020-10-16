@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 
-import CreateUserServices from '@modules/users/services/CreateUserServices';
-import ListUsersServices from '@modules/users/services/ListUsersServices';
+import CreateUserService from '@modules/users/services/CreateUserService';
+import ListUsersService from '@modules/users/services/ListUsersService';
 import { classToClass } from 'class-transformer';
 
 export default class UsersController {
   public async create(req: Request, res: Response): Promise<Response> {
     const { name, email, password, permissions_id } = req.body;
 
-    const createUser = container.resolve(CreateUserServices);
+    const createUser = container.resolve(CreateUserService);
 
     const user = await createUser.execute({
       name,
@@ -22,7 +22,7 @@ export default class UsersController {
   }
 
   public async show(req: Request, res: Response): Promise<Response> {
-    const listUsers = container.resolve(ListUsersServices);
+    const listUsers = container.resolve(ListUsersService);
 
     const users = await listUsers.execute();
 

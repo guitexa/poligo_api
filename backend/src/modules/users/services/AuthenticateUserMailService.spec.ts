@@ -18,6 +18,7 @@ describe('AuthenticateUserMail', () => {
       name: 'Jane Doe',
       email: 'janedoe@mail.com',
       password: '123456',
+      permissions_id: 'permission-id',
     });
 
     const response = await AuthenticateUserMail.execute({

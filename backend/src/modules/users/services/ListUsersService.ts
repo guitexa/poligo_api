@@ -5,7 +5,7 @@ import User from '@modules/users/infra/typeorm/entities/User';
 import IUsersRepository from '../repositories/IUsersRepository';
 
 @injectable()
-export default class ListUsersServices {
+export default class ListUsersService {
   constructor(
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
