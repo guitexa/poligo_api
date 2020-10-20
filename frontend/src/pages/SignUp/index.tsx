@@ -20,6 +20,7 @@ interface DataForm {
   name: string;
   email: string;
   password: string;
+  permissions_id: string;
 }
 
 const SignUp: React.FC = () => {
@@ -46,7 +47,18 @@ const SignUp: React.FC = () => {
           abortEarly: false,
         });
 
-        await api.post('/users', data);
+        await api.post('/users', {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          permissions_id: 'da499a8b-a8fd-47b0-8b5a-6d5db1ee43db',
+        });
+
+        /*
+          1. Buscar no backend quais as permissões existents com GET
+          2. Colocar essas opções num menu suspenso com valor em ID
+          3. Enviar no formulário a resposta escolhida
+        */
 
         addToast({
           type: 'success',

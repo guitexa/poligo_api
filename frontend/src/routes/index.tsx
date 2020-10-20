@@ -3,6 +3,7 @@ import { Switch } from 'react-router-dom';
 
 import Route from './Route';
 
+import Loading from '../pages/Loading';
 import SignInMail from '../pages/SignInMail';
 import SignInPassword from '../pages/SignInPassword';
 import SignUp from '../pages/SignUp';
@@ -13,7 +14,8 @@ import Billing from '../pages/Billing';
 const Routes: React.FC = () => (
   <Switch>
     <Route path="/" exact component={SignInMail} />
-    <Route path="/Login" component={SignInPassword} isMailFilled />
+    <Route path="/Loading" component={Loading} isPrivate />
+    <Route path="/SignInPassword" component={SignInPassword} isMailFilled />
     <Route path="/SignUp" component={SignUp} />
 
     <Route path="/Comercial" component={Comercial} isPrivate />

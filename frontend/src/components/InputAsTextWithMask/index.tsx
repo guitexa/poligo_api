@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, CSSProperties } from 'react';
 import { useField } from '@unform/core';
 import InputMask, { Props as InputProps } from 'react-input-mask';
 
@@ -6,7 +6,7 @@ import { Container } from './styles';
 
 interface InputAsTextWithMaskProps extends InputProps {
   name: string;
-  styled?: {};
+  styled?: CSSProperties;
 }
 
 const InputAsTextWithMask: React.FC<InputAsTextWithMaskProps> = ({

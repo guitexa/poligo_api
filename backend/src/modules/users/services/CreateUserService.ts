@@ -36,7 +36,7 @@ export default class CreateUserService {
     const checkIfUserExists = await this.usersRepository.findByEmail(email);
 
     if (checkIfUserExists) {
-      throw new AppError('This address is already used');
+      throw new AppError('This address is already used', 401);
     }
 
     const checkIfPermissionIdExists = await this.permissionsRepository.findById(
@@ -44,7 +44,7 @@ export default class CreateUserService {
     );
 
     if (!checkIfPermissionIdExists) {
-      throw new AppError('This permission_id does not exists');
+      throw new AppError('This permission_id does not exists', 400);
     }
 
     const hashedPassword = await this.hashProvider.generateHash(password);

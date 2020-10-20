@@ -25,9 +25,7 @@ const Route: React.FC<RouteProps> = ({
     <RouteDOM
       {...rest}
       render={({ location }) => {
-        return isPrivate === (!!user && !!token) &&
-          isMailFilled === (!!user && !token) ? (
-          // eslint-disable-next-line react/jsx-indent
+        return isPrivate === !!token && isMailFilled === (!!user && !token) ? (
           <Component />
         ) : (
           <Redirect
@@ -35,8 +33,8 @@ const Route: React.FC<RouteProps> = ({
               pathname: isPrivate
                 ? '/'
                 : isMailFilled
-                ? '/Comercial'
-                : '/Login',
+                ? '/Loading'
+                : '/SignInPassword',
               state: { from: location },
             }}
           />

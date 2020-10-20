@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 
 import AuthenticateUserMailService from '@modules/users/services/AuthenticateUserMailService';
+import { classToClass } from 'class-transformer';
 
 export default class SessionMailController {
   public async create(req: Request, res: Response): Promise<Response> {
@@ -13,8 +14,6 @@ export default class SessionMailController {
       email,
     });
 
-    delete user.password;
-
-    return res.json(user);
+    return res.json(classToClass(user));
   }
 }

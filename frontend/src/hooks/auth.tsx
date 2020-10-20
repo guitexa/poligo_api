@@ -1,4 +1,7 @@
 import React, { createContext, useCallback, useState, useContext } from 'react';
+import decode from 'jwt-decode';
+import { fromUnixTime, isAfter } from 'date-fns';
+
 import api from '../services/api';
 
 interface User {
@@ -7,11 +10,23 @@ interface User {
   email: string;
 }
 
+interface Permission {
+  id: string;
+  name: string;
+}
+
 interface TokenState {
   token: string;
 }
+
+interface TokenDecode {
+  exp: number;
+  sub: string;
+  typ: string;
+}
 interface UserState {
   user: User;
+  permission: string;
 }
 
 interface SignInMailCredencials {
@@ -26,9 +41,11 @@ interface signInPasswordCredencials {
 interface AuthContextData {
   user: User;
   token: string;
+  userPermission: string;
   signInMail(email: SignInMailCredencials): Promise<void>;
   signInPassword(credentials: signInPasswordCredencials): Promise<void>;
   signOut(): void;
+  checkToken(): void;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -38,63 +55,94 @@ export const AuthProvider: React.FC = ({ children }) => {
     const token = localStorage.getItem('@Poligo:token');
 
     if (token) {
+      api.defaults.headers.authorization = `Bearer ${token}`;
+
       return { token };
     }
 
     return {} as TokenState;
   });
 
-  const [dataUser, setDataUser] = useState<UserState>(() => {
-    const user = localStorage.getItem('@Poligo:user');
+  const [dataUser, setDataUser] = useState<UserState>({} as UserState);
 
-    if (user) {
-      return { user: JSON.parse(user) };
-    }
+  const signInMail = useCallback(
+    async ({ email }) => {
+      const response = await api.post('/sessions-mail', {
+        email,
+      });
 
-    return {} as UserState;
-  });
+      const user = response.data;
 
-  const signInMail = useCallback(async ({ email }) => {
-    const response = await api.post('/sessions-mail', {
-      email,
-    });
+      setDataUser({ ...dataUser, user });
+    },
+    [dataUser]
+  );
 
-    const user = response.data;
+  const signInPassword = useCallback(
+    async ({ email, password }) => {
+      const response = await api.post('/sessions-password', {
+        email,
+        password,
+      });
 
-    localStorage.setItem('@Poligo:user', JSON.stringify(user));
+      const { token, permission } = response.data;
 
-    setDataUser({ user });
-  }, []);
+      localStorage.setItem('@Poligo:token', token);
 
-  const signInPassword = useCallback(async ({ email, password }) => {
-    const response = await api.post('/sessions-password', {
-      email,
-      password,
-    });
+      api.defaults.headers.authorization = `Bearer ${token}`;
 
-    const { token } = response.data;
-
-    localStorage.setItem('@Poligo:token', token);
-
-    setDataToken({ token });
-  }, []);
+      setDataToken({ token });
+      setDataUser({ ...dataUser, permission });
+    },
+    [dataUser]
+  );
 
   const signOut = useCallback(() => {
     localStorage.removeItem('@Poligo:token');
-    localStorage.removeItem('@Poligo:user');
 
     setDataToken({} as TokenState);
     setDataUser({} as UserState);
   }, []);
+
+  const checkToken = useCallback(async () => {
+    const userToken = decode(dataToken.token) as TokenDecode;
+
+    const checkIfTokenIsExpired = isAfter(
+      fromUnixTime(userToken.exp),
+      new Date(Date.now())
+    );
+
+    if (!checkIfTokenIsExpired) {
+      signOut();
+    } else {
+      const userResponse = await api.get<User[]>('/users');
+      const permissionsResponse = await api.get<Permission[]>('/permissions');
+
+      const user = userResponse.data.find((usr) => usr.id === userToken.sub);
+      const permission = permissionsResponse.data.find(
+        (perm) => perm.id === userToken.typ
+      );
+
+      if (user && permission) {
+        setDataUser({ user, permission: permission?.name });
+      }
+    }
+  }, [dataToken.token, signOut]);
+
+  if (!dataUser.user && !!dataToken.token) {
+    checkToken();
+  }
 
   return (
     <AuthContext.Provider
       value={{
         user: dataUser.user,
         token: dataToken.token,
+        userPermission: dataUser.permission,
         signInMail,
         signInPassword,
         signOut,
+        checkToken,
       }}
     >
       {children}

@@ -17,6 +17,7 @@ export default class CreatePermissions1602643038960
           {
             name: 'name',
             type: 'varchar',
+            isUnique: true,
           },
           {
             name: 'created_at',

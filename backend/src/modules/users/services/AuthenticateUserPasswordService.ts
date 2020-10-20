@@ -2,7 +2,6 @@ import { sign } from 'jsonwebtoken';
 import { injectable, inject } from 'tsyringe';
 
 import User from '@modules/users/infra/typeorm/entities/User';
-import Permission from '@modules/permissions/infra/typeorm/entities/Permission';
 import authConfig from '@config/auth';
 import AppError from '@shared/errors/AppError';
 
@@ -18,7 +17,7 @@ interface IRequest {
 interface IResponse {
   user: User;
   token: string;
-  permissions: Permission;
+  permission: string;
 }
 
 @injectable()
@@ -49,14 +48,6 @@ export default class AuthenticateUserPasswordService {
     if (!checkPassword) {
       throw new AppError('Email or Password not valid', 401);
     }
-
-    const { expiresIn, secret } = authConfig.jwt;
-
-    const token = sign({}, secret, {
-      subject: user.id,
-      expiresIn,
-    });
-
     const permissions = await this.permissionsRepository.findById(
       user.permissions_id,
     );
@@ -65,10 +56,17 @@ export default class AuthenticateUserPasswordService {
       throw new AppError('This user has no permissions', 401);
     }
 
+    const { expiresIn, secret } = authConfig.jwt;
+
+    const token = sign({ typ: permissions.id }, secret, {
+      subject: user.id,
+      expiresIn,
+    });
+
     return {
       user,
       token,
-      permissions,
+      permission: permissions.name,
     };
   }
 }
