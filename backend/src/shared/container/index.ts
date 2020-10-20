@@ -11,6 +11,9 @@ import IPermissionsRepository from '@modules/permissions/repositories/IPermissio
 import ClientsRepository from '@modules/clients/infra/typeorm/repositories/ClientsRepository';
 import IClientsRepository from '@modules/clients/repositories/IClientsRepository';
 
+import ContactsRepository from '@modules/contacts/infra/typeorm/repositories/ContactsRepository';
+import IContactsRepository from '@modules/contacts/repositories/IContactsRepository';
+
 container.registerSingleton<IUsersRepository>(
   'UsersRepository',
   UsersRepository,
@@ -24,4 +27,9 @@ container.registerSingleton<IPermissionsRepository>(
 container.registerSingleton<IClientsRepository>(
   'ClientsRepository',
   ClientsRepository,
+);
+
+container.registerSingleton<IContactsRepository>(
+  'ContactsRepository',
+  ContactsRepository,
 );
