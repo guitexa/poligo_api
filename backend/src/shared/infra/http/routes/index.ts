@@ -5,6 +5,7 @@ import sessionsMailRouter from '@modules/users/infra/http/routes/sessions-mail.r
 import sessionsPasswordRouter from '@modules/users/infra/http/routes/sessions-password.routes';
 import clientsRouter from '@modules/clients/infra/http/routes/clients.routes';
 import contactsRouter from '@modules/contacts/infra/http/routes/contacts.routes';
+import productsRouter from '@modules/products/infra/http/routes/products.routes';
 
 import permissionsRouter from '@modules/permissions/infra/http/routes/permissions.routes';
 
@@ -19,5 +20,7 @@ routes.use('/permissions', permissionsRouter);
 routes.use('/clients', clientsRouter);
 
 routes.use('/contacts', contactsRouter);
+
+routes.use('/products', productsRouter);
 
 export default routes;
