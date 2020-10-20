@@ -20,10 +20,12 @@ export default class CreateContacts1602645841692 implements MigrationInterface {
           {
             name: 'email',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'phone',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'created_at',

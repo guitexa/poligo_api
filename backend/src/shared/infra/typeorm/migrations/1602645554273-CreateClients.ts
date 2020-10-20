@@ -24,6 +24,7 @@ export default class CreateClients1602645554273 implements MigrationInterface {
           {
             name: 'phone',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'contacts_id',
