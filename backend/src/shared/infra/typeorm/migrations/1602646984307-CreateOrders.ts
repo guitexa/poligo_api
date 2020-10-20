@@ -17,6 +17,7 @@ export default class CreateOrders1602646984307 implements MigrationInterface {
             name: 'order_number',
             type: 'int',
             isUnique: true,
+            isGenerated: true,
             generationStrategy: 'increment',
           },
           {
