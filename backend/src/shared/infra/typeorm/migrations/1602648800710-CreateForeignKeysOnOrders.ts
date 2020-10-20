@@ -30,9 +30,9 @@ export default class CreateForeignKeysOnOrders1602648800710
     await queryRunner.createForeignKey(
       'orders',
       new TableForeignKey({
-        name: 'ServiceId',
-        columnNames: ['service_id'],
-        referencedTableName: 'services',
+        name: 'ProductId',
+        columnNames: ['product_id'],
+        referencedTableName: 'products',
         referencedColumnNames: ['id'],
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
@@ -57,7 +57,7 @@ export default class CreateForeignKeysOnOrders1602648800710
 
     await queryRunner.dropForeignKey('orders', 'SellerId');
 
-    await queryRunner.dropForeignKey('orders', 'ServiceId');
+    await queryRunner.dropForeignKey('orders', 'ProductId');
 
     await queryRunner.dropForeignKey('orders', 'TechnicalId');
   }

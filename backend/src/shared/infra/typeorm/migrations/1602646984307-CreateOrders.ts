@@ -87,17 +87,17 @@ export default class CreateOrders1602646984307 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'service_id',
+            name: 'product_id',
             type: 'uuid',
             isNullable: true,
           },
           {
-            name: 'service_description',
+            name: 'product_description',
             type: 'varchar',
             isNullable: true,
           },
           {
-            name: 'service_value',
+            name: 'product_value',
             type: 'decimal',
             precision: 10,
             scale: 2,

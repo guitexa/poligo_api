@@ -31,8 +31,8 @@ export default class AddPermissionsIdToUsers1602643682154
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropForeignKey('permissions', 'Users');
-
     await queryRunner.dropForeignKey('users', 'UserPermissions');
+
+    await queryRunner.dropColumn('users', 'permissions_id');
   }
 }
