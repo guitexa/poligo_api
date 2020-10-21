@@ -1,13 +1,10 @@
 import { injectable, inject } from 'tsyringe';
 
-import Permission from '@modules/permissions/infra/typeorm/entities/Permission';
 import AppError from '@shared/errors/AppError';
 
+import Permission from '@modules/permissions/infra/typeorm/entities/Permission';
 import IPermissionsRepository from '../repositories/IPermissionsRepository';
-
-interface IRequest {
-  name: string;
-}
+import ICreatePermissionDTO from '../dtos/ICreatePermissionDTO';
 
 @injectable()
 export default class CreatePermissionService {
@@ -16,7 +13,7 @@ export default class CreatePermissionService {
     private permissionsRepository: IPermissionsRepository,
   ) {}
 
-  public async execute({ name }: IRequest): Promise<Permission> {
+  public async execute({ name }: ICreatePermissionDTO): Promise<Permission> {
     if (!name) {
       throw new AppError('A name must be provided', 404);
     }

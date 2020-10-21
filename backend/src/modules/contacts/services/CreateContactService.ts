@@ -2,12 +2,7 @@ import { inject, injectable } from 'tsyringe';
 
 import Contact from '../infra/typeorm/entities/Contact';
 import IContactsRepository from '../repositories/IContactsRepository';
-
-interface IRequest {
-  name: string;
-  email?: string;
-  phone?: string;
-}
+import ICreateContactDTO from '../dtos/ICreateContactDTO';
 
 @injectable()
 export default class CreateContactService {
@@ -16,7 +11,11 @@ export default class CreateContactService {
     private contactsRepository: IContactsRepository,
   ) {}
 
-  public async execute({ name, email, phone }: IRequest): Promise<Contact> {
+  public async execute({
+    name,
+    email,
+    phone,
+  }: ICreateContactDTO): Promise<Contact> {
     const contact = await this.contactsRepository.create({
       name,
       email,

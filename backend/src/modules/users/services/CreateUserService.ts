@@ -1,18 +1,12 @@
 import { injectable, inject } from 'tsyringe';
 
-import User from '@modules/users/infra/typeorm/entities/User';
 import AppError from '@shared/errors/AppError';
 
+import User from '@modules/users/infra/typeorm/entities/User';
 import IPermissionsRepository from '@modules/permissions/repositories/IPermissionsRepository';
 import IUsersRepository from '../repositories/IUsersRepository';
 import IHashProvider from '../providers/HashProvider/models/IHashProvider';
-
-interface IRequest {
-  name: string;
-  email: string;
-  password: string;
-  permissions_id: string;
-}
+import ICreateUserDTO from '../dtos/ICreateUserDTO';
 
 @injectable()
 export default class CreateUserService {
@@ -32,7 +26,7 @@ export default class CreateUserService {
     email,
     password,
     permissions_id,
-  }: IRequest): Promise<User> {
+  }: ICreateUserDTO): Promise<User> {
     const checkIfUserExists = await this.usersRepository.findByEmail(email);
 
     if (checkIfUserExists) {

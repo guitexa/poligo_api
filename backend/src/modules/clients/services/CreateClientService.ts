@@ -2,13 +2,7 @@ import { inject, injectable } from 'tsyringe';
 
 import Client from '../infra/typeorm/entities/Client';
 import IClientsRepository from '../repositories/IClientsRepository';
-
-interface IRequest {
-  name: string;
-  cpf_cnpj: string;
-  phone?: string;
-  contacts_id?: string;
-}
+import ICreateClientDTO from '../dtos/ICreateClientDTO';
 
 @injectable()
 export default class CreateClientService {
@@ -22,7 +16,7 @@ export default class CreateClientService {
     cpf_cnpj,
     phone,
     contacts_id,
-  }: IRequest): Promise<Client> {
+  }: ICreateClientDTO): Promise<Client> {
     const client = await this.clientsRepository.create({
       name,
       cpf_cnpj,
