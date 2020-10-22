@@ -169,6 +169,11 @@ export const DataForm = styled.div`
       color: #f00;
       font-size: 15px;
     }
+
+    .faAlert {
+      color: #c53030;
+    }
+
     .hiRefresh {
       color: #000;
     }
@@ -274,18 +279,18 @@ export const TitleRow = styled.div`
   display: flex;
   height: 35px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   font-weight: bold;
   text-decoration: underline;
 `;
 
 export const ServiceRow = styled.div<ServiceRowProps>`
   width: 100%;
-  padding: 10px 15px;
+  padding: 11px 15px 10px 15px;
   display: flex;
   height: 24px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   cursor: default;
 
   &:hover {
@@ -300,12 +305,16 @@ export const ServiceRow = styled.div<ServiceRowProps>`
   }
 
   > div {
-    padding-left: 6px;
+    padding: 0 20px 0 5px;
+
+    &:last-child {
+      padding-right: 0;
+    }
   }
 `;
 
 export const ServiceName = styled.div`
-  width: 20%;
+  width: 25%;
   text-align: left;
 
   overflow: hidden;
@@ -316,7 +325,7 @@ export const ServiceName = styled.div`
 `;
 
 export const ServiceDescription = styled.div`
-  width: 60%;
+  flex: 1;
   text-align: left;
 
   overflow: hidden;

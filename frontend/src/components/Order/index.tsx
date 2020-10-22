@@ -1,4 +1,6 @@
+/* eslint-disable react/jsx-indent */
 import React, {
+  ChangeEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -23,11 +25,13 @@ import {
   FaTimes,
   FaTrashAlt,
   FaEdit,
+  FaCalendarTimes,
 } from 'react-icons/fa';
 import { HiOutlineRefresh } from 'react-icons/hi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import { isValid } from 'date-fns';
+import { formatToCapitalized } from 'brazilian-values';
 
 import { SearchResult } from '../SearchResults';
 import formatValue from '../../utils/formatValue';
@@ -36,6 +40,7 @@ import convertDate from '../../utils/convertDate';
 
 import { useToast } from '../../hooks/toast';
 import { useOverlap } from '../../hooks/overlap';
+import { useAuth } from '../../hooks/auth';
 
 import MaterialTooltip from '../MaterialTooltip';
 import NewService from '../NewService';
@@ -73,17 +78,10 @@ export interface ServiceData {
 }
 
 interface StatusState {
-  order?: ' ' | 'Aguardando' | 'Aprovado' | 'Cancelado' | unknown | undefined;
-  delivery?:
-    | ' '
-    | 'Agendado'
-    | 'Andamento'
-    | 'Concluído'
-    | 'Cancelado'
-    | unknown
-    | undefined;
-  billing?: ' ' | 'Aguardando' | 'Faturado' | 'Cancelado' | unknown | undefined;
-  payment?: ' ' | 'Aguardando' | 'Pago' | 'Cancelado' | unknown | undefined;
+  order: 'Aguardando' | 'Reprovado' | 'Aprovado' | 'Cancelado' | unknown;
+  delivery?: 'Agendado' | 'Andamento' | 'Concluído' | 'Cancelado' | unknown;
+  billing?: 'Aguardando' | 'Faturado' | 'Cancelado' | unknown;
+  payment?: 'Aguardando' | 'Pago' | 'Cancelado' | 'Vencido' | unknown;
 }
 
 interface InputData {
@@ -102,10 +100,10 @@ interface OrderProps {
 
 const Order: React.FC<OrderProps> = ({ color, data, from }) => {
   const [status, setStatus] = useState<StatusState>({
-    order: data.status || ' ',
-    delivery: 'Andamento',
+    order: 'Aguardando',
+    delivery: 'Concluído',
     billing: 'Faturado',
-    payment: 'Pago',
+    payment: 'Vencido',
   });
 
   const [approvedDate, setApprovedDate] = useState('10/10/2020');
@@ -130,13 +128,14 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
   const paymentWayRef = useRef<FormHandles>(null);
   const dueDateRef = useRef<FormHandles>(null);
 
-  const { addToast } = useToast();
   const {
     orderOpen,
     newServiceOpen,
     overlapOrderOpen,
     overlapNewServiceOpen,
   } = useOverlap();
+  const { addToast } = useToast();
+  const { userPermission } = useAuth();
 
   useEffect(() => {
     if (data.service && data.value && data.id) {
@@ -144,7 +143,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
         id: data.id,
         name: data.service,
         description:
-          'descrição-qualquer-que-depois-vai-buscar-no-banco-de-dados',
+          'descrição qualquer que depois vai buscar no banco de dados descrição qualquer que depois vai buscar no banco de dados',
         value: data.value,
       };
 
@@ -188,7 +187,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
           '&& svg': {
             margin: '0 10px -1px -2px',
           },
-          '&:last-child': {
+          '&:nth-child(2), &:nth-child(4)': {
             '&& svg': {
               margin: '0 10px -1px -3px',
               fontSize: '20px',
@@ -201,7 +200,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
               margin: '0 10px -1px -2px',
               color: '#fff',
             },
-            '&:last-child': {
+            '&:nth-child(2), &:nth-child(4)': {
               '&& svg': {
                 margin: '0 10px -1px -3px',
                 fontSize: '20px',
@@ -215,7 +214,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
               margin: '0 10px -1px -2px',
               color: '#fff',
             },
-            '&:last-child': {
+            '&:nth-child(2), &:nth-child(4)': {
               '&& svg': {
                 margin: '0 10px -1px -3px',
                 fontSize: '20px',
@@ -228,7 +227,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                 margin: '0 10px -1px -2px',
                 color: '#fff',
               },
-              '&:last-child': {
+              '&:nth-child(2), &:nth-child(4)': {
                 '&& svg': {
                   margin: '0 10px -1px -3px',
                   fontSize: '20px',
@@ -259,6 +258,10 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
         fontSize: '15px',
         margin: '0 4px 1px 0',
       },
+      faAlert: {
+        color: '#c53030',
+        margin: '0 4px 1px 0',
+      },
       hiRefresh: {
         color: '#000',
         margin: '0 4px 1px 0',
@@ -266,7 +269,14 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
     })
   );
 
-  const { formControl, faCheck, faRegClock, faTimes, hiRefresh } = useStyles();
+  const {
+    formControl,
+    faCheck,
+    faRegClock,
+    faTimes,
+    faAlert,
+    hiRefresh,
+  } = useStyles();
 
   const submitDeliveryConditions = useCallback(
     ({ deliveryConditionsData }: InputData) => {
@@ -356,7 +366,11 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
   const submitPaymentWay = useCallback(
     ({ paymentWayData }: InputData) => {
       if (paymentWay !== paymentWayData) {
-        setPaymentWay(paymentWayData);
+        setPaymentWay(
+          formatToCapitalized(paymentWayData, {
+            trimTrailingWhiteSpaces: false,
+          })
+        );
 
         addToast({
           type: 'success',
@@ -374,7 +388,11 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
   const submitDueDate = useCallback(
     ({ dueDateData }: InputData) => {
       if (dueDate !== dueDateData) {
-        setDueDate(dueDateData);
+        setDueDate(
+          formatToCapitalized(dueDateData, {
+            trimTrailingWhiteSpaces: false,
+          })
+        );
 
         addToast({
           type: 'success',
@@ -455,24 +473,33 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                 <p>Valor total:</p>
                 <p>Data:</p>
                 <p>Status:</p>
-                <p>Data de aprovação:</p>
+                {status.order === 'Cancelado' ? (
+                  <p>Data do cancelamento:</p>
+                ) : (
+                  <p>Data de aprovação:</p>
+                )}
               </TitlesForm>
               <DataForm>
                 <p>{data.id}</p>
                 <p>{data.seller}</p>
                 <p>{totalValue}</p>
                 <p>{data.formattedDate}</p>
-                {from !== 'Comercial' && status.order === ' ' && <p>--</p>}
-                {from !== 'Comercial' && status.order === 'Aprovado' && (
-                  <div className="status">
-                    <FaCheckCircle className={`faCheck ${faCheck}`} />
-                    <span>Aprovado</span>
-                  </div>
-                )}
                 {from !== 'Comercial' && status.order === 'Aguardando' && (
                   <div className="status">
                     <FaRegClock className={`faRegClock ${faRegClock}`} />
                     <span>Aguardando cliente</span>
+                  </div>
+                )}
+                {from !== 'Comercial' && status.order === 'Reprovado' && (
+                  <div className="status">
+                    <FaTimes className={`faTimes ${faTimes}`} />
+                    <span>Reprovado</span>
+                  </div>
+                )}
+                {from !== 'Comercial' && status.order === 'Aprovado' && (
+                  <div className="status">
+                    <FaCheckCircle className={`faCheck ${faCheck}`} />
+                    <span>Aprovado</span>
                   </div>
                 )}
                 {from !== 'Comercial' && status.order === 'Cancelado' && (
@@ -481,38 +508,74 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                     <span>Cancelado</span>
                   </div>
                 )}
-                {from === 'Comercial' && (
-                  <Status>
-                    <FormControl className={formControl}>
-                      <Select
-                        labelId="demo-simple-select-label"
-                        id="data-select"
-                        value={status.order}
-                        defaultValue=" "
-                        onChange={(e) => {
-                          setStatus({
-                            ...status,
-                            order: e.target.value,
-                          });
-                        }}
-                      >
-                        <MenuItem value=" ">--</MenuItem>
-                        <MenuItem value="Aprovado">
-                          <FaCheckCircle className={faCheck} />
-                          Aprovado
-                        </MenuItem>
-                        <MenuItem value="Aguardando">
-                          <FaRegClock className={faRegClock} />
-                          Aguardando cliente
-                        </MenuItem>
-                        <MenuItem value="Cancelado">
-                          <FaTimes className={faTimes} />
-                          Cancelado
-                        </MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Status>
-                )}
+                {from === 'Comercial' &&
+                  (userPermission === 'Comercial' ||
+                    userPermission === 'Admin') && (
+                    <Status>
+                      <FormControl className={formControl}>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="data-select"
+                          value={status.order}
+                          defaultValue=""
+                          displayEmpty
+                          onChange={(e: ChangeEvent<{ value: unknown }>) => {
+                            setStatus({
+                              ...status,
+                              order: e.target.value,
+                            });
+                          }}
+                        >
+                          <MenuItem
+                            value="Aguardando"
+                            disabled={
+                              status.order !== 'Aguardando' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaRegClock className={faRegClock} />
+                            Aguardando cliente
+                          </MenuItem>
+                          <MenuItem
+                            value="Reprovado"
+                            disabled={
+                              status.order !== 'Aguardando' &&
+                              status.order !== 'Reprovado' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaTimes className={faTimes} />
+                            Reprovado
+                          </MenuItem>
+                          <MenuItem
+                            value="Aprovado"
+                            disabled={
+                              status.order !== 'Aguardando' &&
+                              status.order !== 'Reprovado' &&
+                              status.order !== 'Aprovado' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaCheckCircle className={faCheck} />
+                            Aprovado
+                          </MenuItem>
+                          <MenuItem
+                            value="Cancelado"
+                            disabled={
+                              status.order !== 'Aguardando' &&
+                              status.order !== 'Reprovado' &&
+                              status.order !== 'Aprovado' &&
+                              status.order !== 'Cancelado' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaTimes className={faTimes} />
+                            Cancelado
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Status>
+                  )}
                 <p>{approvedDate}</p>
               </DataForm>
             </OrderData>
@@ -538,13 +601,16 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                 <p>Condições de entrega:</p>
                 <p>Data de entrega solicitada:</p>
                 <p>
-                  Data de entrega
-                  {status.delivery !== 'Concluído' && ' prevista'}:
+                  {status.delivery !== 'Concluído' &&
+                    status.delivery !== 'Cancelado' &&
+                    'Data da entrega prevista:'}
+                  {status.delivery === 'Concluído' && 'Data da entrega:'}
+                  {status.delivery === 'Cancelado' && 'Data do cancelamento:'}
                 </p>
                 <p>Status área técnica:</p>
               </TitlesForm>
               <DataForm>
-                {from === 'Comercial' && (
+                {from === 'Comercial' && !status.delivery && (
                   <>
                     <Form
                       ref={deliveryConditionsRef}
@@ -572,14 +638,14 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                     <p>{deliveryDate}</p>
                   </>
                 )}
-                {from === 'Billing' && (
+                {(from === 'Billing' || !!status.delivery) && (
                   <>
                     <p>{deliveryConditions}</p>
                     <p>{requestedDeliveryDate}</p>
                     <p>{deliveryDate}</p>
                   </>
                 )}
-                {from === 'TechnicalArea' && (
+                {from === 'TechnicalArea' && !status.delivery && (
                   <>
                     <p>{deliveryConditions}</p>
                     <p>{requestedDeliveryDate}</p>
@@ -599,71 +665,139 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                     )}
                   </>
                 )}
-                {from !== 'TechnicalArea' && status.delivery === ' ' && (
-                  <p>--</p>
-                )}
-                {from !== 'TechnicalArea' && status.delivery === 'Agendado' && (
+                {((from !== 'TechnicalArea' && !status.delivery) ||
+                  (from === 'TechnicalArea' &&
+                    !status.delivery &&
+                    userPermission !== 'TechnicalArea' &&
+                    userPermission !== 'Admin')) && <p>--</p>}
+                {((from !== 'TechnicalArea' &&
+                  status.delivery === 'Agendado') ||
+                  (from === 'TechnicalArea' &&
+                    status.delivery === 'Agendado' &&
+                    userPermission !== 'TechnicalArea' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <FaRegClock className={faRegClock} />
                     <span>Agendado com o cliente</span>
                   </div>
                 )}
-                {from !== 'TechnicalArea' && status.delivery === 'Andamento' && (
+                {((from !== 'TechnicalArea' &&
+                  status.delivery === 'Andamento') ||
+                  (from === 'TechnicalArea' &&
+                    status.delivery === 'Andamento' &&
+                    userPermission !== 'TechnicalArea' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <HiOutlineRefresh className={`hiRefresh ${hiRefresh}`} />
                     <span>Em andamento</span>
                   </div>
                 )}
-                {from !== 'TechnicalArea' && status.delivery === 'Concluído' && (
+                {((from !== 'TechnicalArea' &&
+                  status.delivery === 'Concluído') ||
+                  (from === 'TechnicalArea' &&
+                    status.delivery === 'Concluído' &&
+                    userPermission !== 'TechnicalArea' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <FaCheckCircle className={`faCheck ${faCheck}`} />
                     <span>Concluído</span>
                   </div>
                 )}
-                {from !== 'TechnicalArea' && status.delivery === 'Cancelado' && (
+                {((from !== 'TechnicalArea' &&
+                  status.delivery === 'Cancelado') ||
+                  (from === 'TechnicalArea' &&
+                    status.delivery === 'Cancelado' &&
+                    userPermission !== 'TechnicalArea' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <FaTimes className={`faTimes ${faTimes}`} />
                     <span>Cancelado</span>
                   </div>
                 )}
-                {from === 'TechnicalArea' && (
-                  <Status>
-                    <FormControl className={formControl}>
-                      <Select
-                        labelId="demo-simple-select-label"
-                        id="data-select"
-                        value={status.delivery}
-                        defaultValue=" "
-                        onChange={(e) => {
-                          setStatus({
-                            ...status,
-                            delivery: e.target.value,
-                          });
-                        }}
-                      >
-                        <MenuItem value=" ">--</MenuItem>
-                        <MenuItem value="Agendado">
-                          <FaRegClock className={faRegClock} />
-                          Agendado com o cliente
-                        </MenuItem>
-                        <MenuItem value="Andamento">
-                          <HiOutlineRefresh
-                            className={`hiRefresh ${hiRefresh}`}
-                          />
-                          Em andamento
-                        </MenuItem>
-                        <MenuItem value="Concluído">
-                          <FaCheckCircle className={`faCheck ${faCheck}`} />
-                          Concluído
-                        </MenuItem>
-                        <MenuItem value="Cancelado">
-                          <FaTimes className={faTimes} />
-                          Cancelado
-                        </MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Status>
-                )}
+                {from === 'TechnicalArea' &&
+                  (userPermission === 'TechnicalArea' ||
+                    userPermission === 'Admin') && (
+                    <Status>
+                      <FormControl className={formControl}>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="data-select"
+                          value={status.delivery}
+                          defaultValue=""
+                          displayEmpty
+                          onChange={(e: ChangeEvent<{ value: unknown }>) => {
+                            setStatus({
+                              ...status,
+                              delivery: e.target.value,
+                            });
+                          }}
+                        >
+                          <MenuItem
+                            value=""
+                            disabled={
+                              !!status.delivery &&
+                              !!status.delivery &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            --
+                          </MenuItem>
+                          <MenuItem
+                            value="Agendado"
+                            disabled={
+                              !!status.delivery &&
+                              status.delivery !== 'Agendado' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaRegClock className={faRegClock} />
+                            Agendado com o cliente
+                          </MenuItem>
+                          <MenuItem
+                            value="Andamento"
+                            disabled={
+                              !!status.delivery &&
+                              status.delivery !== 'Agendado' &&
+                              status.delivery !== 'Andamento' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <HiOutlineRefresh
+                              className={`hiRefresh ${hiRefresh}`}
+                            />
+                            Em andamento
+                          </MenuItem>
+                          <MenuItem
+                            value="Concluído"
+                            disabled={
+                              !!status.delivery &&
+                              status.delivery !== 'Agendado' &&
+                              status.delivery !== 'Andamento' &&
+                              status.delivery !== 'Concluído' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaCheckCircle className={`faCheck ${faCheck}`} />
+                            Concluído
+                          </MenuItem>
+                          <MenuItem
+                            value="Cancelado"
+                            disabled={
+                              !!status.delivery &&
+                              status.delivery !== 'Agendado' &&
+                              status.delivery !== 'Andamento' &&
+                              status.delivery !== 'Concluído' &&
+                              status.delivery !== 'Cancelado' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaTimes className={faTimes} />
+                            Cancelado
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Status>
+                  )}
               </DataForm>
             </DeliveryData>
             <BillingData>
@@ -674,7 +808,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                 <p>Status financeiro:</p>
               </TitlesForm>
               <DataForm>
-                {from === 'Comercial' && (
+                {from === 'Comercial' && !status.billing && (
                   <>
                     <Form ref={paymentWayRef} onSubmit={submitPaymentWay}>
                       <InputAsText
@@ -692,7 +826,8 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                     </Form>
                   </>
                 )}
-                {from === 'Billing' && (
+                {(from === 'Billing' ||
+                  (from !== 'TechnicalArea' && !!status.billing)) && (
                   <>
                     <p>{paymentWay}</p>
                     <p>{dueDate}</p>
@@ -704,108 +839,237 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                     <p>--</p>
                   </>
                 )}
-                {from !== 'Billing' && status.billing === ' ' && <p>--</p>}
-                {from !== 'Billing' && status.billing === 'Aguardando' && (
+                {((from !== 'Billing' && !status.billing) ||
+                  (from === 'Billing' &&
+                    !status.billing &&
+                    userPermission !== 'Billing' &&
+                    userPermission !== 'Admin')) && <p>--</p>}
+                {((from !== 'Billing' && status.billing === 'Aguardando') ||
+                  (from === 'Billing' &&
+                    status.billing === 'Aguardando' &&
+                    userPermission !== 'Billing' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <FaRegClock className={faRegClock} />
                     <span>Aguardando para Faturar</span>
                   </div>
                 )}
-                {from !== 'Billing' && status.billing === 'Faturado' && (
+                {((from !== 'Billing' && status.billing === 'Faturado') ||
+                  (from === 'Billing' &&
+                    status.billing === 'Faturado' &&
+                    userPermission !== 'Billing' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <FaCheckCircle className={`faCheck ${faCheck}`} />
                     <span>Faturado</span>
                   </div>
                 )}
-                {from !== 'Billing' && status.billing === 'Cancelado' && (
+                {((from !== 'Billing' && status.billing === 'Cancelado') ||
+                  (from === 'Billing' &&
+                    status.billing === 'Cancelado' &&
+                    userPermission !== 'Billing' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <FaTimes className={`faTimes ${faTimes}`} />
                     <span>Cancelado</span>
                   </div>
                 )}
-                {from === 'Billing' && (
-                  <Status>
-                    <FormControl className={formControl}>
-                      <Select
-                        labelId="demo-simple-select-label"
-                        id="data-select"
-                        value={status.billing}
-                        defaultValue=" "
-                        onChange={(e) => {
-                          setStatus({
-                            ...status,
-                            billing: e.target.value,
-                          });
-                        }}
-                      >
-                        <MenuItem value=" ">--</MenuItem>
-                        <MenuItem value="Aguardando">
-                          <FaRegClock className={faRegClock} />
-                          Aguardando para Faturar
-                        </MenuItem>
-                        <MenuItem value="Faturado">
-                          <FaCheckCircle className={`faCheck ${faCheck}`} />
-                          Faturado
-                        </MenuItem>
-                        <MenuItem value="Cancelado">
-                          <FaTimes className={faTimes} />
-                          Cancelado
-                        </MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Status>
-                )}
-                {from !== 'Billing' && status.payment === ' ' && <p>--</p>}
-                {from !== 'Billing' && status.payment === 'Aguardando' && (
+                {from === 'Billing' &&
+                  (userPermission === 'Billing' ||
+                    userPermission === 'Admin') && (
+                    <Status>
+                      <FormControl className={formControl}>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="data-select"
+                          value={status.billing}
+                          defaultValue=""
+                          displayEmpty
+                          onChange={(e: ChangeEvent<{ value: unknown }>) => {
+                            setStatus({
+                              ...status,
+                              billing: e.target.value,
+                            });
+                          }}
+                        >
+                          <MenuItem
+                            value=""
+                            disabled={
+                              !!status.billing &&
+                              !!status.billing &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            --
+                          </MenuItem>
+                          <MenuItem
+                            value="Aguardando"
+                            disabled={
+                              !!status.billing &&
+                              status.billing !== 'Aguardando' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaRegClock className={faRegClock} />
+                            Aguardando para Faturar
+                          </MenuItem>
+                          <MenuItem
+                            value="Faturado"
+                            disabled={
+                              !!status.billing &&
+                              status.billing !== 'Aguardando' &&
+                              status.billing !== 'Faturado' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaCheckCircle className={`faCheck ${faCheck}`} />
+                            Faturado
+                          </MenuItem>
+                          <MenuItem
+                            value="Cancelado"
+                            disabled={
+                              !!status.billing &&
+                              status.billing !== 'Aguardando' &&
+                              status.billing !== 'Faturado' &&
+                              status.billing !== 'Cancelado' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaTimes className={faTimes} />
+                            Cancelado
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Status>
+                  )}
+                {((from !== 'Billing' && !status.payment) ||
+                  (from === 'Billing' &&
+                    !status.payment &&
+                    userPermission !== 'Billing' &&
+                    userPermission !== 'Admin')) && <p>--</p>}
+                {((from !== 'Billing' && status.payment === 'Aguardando') ||
+                  (from === 'Billing' &&
+                    status.payment === 'Aguardando' &&
+                    userPermission !== 'Billing' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <FaRegClock className={faRegClock} />
                     <span>Aguardando Pagamento</span>
                   </div>
                 )}
-                {from !== 'Billing' && status.payment === 'Pago' && (
+                {((from !== 'Billing' && status.payment === 'Pago') ||
+                  (from === 'Billing' &&
+                    status.payment === 'Pago' &&
+                    userPermission !== 'Billing' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <FaCheckCircle className={`faCheck ${faCheck}`} />
                     <span>Pago</span>
                   </div>
                 )}
-                {from !== 'Billing' && status.payment === 'Cancelado' && (
+                {((from !== 'Billing' && status.payment === 'Vencido') ||
+                  (from === 'Billing' &&
+                    status.payment === 'Vencido' &&
+                    userPermission !== 'Billing' &&
+                    userPermission !== 'Admin')) && (
+                  <div className="status">
+                    <FaCalendarTimes className={`faAlert ${faAlert}`} />
+                    <span>Vencido</span>
+                  </div>
+                )}
+                {((from !== 'Billing' && status.payment === 'Cancelado') ||
+                  (from === 'Billing' &&
+                    status.payment === 'Cancelado' &&
+                    userPermission !== 'Billing' &&
+                    userPermission !== 'Admin')) && (
                   <div className="status">
                     <FaTimes className={`faTimes ${faTimes}`} />
                     <span>Cancelado</span>
                   </div>
                 )}
-                {from === 'Billing' && (
-                  <Status>
-                    <FormControl className={formControl}>
-                      <Select
-                        labelId="demo-simple-select-label"
-                        id="data-select"
-                        value={status.payment}
-                        defaultValue=" "
-                        onChange={(e) => {
-                          setStatus({
-                            ...status,
-                            billing: e.target.value,
-                          });
-                        }}
-                      >
-                        <MenuItem value=" ">--</MenuItem>
-                        <MenuItem value="Aguardando">
-                          <FaRegClock className={faRegClock} />
-                          Aguardando Pagamento
-                        </MenuItem>
-                        <MenuItem value="Pago">
-                          <FaCheckCircle className={`faCheck ${faCheck}`} />
-                          Pago
-                        </MenuItem>
-                        <MenuItem value="Cancelado">
-                          <FaTimes className={faTimes} />
-                          Cancelado
-                        </MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Status>
-                )}
+                {from === 'Billing' &&
+                  (userPermission === 'Billing' ||
+                    userPermission === 'Admin') && (
+                    <Status>
+                      <FormControl className={formControl}>
+                        <Select
+                          labelId="demo-simple-select-label"
+                          id="data-select"
+                          value={status.payment}
+                          defaultValue=""
+                          displayEmpty
+                          onChange={(e: ChangeEvent<{ value: unknown }>) => {
+                            setStatus({
+                              ...status,
+                              payment: e.target.value,
+                            });
+                          }}
+                        >
+                          <MenuItem
+                            value=""
+                            disabled={
+                              !!status.payment &&
+                              !!status.payment &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            --
+                          </MenuItem>
+                          <MenuItem
+                            value="Aguardando"
+                            disabled={
+                              !!status.payment &&
+                              status.payment !== 'Aguardando' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaRegClock className={faRegClock} />
+                            Aguardando Pagamento
+                          </MenuItem>
+                          <MenuItem
+                            value="Pago"
+                            disabled={
+                              !!status.payment &&
+                              status.payment !== 'Aguardando' &&
+                              status.payment !== 'Pago' &&
+                              status.payment !== 'Vencido' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaCheckCircle className={`faCheck ${faCheck}`} />
+                            Pago
+                          </MenuItem>
+                          <MenuItem
+                            value="Vencido"
+                            disabled={
+                              !!status.payment &&
+                              status.payment !== 'Aguardando' &&
+                              status.payment !== 'Pago' &&
+                              status.payment !== 'Vencido' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaCalendarTimes className={`faAlert ${faAlert}`} />
+                            Vencido
+                          </MenuItem>
+                          <MenuItem
+                            value="Cancelado"
+                            disabled={
+                              !!status.payment &&
+                              status.payment !== 'Aguardando' &&
+                              status.payment !== 'Pago' &&
+                              status.payment !== 'Vencido' &&
+                              status.payment !== 'Cancelado' &&
+                              userPermission !== 'Admin'
+                            }
+                          >
+                            <FaTimes className={faTimes} />
+                            Cancelado
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Status>
+                  )}
               </DataForm>
             </BillingData>
           </SecondaryContent>
@@ -813,7 +1077,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
             <TitleRow>
               <ServiceName>SERVIÇO</ServiceName>
               <ServiceDescription>DESCRIÇÃO DO SERVIÇO</ServiceDescription>
-              <ServiceValue>VALOR</ServiceValue>
+              {from !== 'TechnicalArea' && <ServiceValue>VALOR</ServiceValue>}
             </TitleRow>
             {services &&
               services.length > 0 &&
@@ -821,40 +1085,42 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
                 <ServiceRow color={color} key={service.id}>
                   <ServiceName>{service.name}</ServiceName>
                   <ServiceDescription>{service.description}</ServiceDescription>
-                  <ServiceValue>
-                    <div>
-                      <span>R$</span>
-                      <span>{formatValue(service.value)}</span>
-                    </div>
-                    {from === 'Comercial' && (
+                  {from !== 'TechnicalArea' && (
+                    <ServiceValue>
                       <div>
-                        <button
-                          type="button"
-                          onClick={() => handleEditServiceItem(service)}
-                        >
-                          <MaterialTooltip
-                            title="Alterar"
-                            arrow
-                            placement="left"
-                          >
-                            <FaEdit className="faEdit" />
-                          </MaterialTooltip>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteServiceItem(service.id)}
-                        >
-                          <MaterialTooltip
-                            title="Excluir"
-                            arrow
-                            placement="left"
-                          >
-                            <FaTrashAlt className="faTrashAlt" />
-                          </MaterialTooltip>
-                        </button>
+                        <span>R$</span>
+                        <span>{formatValue(service.value)}</span>
                       </div>
-                    )}
-                  </ServiceValue>
+                      {from === 'Comercial' && (
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => handleEditServiceItem(service)}
+                          >
+                            <MaterialTooltip
+                              title="Alterar"
+                              arrow
+                              placement="left"
+                            >
+                              <FaEdit className="faEdit" />
+                            </MaterialTooltip>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteServiceItem(service.id)}
+                          >
+                            <MaterialTooltip
+                              title="Excluir"
+                              arrow
+                              placement="left"
+                            >
+                              <FaTrashAlt className="faTrashAlt" />
+                            </MaterialTooltip>
+                          </button>
+                        </div>
+                      )}
+                    </ServiceValue>
+                  )}
                 </ServiceRow>
               ))}
           </ServicesOrderContent>

@@ -30,7 +30,11 @@ const TechnicalArea: React.FC = () => {
     searchStatus,
   } = useSearch();
 
-  if (userPermission !== 'TechnicalArea' && userPermission !== 'Admin') {
+  if (
+    userPermission !== 'TechnicalArea' &&
+    userPermission !== 'Admin' &&
+    userPermission !== 'Comercial'
+  ) {
     push('/Loading');
   }
 

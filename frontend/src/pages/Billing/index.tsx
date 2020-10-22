@@ -30,7 +30,11 @@ const Billing: React.FC = () => {
     searchStatus,
   } = useSearch();
 
-  if (userPermission !== 'Billing' && userPermission !== 'Admin') {
+  if (
+    userPermission !== 'Billing' &&
+    userPermission !== 'Admin' &&
+    userPermission !== 'Comercial'
+  ) {
     push('/Loading');
   }
 

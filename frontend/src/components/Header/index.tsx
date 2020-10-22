@@ -27,42 +27,43 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
         onMouseLeave={() => setMenuIsOpen(!menuIsOpen)}
       >
         <div id="sub-menu">
-          {userPermission === 'Comercial' ||
-            (userPermission === 'Admin' && (
-              <Link id="comercial" to="/Comercial">
-                <img src={IconComercial} alt="" />
-                <div>
-                  <p className="title">Comercial</p>
-                  <p className="text">Gerencie as propostas</p>
-                  <p className="text">enviadas, e serviços</p>
-                  <p className="text">vendidos</p>
-                </div>
-              </Link>
-            ))}
-          {userPermission === 'TechnicalArea' ||
-            (userPermission === 'Admin' && (
-              <Link id="technical-area" to="/TechnicalArea">
-                <img src={IconTechnicalArea} alt="" />
-                <div>
-                  <p className="title">Área Técnica</p>
-                  <p className="text">Controle os serviços</p>
-                  <p className="text">pendentes e realizados</p>
-                  <p className="text">da área técnica.</p>
-                </div>
-              </Link>
-            ))}
-          {userPermission === 'Billing' ||
-            (userPermission === 'Admin' && (
-              <Link id="billing" to="/Billing">
-                <img src={IconBilling} alt="" />
-                <div>
-                  <p className="title">Faturamento</p>
-                  <p className="text">Gerencie o</p>
-                  <p className="text">faturamento dos</p>
-                  <p className="text">pedidos do comercial</p>
-                </div>
-              </Link>
-            ))}
+          {(userPermission === 'Comercial' || userPermission === 'Admin') && (
+            <Link id="comercial" to="/Comercial">
+              <img src={IconComercial} alt="" />
+              <div>
+                <p className="title">Comercial</p>
+                <p className="text">Gerencie as propostas</p>
+                <p className="text">enviadas, e serviços</p>
+                <p className="text">vendidos</p>
+              </div>
+            </Link>
+          )}
+          {(userPermission === 'TechnicalArea' ||
+            userPermission === 'Admin' ||
+            userPermission === 'Comercial') && (
+            <Link id="technical-area" to="/TechnicalArea">
+              <img src={IconTechnicalArea} alt="" />
+              <div>
+                <p className="title">Área Técnica</p>
+                <p className="text">Controle os serviços</p>
+                <p className="text">pendentes e realizados</p>
+                <p className="text">da área técnica.</p>
+              </div>
+            </Link>
+          )}
+          {(userPermission === 'Billing' ||
+            userPermission === 'Admin' ||
+            userPermission === 'Comercial') && (
+            <Link id="billing" to="/Billing">
+              <img src={IconBilling} alt="" />
+              <div>
+                <p className="title">Faturamento</p>
+                <p className="text">Gerencie o</p>
+                <p className="text">faturamento dos</p>
+                <p className="text">pedidos do comercial</p>
+              </div>
+            </Link>
+          )}
           <button type="button" id="exit" onClick={signOut}>
             <img src={IconExit} alt="" />
             <p className="title">Sair</p>
