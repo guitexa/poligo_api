@@ -25,6 +25,9 @@ export default class Client {
   phone: string;
 
   @Column()
+  email: string;
+
+  @Column()
   contacts_id: string;
 
   // MANY contacts to MANY clients

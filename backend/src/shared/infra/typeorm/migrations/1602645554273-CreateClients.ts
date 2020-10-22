@@ -27,6 +27,11 @@ export default class CreateClients1602645554273 implements MigrationInterface {
             isNullable: true,
           },
           {
+            name: 'email',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
             name: 'contacts_id',
             type: 'uuid',
             isNullable: true,

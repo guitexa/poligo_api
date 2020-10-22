@@ -15,12 +15,14 @@ export default class CreateClientService {
     name,
     cpf_cnpj,
     phone,
+    email,
     contacts_id,
   }: ICreateClientDTO): Promise<Client> {
     const client = await this.clientsRepository.create({
       name,
       cpf_cnpj,
       phone,
+      email,
       contacts_id,
     });
 

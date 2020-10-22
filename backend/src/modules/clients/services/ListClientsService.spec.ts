@@ -15,12 +15,14 @@ describe('ListClients', () => {
       name: 'client-one-name',
       cpf_cnpj: '24538785376',
       phone: '3475803',
+      email: 'mail@mail.com',
     });
 
     const clientTwo = await fakeClientsRepository.create({
       name: 'client-two-name',
       cpf_cnpj: '24538785376',
       phone: '3475803',
+      email: 'mail@mail.com',
     });
 
     const clients = await listClient.execute();

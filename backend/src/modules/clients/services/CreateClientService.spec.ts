@@ -15,6 +15,7 @@ describe('CreateClient', () => {
       name: 'client-name',
       cpf_cnpj: '24538785376',
       phone: '3475803',
+      email: 'mail@mail.com',
     });
 
     expect(client).toHaveProperty('id');
