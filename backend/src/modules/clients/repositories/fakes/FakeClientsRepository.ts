@@ -20,4 +20,8 @@ export default class FakeClientsRepository implements IClientsRepository {
   public async findAll(): Promise<Client[] | undefined> {
     return this.clientRepository;
   }
+
+  public async findById(client_id: string): Promise<Client | undefined> {
+    return this.clientRepository.find(client => client.id === client_id);
+  }
 }

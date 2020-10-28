@@ -1,5 +1,9 @@
 import { inject, injectable } from 'tsyringe';
 
+import AppError from '@shared/errors/AppError';
+
+import IClientsRepository from '@modules/clients/repositories/IClientsRepository';
+import IUsersRepository from '@modules/users/repositories/IUsersRepository';
 import Order from '../infra/typeorm/entities/Order';
 import IOrdersRepository from '../repositories/IOrdersRepository';
 import ICreateOrderDTO from '../dtos/ICreateOrderDTO';
@@ -9,47 +13,33 @@ export default class CreateOrderService {
   constructor(
     @inject('OrdersRepository')
     private ordersRepository: IOrdersRepository,
+
+    @inject('ClientsRepository')
+    private clientsRepository: IClientsRepository,
+
+    @inject('UsersRepository')
+    private usersRepository: IUsersRepository,
   ) {}
 
   public async execute({
     client_id,
     seller_id,
-    total_value,
-    status_order,
-    approved_at,
-    delivery_conditions,
-    requested_delivery_date,
-    delivery_date,
-    status_delivery,
-    payment_way,
-    due_date,
-    status_billing,
-    status_payment,
-    product_id,
-    product_description,
-    product_value,
-    technical_id,
   }: ICreateOrderDTO): Promise<Order> {
-    const order = await this.ordersRepository.create({
+    const client = await this.clientsRepository.findById(client_id);
+
+    if (!client) {
+      throw new AppError('This client does not exists');
+    }
+
+    const seller = await this.usersRepository.findById(seller_id);
+
+    if (!seller) {
+      throw new AppError('This seller does not exists');
+    }
+
+    return this.ordersRepository.create({
       client_id,
       seller_id,
-      total_value,
-      status_order,
-      approved_at,
-      delivery_conditions,
-      requested_delivery_date,
-      delivery_date,
-      status_delivery,
-      payment_way,
-      due_date,
-      status_billing,
-      status_payment,
-      product_id,
-      product_description,
-      product_value,
-      technical_id,
     });
-
-    return order;
   }
 }

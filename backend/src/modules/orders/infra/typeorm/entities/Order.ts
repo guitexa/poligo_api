@@ -5,40 +5,39 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
-  ManyToMany,
   Generated,
+  OneToMany,
+  OneToOne,
 } from 'typeorm';
 
 import Client from '@modules/clients/infra/typeorm/entities/Client';
 import User from '@modules/users/infra/typeorm/entities/User';
-import Product from '@modules/products/infra/typeorm/entities/Product';
+import OrdersProducts from './OrdersProducts';
 
 @Entity('orders')
 export default class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column('int')
   @Generated('increment')
   order_number: number;
+
+  // ONE order can have ONE client
+  @OneToOne(() => Client)
+  @JoinColumn({ name: 'client_id' })
+  client: Client;
 
   @Column()
   client_id: string;
 
-  // MANY orders to MANY clients
-  @ManyToMany(() => Client)
-  @JoinColumn({ name: 'client_id' })
-  clients: Client;
-
-  @Column()
-  seller_id: string;
-
-  // MANY sellers to MANY orders
-  @ManyToMany(() => User)
+  // ONE order can have ONE seller
+  @OneToOne(() => User)
   @JoinColumn({ name: 'seller_id' })
   seller: User;
 
   @Column()
-  total_value: number;
+  seller_id: string;
 
   @Column()
   status_order: string;
@@ -70,27 +69,19 @@ export default class Order {
   @Column()
   status_payment: string;
 
-  @Column()
-  product_id: string;
-
-  // MANY products to MANY orders
-  @ManyToMany(() => Product)
-  @JoinColumn({ name: 'product_id' })
-  product: Product;
-
-  @Column()
-  product_description: string;
-
-  @Column()
-  product_value: number;
+  // ONE order can have ONE technical
+  @OneToOne(() => User)
+  @JoinColumn({ name: 'technical_id' })
+  technical: User;
 
   @Column()
   technical_id: string;
 
-  // MANY technicals to MANY orders
-  @ManyToMany(() => User)
-  @JoinColumn({ name: 'technical_id' })
-  technical: User;
+  // ONE order can have MANY order_products
+  @OneToMany(() => OrdersProducts, orders_products => orders_products.order, {
+    cascade: true,
+  })
+  order_products: OrdersProducts[];
 
   @CreateDateColumn()
   created_at: Date;

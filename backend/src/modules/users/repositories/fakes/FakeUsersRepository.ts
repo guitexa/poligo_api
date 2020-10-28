@@ -17,11 +17,15 @@ export default class FakeUsersRepository implements IUsersRepository {
     return user;
   }
 
+  public async findAll(): Promise<User[] | undefined> {
+    return this.usersRepository;
+  }
+
   public async findByEmail(email: string): Promise<User | undefined> {
     return this.usersRepository.find(user => user.email === email);
   }
 
-  public async findAll(): Promise<User[] | undefined> {
-    return this.usersRepository;
+  public async findById(user_id: string): Promise<User | undefined> {
+    return this.usersRepository.find(user => user.id === user_id);
   }
 }

@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 
@@ -29,8 +29,8 @@ export default class User {
   @Column()
   permissions_id: string;
 
-  // MANY users to ONE permission
-  @ManyToOne(() => Permission)
+  // ONE user can have ONE permission
+  @OneToOne(() => Permission)
   @JoinColumn({ name: 'permissions_id' })
   permissions: Permission;
 

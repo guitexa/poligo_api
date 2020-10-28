@@ -12,10 +12,12 @@ describe('CreateClient', () => {
 
   it('should be able to create a new client', async () => {
     const client = await createClient.execute({
-      name: 'client-name',
-      cpf_cnpj: '24538785376',
-      phone: '3475803',
-      email: 'mail@mail.com',
+      company_name: 'New Company',
+      cpf_cnpj: '81023545000115',
+      contact_name: 'John Doe',
+      email: 'johndoe@mail.com',
+      phone: '3433885544',
+      mobile: '34988335566',
     });
 
     expect(client).toHaveProperty('id');

@@ -12,18 +12,20 @@ export default class CreateClientService {
   ) {}
 
   public async execute({
-    name,
+    company_name,
     cpf_cnpj,
-    phone,
+    contact_name,
     email,
-    contacts_id,
+    phone,
+    mobile,
   }: ICreateClientDTO): Promise<Client> {
     const client = await this.clientsRepository.create({
-      name,
+      company_name,
       cpf_cnpj,
-      phone,
+      contact_name,
       email,
-      contacts_id,
+      phone,
+      mobile,
     });
 
     return client;

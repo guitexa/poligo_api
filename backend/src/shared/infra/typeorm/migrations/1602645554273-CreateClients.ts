@@ -14,7 +14,7 @@ export default class CreateClients1602645554273 implements MigrationInterface {
             default: 'uuid_generate_v4()',
           },
           {
-            name: 'name',
+            name: 'company_name',
             type: 'varchar',
           },
           {
@@ -22,9 +22,8 @@ export default class CreateClients1602645554273 implements MigrationInterface {
             type: 'varchar',
           },
           {
-            name: 'phone',
+            name: 'contact_name',
             type: 'varchar',
-            isNullable: true,
           },
           {
             name: 'email',
@@ -32,8 +31,12 @@ export default class CreateClients1602645554273 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'contacts_id',
-            type: 'uuid',
+            name: 'phone',
+            type: 'varchar',
+          },
+          {
+            name: 'mobile',
+            type: 'varchar',
             isNullable: true,
           },
           {

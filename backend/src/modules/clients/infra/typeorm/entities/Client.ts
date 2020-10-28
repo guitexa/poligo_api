@@ -4,11 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
-  JoinColumn,
 } from 'typeorm';
-
-import Contact from '@modules/contacts/infra/typeorm/entities/Contact';
 
 @Entity('clients')
 export default class Client {
@@ -16,24 +12,22 @@ export default class Client {
   id: string;
 
   @Column()
-  name: string;
+  company_name: string;
 
   @Column()
   cpf_cnpj: string;
 
   @Column()
-  phone: string;
+  contact_name: string;
 
   @Column()
   email: string;
 
   @Column()
-  contacts_id: string;
+  phone: string;
 
-  // MANY contacts to MANY clients
-  @ManyToMany(() => Contact)
-  @JoinColumn({ name: 'contacts_id' })
-  contacts: Contact[];
+  @Column()
+  mobile: string;
 
   @CreateDateColumn()
   created_at: Date;

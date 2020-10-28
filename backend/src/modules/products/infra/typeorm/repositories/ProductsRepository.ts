@@ -22,4 +22,14 @@ export default class ProductsRepository implements IProductsRepository {
   public async findAll(): Promise<Product[] | undefined> {
     return this.ormRepository.find();
   }
+
+  public async findById(product_id: string): Promise<Product | undefined> {
+    const product = await this.ormRepository.findOne({
+      where: {
+        id: product_id,
+      },
+    });
+
+    return product;
+  }
 }

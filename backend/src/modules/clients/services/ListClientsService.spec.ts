@@ -12,17 +12,21 @@ describe('ListClients', () => {
 
   it('should be able to list clients', async () => {
     const clientOne = await fakeClientsRepository.create({
-      name: 'client-one-name',
-      cpf_cnpj: '24538785376',
-      phone: '3475803',
-      email: 'mail@mail.com',
+      company_name: 'New Company',
+      cpf_cnpj: '81023545000115',
+      contact_name: 'John Doe',
+      email: 'johndoe@mail.com',
+      phone: '3433885544',
+      mobile: '34988335566',
     });
 
     const clientTwo = await fakeClientsRepository.create({
-      name: 'client-two-name',
-      cpf_cnpj: '24538785376',
-      phone: '3475803',
-      email: 'mail@mail.com',
+      company_name: 'New Big Company',
+      cpf_cnpj: '81023545000115',
+      contact_name: 'Jane Doe',
+      email: 'janedoe@mail.com',
+      phone: '3433885544',
+      mobile: '34988335566',
     });
 
     const clients = await listClient.execute();

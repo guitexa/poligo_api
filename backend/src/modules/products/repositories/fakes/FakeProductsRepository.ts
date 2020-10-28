@@ -20,4 +20,8 @@ export default class FakeProductsRepository implements IProductsRepository {
   public async findAll(): Promise<Product[] | undefined> {
     return this.productRepository;
   }
+
+  public async findById(product_id: string): Promise<Product | undefined> {
+    return this.productRepository.find(product => product.id === product_id);
+  }
 }

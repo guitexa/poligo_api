@@ -31,13 +31,6 @@ export default class CreateOrders1602646984307 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'total_value',
-            type: 'decimal',
-            precision: 10,
-            scale: 2,
-            isNullable: true,
-          },
-          {
             name: 'status_order',
             type: 'varchar',
             isNullable: true,
@@ -85,23 +78,6 @@ export default class CreateOrders1602646984307 implements MigrationInterface {
           {
             name: 'status_payment',
             type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'product_id',
-            type: 'uuid',
-            isNullable: true,
-          },
-          {
-            name: 'product_description',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
-            name: 'product_value',
-            type: 'decimal',
-            precision: 10,
-            scale: 2,
             isNullable: true,
           },
           {

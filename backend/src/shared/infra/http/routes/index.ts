@@ -4,7 +4,6 @@ import usersRouter from '@modules/users/infra/http/routes/users.routes';
 import sessionsMailRouter from '@modules/users/infra/http/routes/sessions-mail.routes';
 import sessionsPasswordRouter from '@modules/users/infra/http/routes/sessions-password.routes';
 import clientsRouter from '@modules/clients/infra/http/routes/clients.routes';
-import contactsRouter from '@modules/contacts/infra/http/routes/contacts.routes';
 import productsRouter from '@modules/products/infra/http/routes/products.routes';
 import ordersRouter from '@modules/orders/infra/http/routes/orders.routes';
 
@@ -19,8 +18,6 @@ routes.use('/sessions-password', sessionsPasswordRouter);
 routes.use('/permissions', permissionsRouter);
 
 routes.use('/clients', clientsRouter);
-
-routes.use('/contacts', contactsRouter);
 
 routes.use('/products', productsRouter);
 
