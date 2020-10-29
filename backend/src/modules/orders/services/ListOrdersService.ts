@@ -1,7 +1,7 @@
 import { inject, injectable } from 'tsyringe';
 
-import Order from '../infra/typeorm/entities/Order';
 import IOrdersRepository from '../repositories/IOrdersRepository';
+import Order from '../infra/typeorm/entities/Order';
 
 @injectable()
 export default class ListOrdersService {

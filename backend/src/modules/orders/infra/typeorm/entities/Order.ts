@@ -24,7 +24,7 @@ export default class Order {
   order_number: number;
 
   // ONE order can have ONE client
-  @OneToOne(() => Client)
+  @OneToOne(() => Client, client => client.id, { eager: true })
   @JoinColumn({ name: 'client_id' })
   client: Client;
 
@@ -32,7 +32,7 @@ export default class Order {
   client_id: string;
 
   // ONE order can have ONE seller
-  @OneToOne(() => User)
+  @OneToOne(() => User, user => user.id, { eager: true })
   @JoinColumn({ name: 'seller_id' })
   seller: User;
 
@@ -70,7 +70,7 @@ export default class Order {
   status_payment: string;
 
   // ONE order can have ONE technical
-  @OneToOne(() => User)
+  @OneToOne(() => User, user => user.id, { eager: true })
   @JoinColumn({ name: 'technical_id' })
   technical: User;
 
@@ -80,6 +80,7 @@ export default class Order {
   // ONE order can have MANY order_products
   @OneToMany(() => OrdersProducts, orders_products => orders_products.order, {
     cascade: true,
+    eager: true,
   })
   order_products: OrdersProducts[];
 
