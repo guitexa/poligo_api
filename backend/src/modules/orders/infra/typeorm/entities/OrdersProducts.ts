@@ -26,7 +26,7 @@ class OrdersProducts {
   order_id: string;
 
   // ONE orders_product can have ONE product
-  @OneToOne(() => Product)
+  @OneToOne(() => Product, product => product.id, { eager: true })
   @JoinColumn({ name: 'product_id' })
   product: Product;
 
