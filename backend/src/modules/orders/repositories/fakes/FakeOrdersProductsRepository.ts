@@ -1,17 +1,17 @@
 import { uuid } from 'uuidv4';
 
-import ICreateOrdersProductsDTO from '@modules/orders/dtos/ICreateOrdersProductsDTO';
-import OrdersProducts from '../../infra/typeorm/entities/OrdersProducts';
+import ICreateOrderProductDTO from '@modules/orders/dtos/ICreateOrderProductDTO';
+import OrderProduct from '../../infra/typeorm/entities/OrderProduct';
 import IOrdersProductsRepository from '../IOrdersProductsRepository';
 
 export default class FakeOrdersProductsRepository
   implements IOrdersProductsRepository {
-  private ordersProductsRepository: OrdersProducts[] = [];
+  private ordersProductsRepository: OrderProduct[] = [];
 
   public async create(
-    orderData: ICreateOrdersProductsDTO,
-  ): Promise<OrdersProducts> {
-    const order = new OrdersProducts();
+    orderData: ICreateOrderProductDTO,
+  ): Promise<OrderProduct> {
+    const order = new OrderProduct();
 
     Object.assign(order, { id: uuid() }, orderData);
 
@@ -22,11 +22,31 @@ export default class FakeOrdersProductsRepository
 
   public async findOrderProductsByOrderId(
     order_id: string,
-  ): Promise<OrdersProducts[] | undefined> {
+  ): Promise<OrderProduct[] | undefined> {
     const order = this.ordersProductsRepository.filter(
       ord => ord.order.id === order_id,
     );
 
     return order;
+  }
+
+  public async findOrderProductByOrderId(
+    order_product_id: string,
+  ): Promise<OrderProduct | undefined> {
+    const order = this.ordersProductsRepository.find(
+      ord => ord.id === order_product_id,
+    );
+
+    return order;
+  }
+
+  public async save(order_product: OrderProduct): Promise<OrderProduct> {
+    return order_product;
+  }
+
+  public async delete(order_product_id: string): Promise<void> {
+    this.ordersProductsRepository.filter(
+      order_product => order_product.id !== order_product_id,
+    );
   }
 }

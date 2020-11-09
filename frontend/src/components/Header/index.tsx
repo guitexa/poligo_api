@@ -39,8 +39,7 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
             </Link>
           )}
           {(userPermission === 'TechnicalArea' ||
-            userPermission === 'Admin' ||
-            userPermission === 'Comercial') && (
+            userPermission === 'Admin') && (
             <Link id="technical-area" to="/TechnicalArea">
               <img src={IconTechnicalArea} alt="" />
               <div>
@@ -51,9 +50,7 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
               </div>
             </Link>
           )}
-          {(userPermission === 'Billing' ||
-            userPermission === 'Admin' ||
-            userPermission === 'Comercial') && (
+          {(userPermission === 'Billing' || userPermission === 'Admin') && (
             <Link id="billing" to="/Billing">
               <img src={IconBilling} alt="" />
               <div>

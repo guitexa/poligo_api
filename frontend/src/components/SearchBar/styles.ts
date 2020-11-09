@@ -93,7 +93,7 @@ export const Date = styled.div<DateProps>`
 `;
 
 export const CompanyName = styled.div`
-  flex: 1;
+  flex: 0.8;
 
   .MuiFormControl-root {
     width: 100%;

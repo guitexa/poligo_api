@@ -6,6 +6,7 @@ import sessionsPasswordRouter from '@modules/users/infra/http/routes/sessions-pa
 import clientsRouter from '@modules/clients/infra/http/routes/clients.routes';
 import productsRouter from '@modules/products/infra/http/routes/products.routes';
 import ordersRouter from '@modules/orders/infra/http/routes/orders.routes';
+import ordersProductsRouter from '@modules/orders/infra/http/routes/orders_products.routes';
 
 import permissionsRouter from '@modules/permissions/infra/http/routes/permissions.routes';
 
@@ -22,5 +23,7 @@ routes.use('/clients', clientsRouter);
 routes.use('/products', productsRouter);
 
 routes.use('/orders', ordersRouter);
+
+routes.use('/orders-products', ordersProductsRouter);
 
 export default routes;

@@ -20,10 +20,25 @@ export default class OrdersRepository implements IOrdersRepository {
   }
 
   public async findAll(): Promise<Order[] | undefined> {
-    return this.ormRepository.find();
+    return this.ormRepository.find({
+      relations: ['client', 'seller', 'technical', 'orders_products'],
+    });
   }
 
   public async findById(order_id: string): Promise<Order | undefined> {
+    const order = await this.ormRepository.findOne({
+      where: {
+        id: order_id,
+      },
+      relations: ['client', 'seller', 'technical', 'orders_products'],
+    });
+
+    return order;
+  }
+
+  public async findByIdWithoutRelations(
+    order_id: string,
+  ): Promise<Order | undefined> {
     const order = await this.ormRepository.findOne({
       where: {
         id: order_id,
@@ -34,6 +49,18 @@ export default class OrdersRepository implements IOrdersRepository {
   }
 
   public async save(order: Order): Promise<Order> {
+    await this.ormRepository.save(order);
+
+    const findOrder = await this.ormRepository.findOne({
+      where: {
+        id: order.id,
+      },
+      relations: ['client', 'seller', 'technical', 'orders_products'],
+    });
+
+    if (findOrder) {
+      return findOrder;
+    }
     return this.ormRepository.save(order);
   }
 }

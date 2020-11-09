@@ -13,12 +13,12 @@ import Order from '@modules/orders/infra/typeorm/entities/Order';
 import Product from '@modules/products/infra/typeorm/entities/Product';
 
 @Entity('orders_products')
-class OrdersProducts {
+class OrderProduct {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   // MANY orders_products can have ONE order
-  @ManyToOne(() => Order, order => order.order_products)
+  @ManyToOne(() => Order, order => order.orders_products)
   @JoinColumn({ name: 'order_id' })
   order: Order;
 
@@ -46,4 +46,4 @@ class OrdersProducts {
   updated_at: Date;
 }
 
-export default OrdersProducts;
+export default OrderProduct;

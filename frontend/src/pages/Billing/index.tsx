@@ -30,16 +30,12 @@ const Billing: React.FC = () => {
     searchStatus,
   } = useSearch();
 
-  if (
-    userPermission !== 'Billing' &&
-    userPermission !== 'Admin' &&
-    userPermission !== 'Comercial'
-  ) {
-    push('/Loading');
-  }
-
   // This hook must be executed only once
   useEffect(() => {
+    if (userPermission !== 'Billing' && userPermission !== 'Admin') {
+      push('/Loading');
+    }
+
     if (selectedDate) {
       searchDate(null);
     }

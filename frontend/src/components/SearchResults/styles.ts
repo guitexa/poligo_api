@@ -70,7 +70,7 @@ export const DateField = styled.div`
 `;
 
 export const CompanyName = styled.div`
-  flex: 1;
+  flex: 0.8;
   text-align: left;
 
   overflow: hidden;
@@ -120,17 +120,34 @@ export const Status = styled.div`
     padding: 0.5px;
   }
 
-  .fa-clock {
-    color: #999;
-  }
-
-  .fa-check {
+  .faCheck {
     color: #1b914f;
   }
 
-  .fa-times {
-    width: 19px;
-    height: 19px;
+  .faRegClock {
+    color: #555;
+  }
+
+  .riDraftFill {
+    color: #888;
+    width: 16px;
+    height: 16px;
+  }
+
+  .faTimes {
     color: #f00;
+    width: 18px;
+    height: 18px;
+  }
+
+  .faCalendarTimes,
+  .ioThumbsDown {
+    color: #c00000;
+    width: 16px;
+    height: 16px;
+  }
+
+  .hiRefresh {
+    color: #000;
   }
 `;

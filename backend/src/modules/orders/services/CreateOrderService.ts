@@ -6,7 +6,11 @@ import IClientsRepository from '@modules/clients/repositories/IClientsRepository
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
 import Order from '../infra/typeorm/entities/Order';
 import IOrdersRepository from '../repositories/IOrdersRepository';
-import ICreateOrderDTO from '../dtos/ICreateOrderDTO';
+
+interface IRequest {
+  client_id: string;
+  seller_id: string;
+}
 
 @injectable()
 export default class CreateOrderService {
@@ -21,25 +25,29 @@ export default class CreateOrderService {
     private usersRepository: IUsersRepository,
   ) {}
 
-  public async execute({
-    client_id,
-    seller_id,
-  }: ICreateOrderDTO): Promise<Order> {
+  public async execute({ client_id, seller_id }: IRequest): Promise<Order> {
     const client = await this.clientsRepository.findById(client_id);
 
     if (!client) {
-      throw new AppError('This client does not exists');
+      throw new AppError('This client does not exists', 404);
     }
 
     const seller = await this.usersRepository.findById(seller_id);
 
     if (!seller) {
-      throw new AppError('This seller does not exists');
+      throw new AppError('This seller does not exists', 404);
     }
 
     return this.ordersRepository.create({
       client_id,
       seller_id,
+      status_order: 'Rascunho',
+      status_delivery: '',
+      status_billing: '',
+      status_payment: '',
+      delivery_conditions: '',
+      payment_way: '',
+      due_date: '',
     });
   }
 }

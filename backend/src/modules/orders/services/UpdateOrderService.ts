@@ -4,22 +4,11 @@ import AppError from '@shared/errors/AppError';
 
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
 import IProductsRepository from '@modules/products/repositories/IProductsRepository';
-import Client from '@modules/clients/infra/typeorm/entities/Client';
 import User from '@modules/users/infra/typeorm/entities/User';
-import IClientsRepository from '@modules/clients/repositories/IClientsRepository';
 import IOrdersRepository from '../repositories/IOrdersRepository';
 import Order from '../infra/typeorm/entities/Order';
 import IOrdersProductsRepository from '../repositories/IOrdersProductsRepository';
 import IUpdateOrderDTO from '../dtos/IUpdateOrderDTO';
-import OrdersProducts from '../infra/typeorm/entities/OrdersProducts';
-
-interface IResponse {
-  order: Order | undefined;
-  client: Client | undefined;
-  products: OrdersProducts[] | undefined;
-  seller: User | undefined;
-  technical: User | undefined;
-}
 
 @injectable()
 export default class UpdateOrderService {
@@ -29,9 +18,6 @@ export default class UpdateOrderService {
 
     @inject('OrdersProductsRepository')
     private ordersProductsRepository: IOrdersProductsRepository,
-
-    @inject('ClientsRepository')
-    private clientsRepository: IClientsRepository,
 
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
@@ -56,8 +42,10 @@ export default class UpdateOrderService {
     product_id,
     product_description,
     product_value,
-  }: IUpdateOrderDTO): Promise<IResponse> {
-    const order = await this.ordersRepository.findById(order_id);
+  }: IUpdateOrderDTO): Promise<Order | undefined> {
+    const order = await this.ordersRepository.findByIdWithoutRelations(
+      order_id,
+    );
 
     if (!order) {
       throw new AppError('This order does not exists');
@@ -79,49 +67,43 @@ export default class UpdateOrderService {
         product_value,
       });
 
-      const client = await this.clientsRepository.findById(order.client_id);
-
-      const products = await this.ordersProductsRepository.findOrderProductsByOrderId(
-        order_id,
-      );
-
-      if (status_order) {
+      if (status_order || status_order === '') {
         order.status_order = status_order;
       }
 
-      if (approved_at) {
+      if (approved_at || approved_at === '') {
         order.approved_at = approved_at;
       }
 
-      if (delivery_conditions) {
+      if (delivery_conditions || delivery_conditions === '') {
         order.delivery_conditions = delivery_conditions;
       }
 
-      if (requested_delivery_date) {
+      if (requested_delivery_date || requested_delivery_date === null) {
         order.requested_delivery_date = requested_delivery_date;
       }
 
-      if (delivery_date) {
+      if (delivery_date || delivery_date === null) {
         order.delivery_date = delivery_date;
       }
 
-      if (status_delivery) {
+      if (status_delivery || status_delivery === '') {
         order.status_delivery = status_delivery;
       }
 
-      if (payment_way) {
+      if (payment_way || payment_way === '') {
         order.payment_way = payment_way;
       }
 
-      if (due_date) {
+      if (due_date || due_date === '') {
         order.due_date = due_date;
       }
 
-      if (status_billing) {
+      if (status_billing || status_billing === '') {
         order.status_billing = status_billing;
       }
 
-      if (status_payment) {
+      if (status_payment || status_payment === '') {
         order.status_payment = status_payment;
       }
 
@@ -135,61 +117,50 @@ export default class UpdateOrderService {
         order.technical_id = technical_id;
       }
 
-      const seller = await this.usersRepository.findById(order.seller_id);
+      if (technical_id === null) {
+        order.technical_id = technical_id;
+      }
 
-      const orderUpdated = await this.ordersRepository.save(order);
-
-      return {
-        order: orderUpdated,
-        client,
-        seller,
-        technical,
-        products,
-      };
+      return this.ordersRepository.save(order);
     }
-    const client = await this.clientsRepository.findById(order.client_id);
 
-    const products = await this.ordersProductsRepository.findOrderProductsByOrderId(
-      order_id,
-    );
-
-    if (status_order) {
+    if (status_order || status_order === '') {
       order.status_order = status_order;
     }
 
-    if (approved_at) {
+    if (approved_at || approved_at === '') {
       order.approved_at = approved_at;
     }
 
-    if (delivery_conditions) {
+    if (delivery_conditions || delivery_conditions === '') {
       order.delivery_conditions = delivery_conditions;
     }
 
-    if (requested_delivery_date) {
+    if (requested_delivery_date || requested_delivery_date === null) {
       order.requested_delivery_date = requested_delivery_date;
     }
 
-    if (delivery_date) {
+    if (delivery_date || delivery_date === null) {
       order.delivery_date = delivery_date;
     }
 
-    if (status_delivery) {
+    if (status_delivery || status_delivery === '') {
       order.status_delivery = status_delivery;
     }
 
-    if (payment_way) {
+    if (payment_way || payment_way === '') {
       order.payment_way = payment_way;
     }
 
-    if (due_date) {
+    if (due_date || due_date === '') {
       order.due_date = due_date;
     }
 
-    if (status_billing) {
+    if (status_billing || status_billing === '') {
       order.status_billing = status_billing;
     }
 
-    if (status_payment) {
+    if (status_payment || status_payment === '') {
       order.status_payment = status_payment;
     }
 
@@ -203,16 +174,10 @@ export default class UpdateOrderService {
       order.technical_id = technical_id;
     }
 
-    const seller = await this.usersRepository.findById(order.seller_id);
+    if (technical_id === null) {
+      order.technical_id = technical_id;
+    }
 
-    const orderUpdated = await this.ordersRepository.save(order);
-
-    return {
-      order: orderUpdated,
-      client,
-      products,
-      seller,
-      technical,
-    };
+    return this.ordersRepository.save(order);
   }
 }

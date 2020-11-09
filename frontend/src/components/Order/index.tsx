@@ -17,23 +17,28 @@ import {
   createMuiTheme,
   ThemeProvider,
 } from '@material-ui/core';
-
 import {
   FaPlus,
   FaCheckCircle,
   FaRegClock,
   FaTimes,
-  FaTrashAlt,
-  FaEdit,
   FaCalendarTimes,
+  FaEdit,
+  FaTrashAlt,
 } from 'react-icons/fa';
+import { RiDraftFill } from 'react-icons/ri';
+import { IoMdThumbsDown } from 'react-icons/io';
 import { HiOutlineRefresh } from 'react-icons/hi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
-import { isValid } from 'date-fns';
-import { formatToCapitalized } from 'brazilian-values';
+import { isValid, parseISO } from 'date-fns';
+import {
+  formatToCNPJ,
+  formatToCPF,
+  formatToPhone,
+  formatToDate,
+} from 'brazilian-values';
 
-import { SearchResult } from '../SearchResults';
 import formatValue from '../../utils/formatValue';
 import formatValueCurrency from '../../utils/formatValueCurrency';
 import convertDate from '../../utils/convertDate';
@@ -41,16 +46,24 @@ import convertDate from '../../utils/convertDate';
 import { useToast } from '../../hooks/toast';
 import { useOverlap } from '../../hooks/overlap';
 import { useAuth } from '../../hooks/auth';
+import api from '../../services/api';
 
 import MaterialTooltip from '../MaterialTooltip';
 import NewService from '../NewService';
+import ProductView from '../ProductView';
 import InputAsText from '../InputAsText';
 import InputAsTextWithMask from '../InputAsTextWithMask';
 import HeaderButton from '../HeaderButton';
 
 import {
+  OrderDataType,
+  ServiceOrderData,
+  UpdateSearchResultsData,
+} from '../SearchResults';
+
+import {
   OrderOverlap,
-  NewServiceOverlap,
+  ModalOverlap,
   Container,
   PrimaryContent,
   CompanyData,
@@ -65,24 +78,13 @@ import {
   ServicesOrderContent,
   TitleRow,
   ServiceRow,
+  TitleServiceName,
+  TitleServiceDescription,
+  TitleServiceValue,
   ServiceName,
   ServiceDescription,
   ServiceValue,
 } from './styles';
-
-export interface ServiceData {
-  id: string;
-  name: string;
-  description: string;
-  value: number;
-}
-
-interface StatusState {
-  order: 'Aguardando' | 'Reprovado' | 'Aprovado' | 'Cancelado' | unknown;
-  delivery?: 'Agendado' | 'Andamento' | 'Concluído' | 'Cancelado' | unknown;
-  billing?: 'Aguardando' | 'Faturado' | 'Cancelado' | unknown;
-  payment?: 'Aguardando' | 'Pago' | 'Cancelado' | 'Vencido' | unknown;
-}
 
 interface InputData {
   deliveryConditionsData: string;
@@ -94,33 +96,33 @@ interface InputData {
 
 interface OrderProps {
   color: string;
-  data: SearchResult;
+  order_id: string;
   from: string;
+  updateSearchResults(data: UpdateSearchResultsData): void;
 }
 
-const Order: React.FC<OrderProps> = ({ color, data, from }) => {
-  const [status, setStatus] = useState<StatusState>({
-    order: 'Aguardando',
-    delivery: 'Concluído',
-    billing: 'Faturado',
-    payment: 'Vencido',
-  });
-
-  const [approvedDate, setApprovedDate] = useState('10/10/2020');
-
-  const [deliveryConditions, setDeliveryConditions] = useState('');
-  const [requestedDeliveryDate, setRequestedDeliveryDate] = useState(
-    '10/10/2020'
+const Order: React.FC<OrderProps> = ({
+  color,
+  order_id,
+  from,
+  updateSearchResults,
+}) => {
+  const [orderData, setOrderData] = useState<OrderDataType>(
+    {} as OrderDataType
   );
-  const [deliveryDate, setDeliveryDate] = useState('10/10/2020');
 
-  const [paymentWay, setPaymentWay] = useState('');
-  const [dueDate, setDueDate] = useState('');
-
-  const [services, setServices] = useState<ServiceData[]>([]);
-  const [serviceToEdit, setServiceToEdit] = useState<ServiceData>(
-    {} as ServiceData
+  const [orderProductId, setOrderProductId] = useState('');
+  const [serviceToView, setServiceToView] = useState<ServiceOrderData>(
+    {} as ServiceOrderData
   );
+
+  const [updateOrderProduct, setUpdateOrderProduct] = useState<
+    ServiceOrderData
+  >({} as ServiceOrderData);
+
+  const [addNewOrderProduct, setAddNewOrderProduct] = useState<
+    ServiceOrderData
+  >({} as ServiceOrderData);
 
   const deliveryConditionsRef = useRef<FormHandles>(null);
   const requestedDeliveryDateRef = useRef<FormHandles>(null);
@@ -131,49 +133,302 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
   const {
     orderOpen,
     newServiceOpen,
+    productViewOpen,
     overlapOrderOpen,
     overlapNewServiceOpen,
+    overlapProductViewOpen,
   } = useOverlap();
   const { addToast } = useToast();
-  const { userPermission } = useAuth();
+  const { userPermission, user } = useAuth();
 
+  // This hook must be executed only once
   useEffect(() => {
-    if (data.service && data.value && data.id) {
-      const sample = {
-        id: data.id,
-        name: data.service,
-        description:
-          'descrição qualquer que depois vai buscar no banco de dados descrição qualquer que depois vai buscar no banco de dados',
-        value: data.value,
-      };
+    api.get<OrderDataType>(`/orders/${order_id}`).then((response) => {
+      const {
+        client,
+        seller,
+        approved_at,
+        order_number,
+        status_order,
+        created_at,
+        requested_delivery_date,
+        delivery_date,
+        orders_products,
+        ...rest
+      } = response.data;
 
-      setServices((state) => [...state, sample]);
+      if (client) {
+        const formattedOderData: OrderDataType = {
+          ...rest,
+          approved_at: approved_at ? formatToDate(parseISO(approved_at)) : '',
+          created_at: created_at ? formatToDate(parseISO(created_at)) : '',
+          delivery_date: delivery_date
+            ? formatToDate(parseISO(delivery_date))
+            : '',
+          order_number,
+          status_order,
+          requested_delivery_date: requested_delivery_date
+            ? formatToDate(parseISO(requested_delivery_date))
+            : '',
+          client: {
+            ...client,
+            cpf_cnpj:
+              client.cpf_cnpj.length > 11
+                ? formatToCNPJ(client.cpf_cnpj)
+                : formatToCPF(client.cpf_cnpj),
+            phone: formatToPhone(client.phone),
+            mobile: formatToPhone(client.mobile),
+          },
+          seller,
+          orders_products: orders_products?.sort((a, b) => {
+            if (a.created_at < b.created_at) return -1;
+            if (a.created_at > b.created_at) return 1;
+            return 0;
+          }),
+        };
 
-      setApprovedDate('10/09/2020');
+        setOrderData(formattedOderData);
+      }
+    });
+  }, [order_id]);
 
-      setDeliveryConditions('Aguardar pagamento da segunda parcela');
-      setRequestedDeliveryDate('10/10/2020'); // Não está definido esse valor aqui
-      setPaymentWay('1+3x R$1.325,00');
-      setDueDate('Entrada para 16/06 e parcelas junto com faturamento');
+  if (updateOrderProduct.id && orderData.orders_products) {
+    const getOrderIndex = orderData.orders_products.findIndex(
+      (result) => result.id === updateOrderProduct.id
+    );
+
+    if (getOrderIndex >= 0 && orderData.orders_products[getOrderIndex]) {
+      orderData.orders_products[getOrderIndex] = updateOrderProduct;
+
+      updateSearchResults({
+        order_id,
+        product_id_update: updateOrderProduct,
+      });
     }
-  }, [data]);
 
-  const handleDeleteServiceItem = useCallback((serviceID: string) => {
-    setServices((state) => state.filter((service) => service.id !== serviceID));
-  }, []);
+    setUpdateOrderProduct({} as ServiceOrderData);
+  }
 
-  const handleEditServiceItem = useCallback(
-    (dataToEdit: ServiceData) => {
-      setServiceToEdit(dataToEdit);
-      overlapNewServiceOpen(!newServiceOpen);
+  if (addNewOrderProduct.id && orderData.orders_products) {
+    const getOrderIndex = orderData.orders_products.findIndex(
+      (result) => result.id === addNewOrderProduct.id
+    );
+
+    if (getOrderIndex < 0 && orderData.orders_products) {
+      orderData.orders_products = [
+        ...orderData.orders_products,
+        addNewOrderProduct,
+      ].sort((a, b) => {
+        if (a.created_at < b.created_at) return -1;
+        if (a.created_at > b.created_at) return 1;
+        return 0;
+      });
+
+      updateSearchResults({
+        order_id,
+        product_id_add: addNewOrderProduct,
+      });
+    }
+    setAddNewOrderProduct({} as ServiceOrderData);
+  }
+
+  const updateOrderStatus = useCallback(
+    (e: ChangeEvent<{ value: unknown }>) => {
+      if (e.target.value === 'Aprovado') {
+        orderData.approved_at = formatToDate(new Date(Date.now()));
+        api.patch(`/orders/${order_id}`, {
+          status_order: e.target.value,
+          approved_at: new Date(Date.now()),
+        });
+      } else {
+        api.patch(`/orders/${order_id}`, {
+          status_order: e.target.value,
+        });
+      }
+
+      orderData.status_order = e.target.value;
+
+      updateSearchResults({
+        order_id,
+        status_order: e.target.value,
+      });
+
+      addToast({
+        type: 'success',
+        description: 'Status atualizado com sucesso!',
+      });
     },
-    [newServiceOpen, overlapNewServiceOpen]
+    [addToast, orderData, order_id, updateSearchResults]
   );
 
-  const handleEditedService = useCallback((e: ServiceData) => {
-    setServices((state) => state.filter((service) => service.id !== e.id));
-    setServices((state) => [...state, e]);
-  }, []);
+  const updateDeliveryStatus = useCallback(
+    (e: ChangeEvent<{ value: unknown }>) => {
+      if (!orderData.technical) {
+        api.patch(`/orders/${order_id}`, {
+          status_delivery: e.target.value,
+          technical_id: user.id,
+        });
+
+        orderData.status_delivery = e.target.value;
+
+        updateSearchResults({
+          order_id,
+          status_delivery: e.target.value,
+          technical: user.name,
+        });
+      } else if (e.target.value === '') {
+        api.patch(`/orders/${order_id}`, {
+          status_delivery: e.target.value,
+          technical_id: null,
+        });
+
+        orderData.status_delivery = '';
+        orderData.technical = undefined;
+
+        updateSearchResults({
+          order_id,
+          status_delivery: '',
+          technical: undefined,
+        });
+      } else {
+        api.patch(`/orders/${order_id}`, {
+          status_delivery: e.target.value,
+        });
+
+        orderData.status_delivery = e.target.value;
+
+        updateSearchResults({
+          order_id,
+          status_delivery: e.target.value,
+        });
+      }
+      addToast({
+        type: 'success',
+        description: 'Status atualizado com sucesso!',
+      });
+    },
+    [
+      addToast,
+      orderData.status_delivery,
+      orderData.technical,
+      order_id,
+      updateSearchResults,
+      user.id,
+      user.name,
+    ]
+  );
+
+  const updateBillingStatus = useCallback(
+    (e: ChangeEvent<{ value: unknown }>) => {
+      orderData.status_billing = e.target.value;
+
+      updateSearchResults({
+        order_id,
+        status_billing: e.target.value,
+      });
+
+      api.patch(`/orders/${order_id}`, {
+        status_billing: e.target.value,
+      });
+
+      addToast({
+        type: 'success',
+        description: 'Status atualizado com sucesso!',
+      });
+    },
+    [addToast, orderData.status_billing, order_id, updateSearchResults]
+  );
+
+  const updatePaymentStatus = useCallback(
+    (e: ChangeEvent<{ value: unknown }>) => {
+      orderData.status_payment = e.target.value;
+
+      updateSearchResults({
+        order_id,
+        status_payment: e.target.value,
+      });
+
+      api.patch(`/orders/${order_id}`, {
+        status_payment: e.target.value,
+      });
+
+      addToast({
+        type: 'success',
+        description: 'Status atualizado com sucesso!',
+      });
+    },
+    [addToast, orderData.status_payment, order_id, updateSearchResults]
+  );
+
+  const handleDeleteServiceItem = useCallback(
+    (order_product_id: string) => {
+      api.delete(`/orders-products/${order_product_id}`);
+
+      orderData.orders_products = orderData.orders_products?.filter(
+        (orders_product) => orders_product.id !== order_product_id
+      );
+
+      updateSearchResults({
+        order_id,
+        order_product_id_delete: order_product_id,
+      });
+
+      addToast({
+        type: 'success',
+        description: 'Serviço excluído com sucesso!',
+      });
+    },
+    [addToast, orderData.orders_products, order_id, updateSearchResults]
+  );
+
+  const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+      formControl: {
+        margin: theme.spacing(1),
+      },
+      faCheck: {
+        color: '#1b914f',
+        margin: '0 4px 0 0',
+      },
+      faRegClock: {
+        color: '#555',
+        margin: '0 4px 0 0',
+      },
+      riDraftFill: {
+        color: '#999',
+        margin: '0 4px 0 0',
+      },
+      faTimes: {
+        color: '#f00',
+        fontSize: '15px',
+        margin: '0 4px 0 -2px',
+      },
+      faCalendarTimes: {
+        color: '#c00000',
+        margin: '0 4px 0 0',
+      },
+      ioThumbsDown: {
+        color: '#c00000',
+        fontSize: '15px',
+        margin: '0 4px 0 -2px',
+      },
+      hiRefresh: {
+        color: '#000',
+        margin: '0 4px 0 0',
+      },
+    })
+  );
+
+  const {
+    formControl,
+    faCheck,
+    faRegClock,
+    riDraftFill,
+    faTimes,
+    faCalendarTimes,
+    ioThumbsDown,
+    hiRefresh,
+  } = useStyles();
 
   const defaultMaterialTheme = createMuiTheme({
     palette: {
@@ -186,11 +441,21 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
         root: {
           '&& svg': {
             margin: '0 10px -1px -2px',
-          },
-          '&:nth-child(2), &:nth-child(4)': {
-            '&& svg': {
+            '&[class*="ioThumbsDown"]': {
               margin: '0 10px -1px -3px',
+              fontSize: '17px',
+            },
+            '&[class*="faTimes"]': {
+              margin: '0 10px -1px -4px',
               fontSize: '20px',
+            },
+            '&[class*="riDraftFill"]': {
+              margin: '0 10px -1px -3px',
+              fontSize: '17px',
+            },
+            '&[class*="hiRefresh"]': {
+              margin: '0 10px -1px -4px',
+              fontSize: '18px',
             },
           },
           '&:hover': {
@@ -199,11 +464,21 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
             '&& svg': {
               margin: '0 10px -1px -2px',
               color: '#fff',
-            },
-            '&:nth-child(2), &:nth-child(4)': {
-              '&& svg': {
+              '&[class*="ioThumbsDown"]': {
                 margin: '0 10px -1px -3px',
+                fontSize: '17px',
+              },
+              '&[class*="faTimes"]': {
+                margin: '0 10px -1px -4px',
                 fontSize: '20px',
+              },
+              '&[class*="riDraftFill"]': {
+                margin: '0 10px -1px -3px',
+                fontSize: '17px',
+              },
+              '&[class*="hiRefresh"]': {
+                margin: '0 10px -1px -4px',
+                fontSize: '18px',
               },
             },
           },
@@ -213,11 +488,21 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
             '&& svg': {
               margin: '0 10px -1px -2px',
               color: '#fff',
-            },
-            '&:nth-child(2), &:nth-child(4)': {
-              '&& svg': {
+              '&[class*="ioThumbsDown"]': {
                 margin: '0 10px -1px -3px',
+                fontSize: '17px',
+              },
+              '&[class*="faTimes"]': {
+                margin: '0 10px -1px -4px',
                 fontSize: '20px',
+              },
+              '&[class*="riDraftFill"]': {
+                margin: '0 10px -1px -3px',
+                fontSize: '17px',
+              },
+              '&[class*="hiRefresh"]': {
+                margin: '0 10px -1px -4px',
+                fontSize: '18px',
               },
             },
             '&:hover': {
@@ -226,11 +511,21 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
               '&& svg': {
                 margin: '0 10px -1px -2px',
                 color: '#fff',
-              },
-              '&:nth-child(2), &:nth-child(4)': {
-                '&& svg': {
+                '&[class*="ioThumbsDown"]': {
                   margin: '0 10px -1px -3px',
+                  fontSize: '15px',
+                },
+                '&[class*="faTimes"]': {
+                  margin: '0 10px -1px -4px',
                   fontSize: '20px',
+                },
+                '&[class*="riDraftFill"]': {
+                  margin: '0 10px -1px -3px',
+                  fontSize: '17px',
+                },
+                '&[class*="hiRefresh"]': {
+                  margin: '0 10px -1px -4px',
+                  fontSize: '18px',
                 },
               },
             },
@@ -240,48 +535,14 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
     },
   });
 
-  const useStyles = makeStyles((theme: Theme) =>
-    createStyles({
-      formControl: {
-        margin: theme.spacing(1),
-      },
-      faCheck: {
-        color: '#1b914f',
-        margin: '0 4px 1px 0',
-      },
-      faRegClock: {
-        color: '#999',
-        margin: '0 4px 1px 0',
-      },
-      faTimes: {
-        color: '#f00',
-        fontSize: '15px',
-        margin: '0 4px 1px 0',
-      },
-      faAlert: {
-        color: '#c53030',
-        margin: '0 4px 1px 0',
-      },
-      hiRefresh: {
-        color: '#000',
-        margin: '0 4px 1px 0',
-      },
-    })
-  );
-
-  const {
-    formControl,
-    faCheck,
-    faRegClock,
-    faTimes,
-    faAlert,
-    hiRefresh,
-  } = useStyles();
-
   const submitDeliveryConditions = useCallback(
     ({ deliveryConditionsData }: InputData) => {
-      if (deliveryConditions !== deliveryConditionsData) {
-        setDeliveryConditions(deliveryConditionsData);
+      if (orderData.delivery_conditions !== deliveryConditionsData) {
+        orderData.delivery_conditions = deliveryConditionsData;
+
+        api.patch(`/orders/${order_id}`, {
+          delivery_conditions: deliveryConditionsData,
+        });
 
         addToast({
           type: 'success',
@@ -289,7 +550,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
         });
       }
     },
-    [addToast, deliveryConditions]
+    [addToast, orderData, order_id]
   );
 
   const onDeliveryConditionsSubmit = useCallback(() => {
@@ -304,27 +565,40 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
       const month = new Date(convertDate(requestedDeliveryDateData)).getMonth();
       const day =
         new Date(convertDate(requestedDeliveryDateData)).getDate() + 1;
-      if (requestedDeliveryDate !== requestedDeliveryDateData) {
+
+      if (orderData.requested_delivery_date !== requestedDeliveryDateData) {
         if (isValid(new Date(year, month, day))) {
           requestedDeliveryDateRef.current?.setErrors({});
-          setRequestedDeliveryDate(requestedDeliveryDateData);
+          orderData.requested_delivery_date = requestedDeliveryDateData;
+
+          api.patch(`/orders/${order_id}`, {
+            requested_delivery_date: new Date(year, month, day),
+          });
 
           addToast({
             type: 'success',
             description: 'Pedido atualizado com sucesso!',
           });
-        } else {
-          setRequestedDeliveryDate(requestedDeliveryDateData);
+        } else if (requestedDeliveryDateData) {
           requestedDeliveryDateRef.current?.setErrors({
             requestedDeliveryDateData: 'Data inválida',
           });
+        } else {
+          orderData.requested_delivery_date = '';
+          requestedDeliveryDateRef.current?.setErrors({});
+
+          api.patch(`/orders/${order_id}`, {
+            requested_delivery_date: null,
+          });
+
+          addToast({
+            type: 'success',
+            description: 'Pedido atualizado com sucesso!',
+          });
         }
-      } else if (!requestedDeliveryDateData) {
-        setRequestedDeliveryDate('');
-        requestedDeliveryDateRef.current?.setErrors({});
       }
     },
-    [addToast, requestedDeliveryDate]
+    [addToast, orderData, order_id]
   );
 
   const onRequestedDeliveryDateSubmit = useCallback(() => {
@@ -336,27 +610,49 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
       const year = new Date(convertDate(deliveryDateData)).getFullYear();
       const month = new Date(convertDate(deliveryDateData)).getMonth();
       const day = new Date(convertDate(deliveryDateData)).getDate() + 1;
-      if (deliveryDate !== deliveryDateData) {
+      if (orderData.delivery_date !== deliveryDateData) {
         if (isValid(new Date(year, month, day))) {
           deliveryDateRef.current?.setErrors({});
-          setDeliveryDate(deliveryDateData);
+          orderData.delivery_date = deliveryDateData;
+
+          api.patch(`/orders/${order_id}`, {
+            delivery_date: new Date(year, month, day),
+          });
+
+          updateSearchResults({
+            order_id,
+            delivery_date: deliveryDateData,
+          });
 
           addToast({
             type: 'success',
             description: 'Pedido atualizado com sucesso!',
           });
-        } else {
-          setDeliveryDate(deliveryDateData);
+        } else if (deliveryDateData) {
           deliveryDateRef.current?.setErrors({
             deliveryDateData: 'Data inválida',
           });
+        } else {
+          orderData.delivery_date = '';
+          deliveryDateRef.current?.setErrors({});
+
+          api.patch(`/orders/${order_id}`, {
+            delivery_date: null,
+          });
+
+          updateSearchResults({
+            order_id,
+            delivery_date: undefined,
+          });
+
+          addToast({
+            type: 'success',
+            description: 'Pedido atualizado com sucesso!',
+          });
         }
-      } else if (!deliveryDateData) {
-        setDeliveryDate('');
-        deliveryDateRef.current?.setErrors({});
       }
     },
-    [addToast, deliveryDate]
+    [addToast, orderData, order_id, updateSearchResults]
   );
 
   const onDeliveryDateSubmit = useCallback(() => {
@@ -365,12 +661,12 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
 
   const submitPaymentWay = useCallback(
     ({ paymentWayData }: InputData) => {
-      if (paymentWay !== paymentWayData) {
-        setPaymentWay(
-          formatToCapitalized(paymentWayData, {
-            trimTrailingWhiteSpaces: false,
-          })
-        );
+      if (orderData.payment_way !== paymentWayData) {
+        orderData.payment_way = paymentWayData;
+
+        api.patch(`/orders/${order_id}`, {
+          payment_way: paymentWayData,
+        });
 
         addToast({
           type: 'success',
@@ -378,7 +674,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
         });
       }
     },
-    [addToast, paymentWay]
+    [addToast, orderData, order_id]
   );
 
   const onPaymentWaySubmit = useCallback(() => {
@@ -387,12 +683,12 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
 
   const submitDueDate = useCallback(
     ({ dueDateData }: InputData) => {
-      if (dueDate !== dueDateData) {
-        setDueDate(
-          formatToCapitalized(dueDateData, {
-            trimTrailingWhiteSpaces: false,
-          })
-        );
+      if (orderData.due_date !== dueDateData) {
+        orderData.due_date = dueDateData;
+
+        api.patch(`/orders/${order_id}`, {
+          due_date: dueDateData,
+        });
 
         addToast({
           type: 'success',
@@ -400,7 +696,7 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
         });
       }
     },
-    [addToast, dueDate]
+    [addToast, orderData, order_id]
   );
 
   const onDueDateSubmit = useCallback(() => {
@@ -408,724 +704,754 @@ const Order: React.FC<OrderProps> = ({ color, data, from }) => {
   }, []);
 
   const totalValue = useMemo(() => {
-    if (services.length > 0 && (from === 'Comercial' || from === 'Billing')) {
-      const total = services
-        .map((service) => service.value)
-        .reduce((accumulator, serviceValue) => {
-          return accumulator + serviceValue;
-        }, 0);
+    // if (services.length > 0 && (from === 'Comercial' || from === 'Billing')) {
+    //   const total = services
+    //     .map((service) => service.value)
+    //     .reduce((accumulator, serviceValue) => {
+    //       return accumulator + serviceValue;
+    //     }, 0);
 
-      return formatValueCurrency(total);
-    }
-    return '--';
-  }, [from, services]);
+    return formatValueCurrency(100);
+    // }
+    // return '--';
+  }, []);
+
+  const handleSelectProduct = useCallback(
+    (data: ServiceOrderData) => {
+      if (from === 'Comercial') {
+        setOrderProductId(data.id);
+        overlapNewServiceOpen(!newServiceOpen);
+      } else {
+        setServiceToView(data);
+        overlapProductViewOpen(!productViewOpen);
+      }
+    },
+    [
+      from,
+      newServiceOpen,
+      overlapNewServiceOpen,
+      overlapProductViewOpen,
+      productViewOpen,
+    ]
+  );
 
   return (
     <OrderOverlap>
       {newServiceOpen && (
-        <NewServiceOverlap>
+        <ModalOverlap>
           <NewService
             color={color}
+            order_product_id={orderProductId}
+            order_id={order_id}
             setNewServiceOpen={(e) => overlapNewServiceOpen(e)}
-            setServices={(e) => setServices((state) => [...state, e])}
-            setEditedServices={(e) => handleEditedService(e)}
-            serviceToEdit={serviceToEdit}
-            setServiceToEdit={(e) => setServiceToEdit(e)}
+            setOrderProductId={(e) => setOrderProductId(e)}
+            updateOrderProduct={(e) => setUpdateOrderProduct(e)}
+            addNewOrderProduct={(e) => setAddNewOrderProduct(e)}
           />
-        </NewServiceOverlap>
+        </ModalOverlap>
       )}
-      <HeaderButton
-        show={orderOpen && !newServiceOpen}
-        handleClick={(e) => overlapOrderOpen(!e)}
-        type="button"
-        icon={FaTimes}
-        color={color}
-      />
-      <Container>
-        <ThemeProvider theme={defaultMaterialTheme}>
-          <PrimaryContent isModalOpen={newServiceOpen}>
-            <CompanyData>
-              <TitlesForm>
-                <p>Razão social:</p>
-                {data.companyCpfCnpj && data.companyCpfCnpj?.length > 14 ? (
-                  <p>CNPJ:</p>
-                ) : (
-                  <p>CPF:</p>
-                )}
-                <p>Contato:</p>
-                <p>E-mail:</p>
-                <p>Telefone:</p>
-                <p>Celular:</p>
-              </TitlesForm>
-              <DataForm>
-                <p>{data.companyName}</p>
-                <p>{data.companyCpfCnpj}</p>
-                <p>{data.companyNameContact}</p>
-                <p>{data.companyEmailContact}</p>
-                <p>{data.companyPhone || '--'}</p>
-                <p>{data.companyMobilePhoneContact || '--'}</p>
-              </DataForm>
-            </CompanyData>
-            <OrderData>
-              <TitlesForm>
-                <p>Pedido Nº:</p>
-                <p>Vendedor:</p>
-                <p>Valor total:</p>
-                <p>Data:</p>
-                <p>Status:</p>
-                {status.order === 'Cancelado' ? (
-                  <p>Data do cancelamento:</p>
-                ) : (
-                  <p>Data de aprovação:</p>
-                )}
-              </TitlesForm>
-              <DataForm>
-                <p>{data.id}</p>
-                <p>{data.seller}</p>
-                <p>{totalValue}</p>
-                <p>{data.formattedDate}</p>
-                {from !== 'Comercial' && status.order === 'Aguardando' && (
-                  <div className="status">
-                    <FaRegClock className={`faRegClock ${faRegClock}`} />
-                    <span>Aguardando cliente</span>
-                  </div>
-                )}
-                {from !== 'Comercial' && status.order === 'Reprovado' && (
-                  <div className="status">
-                    <FaTimes className={`faTimes ${faTimes}`} />
-                    <span>Reprovado</span>
-                  </div>
-                )}
-                {from !== 'Comercial' && status.order === 'Aprovado' && (
-                  <div className="status">
-                    <FaCheckCircle className={`faCheck ${faCheck}`} />
-                    <span>Aprovado</span>
-                  </div>
-                )}
-                {from !== 'Comercial' && status.order === 'Cancelado' && (
-                  <div className="status">
-                    <FaTimes className={`faTimes ${faTimes}`} />
-                    <span>Cancelado</span>
-                  </div>
-                )}
-                {from === 'Comercial' &&
-                  (userPermission === 'Comercial' ||
-                    userPermission === 'Admin') && (
-                    <Status>
-                      <FormControl className={formControl}>
-                        <Select
-                          labelId="demo-simple-select-label"
-                          id="data-select"
-                          value={status.order}
-                          defaultValue=""
-                          displayEmpty
-                          onChange={(e: ChangeEvent<{ value: unknown }>) => {
-                            setStatus({
-                              ...status,
-                              order: e.target.value,
-                            });
-                          }}
-                        >
-                          <MenuItem
-                            value="Aguardando"
-                            disabled={
-                              status.order !== 'Aguardando' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaRegClock className={faRegClock} />
-                            Aguardando cliente
-                          </MenuItem>
-                          <MenuItem
-                            value="Reprovado"
-                            disabled={
-                              status.order !== 'Aguardando' &&
-                              status.order !== 'Reprovado' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaTimes className={faTimes} />
-                            Reprovado
-                          </MenuItem>
-                          <MenuItem
-                            value="Aprovado"
-                            disabled={
-                              status.order !== 'Aguardando' &&
-                              status.order !== 'Reprovado' &&
-                              status.order !== 'Aprovado' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaCheckCircle className={faCheck} />
-                            Aprovado
-                          </MenuItem>
-                          <MenuItem
-                            value="Cancelado"
-                            disabled={
-                              status.order !== 'Aguardando' &&
-                              status.order !== 'Reprovado' &&
-                              status.order !== 'Aprovado' &&
-                              status.order !== 'Cancelado' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaTimes className={faTimes} />
-                            Cancelado
-                          </MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Status>
-                  )}
-                <p>{approvedDate}</p>
-              </DataForm>
-            </OrderData>
-          </PrimaryContent>
-          <SecondaryContent isModalOpen={newServiceOpen}>
-            {from === 'Comercial' && (
-              <AddServiceButton
-                type="button"
-                color={color}
-                onClick={() => overlapNewServiceOpen(!newServiceOpen)}
-              >
-                <MaterialTooltip
-                  title="Adicionar Serviço"
-                  arrow
-                  placement="top"
-                >
-                  <FaPlus />
-                </MaterialTooltip>
-              </AddServiceButton>
-            )}
-            <DeliveryData>
-              <TitlesForm>
-                <p>Condições de entrega:</p>
-                <p>Data de entrega solicitada:</p>
-                <p>
-                  {status.delivery !== 'Concluído' &&
-                    status.delivery !== 'Cancelado' &&
-                    'Data da entrega prevista:'}
-                  {status.delivery === 'Concluído' && 'Data da entrega:'}
-                  {status.delivery === 'Cancelado' && 'Data do cancelamento:'}
-                </p>
-                <p>Status área técnica:</p>
-              </TitlesForm>
-              <DataForm>
-                {from === 'Comercial' && !status.delivery && (
-                  <>
-                    <Form
-                      ref={deliveryConditionsRef}
-                      onSubmit={submitDeliveryConditions}
-                    >
-                      <InputAsText
-                        name="deliveryConditionsData"
-                        onBlur={onDeliveryConditionsSubmit}
-                        defaultValue={deliveryConditions}
-                      />
-                    </Form>
-                    <Form
-                      ref={requestedDeliveryDateRef}
-                      onSubmit={submitRequestedDeliveryDate}
-                    >
-                      <InputAsTextWithMask
-                        name="requestedDeliveryDateData"
-                        onBlur={onRequestedDeliveryDateSubmit}
-                        defaultValue={requestedDeliveryDate}
-                        mask="99/99/9999"
-                        maskChar={null}
-                        styled={{ width: '6em' }}
-                      />
-                    </Form>
-                    <p>{deliveryDate}</p>
-                  </>
-                )}
-                {(from === 'Billing' || !!status.delivery) && (
-                  <>
-                    <p>{deliveryConditions}</p>
-                    <p>{requestedDeliveryDate}</p>
-                    <p>{deliveryDate}</p>
-                  </>
-                )}
-                {from === 'TechnicalArea' && !status.delivery && (
-                  <>
-                    <p>{deliveryConditions}</p>
-                    <p>{requestedDeliveryDate}</p>
-                    {status.delivery !== 'Concluído' ? (
-                      <Form ref={deliveryDateRef} onSubmit={submitDeliveryDate}>
-                        <InputAsTextWithMask
-                          name="deliveryDateData"
-                          onBlur={onDeliveryDateSubmit}
-                          defaultValue={deliveryDate}
-                          mask="99/99/9999"
-                          maskChar={null}
-                          styled={{ width: '6em' }}
-                        />
-                      </Form>
+      {productViewOpen && (
+        <ModalOverlap>
+          <ProductView
+            color={color}
+            setProductViewOpen={(e) => overlapProductViewOpen(e)}
+            productToView={serviceToView}
+            from={from}
+          />
+        </ModalOverlap>
+      )}
+      {orderData && orderData.client && orderData.seller && (
+        <>
+          <HeaderButton
+            show={orderOpen && !newServiceOpen && !productViewOpen}
+            handleClick={(e) => overlapOrderOpen(!e)}
+            type="button"
+            icon={FaTimes}
+            color={color}
+            className="headerButton"
+          />
+          <Container>
+            <ThemeProvider theme={defaultMaterialTheme}>
+              <PrimaryContent isModalOpen={newServiceOpen || productViewOpen}>
+                <CompanyData>
+                  <TitlesForm>
+                    <p>Razão social:</p>
+                    {orderData.client.cpf_cnpj.length > 14 ? (
+                      <p>CNPJ:</p>
                     ) : (
-                      <p>{deliveryDate}</p>
+                      <p>CPF:</p>
                     )}
-                  </>
-                )}
-                {((from !== 'TechnicalArea' && !status.delivery) ||
-                  (from === 'TechnicalArea' &&
-                    !status.delivery &&
-                    userPermission !== 'TechnicalArea' &&
-                    userPermission !== 'Admin')) && <p>--</p>}
-                {((from !== 'TechnicalArea' &&
-                  status.delivery === 'Agendado') ||
-                  (from === 'TechnicalArea' &&
-                    status.delivery === 'Agendado' &&
-                    userPermission !== 'TechnicalArea' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaRegClock className={faRegClock} />
-                    <span>Agendado com o cliente</span>
-                  </div>
-                )}
-                {((from !== 'TechnicalArea' &&
-                  status.delivery === 'Andamento') ||
-                  (from === 'TechnicalArea' &&
-                    status.delivery === 'Andamento' &&
-                    userPermission !== 'TechnicalArea' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <HiOutlineRefresh className={`hiRefresh ${hiRefresh}`} />
-                    <span>Em andamento</span>
-                  </div>
-                )}
-                {((from !== 'TechnicalArea' &&
-                  status.delivery === 'Concluído') ||
-                  (from === 'TechnicalArea' &&
-                    status.delivery === 'Concluído' &&
-                    userPermission !== 'TechnicalArea' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaCheckCircle className={`faCheck ${faCheck}`} />
-                    <span>Concluído</span>
-                  </div>
-                )}
-                {((from !== 'TechnicalArea' &&
-                  status.delivery === 'Cancelado') ||
-                  (from === 'TechnicalArea' &&
-                    status.delivery === 'Cancelado' &&
-                    userPermission !== 'TechnicalArea' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaTimes className={`faTimes ${faTimes}`} />
-                    <span>Cancelado</span>
-                  </div>
-                )}
-                {from === 'TechnicalArea' &&
-                  (userPermission === 'TechnicalArea' ||
-                    userPermission === 'Admin') && (
-                    <Status>
-                      <FormControl className={formControl}>
-                        <Select
-                          labelId="demo-simple-select-label"
-                          id="data-select"
-                          value={status.delivery}
-                          defaultValue=""
-                          displayEmpty
-                          onChange={(e: ChangeEvent<{ value: unknown }>) => {
-                            setStatus({
-                              ...status,
-                              delivery: e.target.value,
-                            });
-                          }}
-                        >
-                          <MenuItem
-                            value=""
-                            disabled={
-                              !!status.delivery &&
-                              !!status.delivery &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            --
-                          </MenuItem>
-                          <MenuItem
-                            value="Agendado"
-                            disabled={
-                              !!status.delivery &&
-                              status.delivery !== 'Agendado' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaRegClock className={faRegClock} />
-                            Agendado com o cliente
-                          </MenuItem>
-                          <MenuItem
-                            value="Andamento"
-                            disabled={
-                              !!status.delivery &&
-                              status.delivery !== 'Agendado' &&
-                              status.delivery !== 'Andamento' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <HiOutlineRefresh
-                              className={`hiRefresh ${hiRefresh}`}
-                            />
-                            Em andamento
-                          </MenuItem>
-                          <MenuItem
-                            value="Concluído"
-                            disabled={
-                              !!status.delivery &&
-                              status.delivery !== 'Agendado' &&
-                              status.delivery !== 'Andamento' &&
-                              status.delivery !== 'Concluído' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaCheckCircle className={`faCheck ${faCheck}`} />
-                            Concluído
-                          </MenuItem>
-                          <MenuItem
-                            value="Cancelado"
-                            disabled={
-                              !!status.delivery &&
-                              status.delivery !== 'Agendado' &&
-                              status.delivery !== 'Andamento' &&
-                              status.delivery !== 'Concluído' &&
-                              status.delivery !== 'Cancelado' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaTimes className={faTimes} />
-                            Cancelado
-                          </MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Status>
-                  )}
-              </DataForm>
-            </DeliveryData>
-            <BillingData>
-              <TitlesForm>
-                <p>Forma de pagamento:</p>
-                <p>Vencimento:</p>
-                <p>Status faturamento:</p>
-                <p>Status financeiro:</p>
-              </TitlesForm>
-              <DataForm>
-                {from === 'Comercial' && !status.billing && (
-                  <>
-                    <Form ref={paymentWayRef} onSubmit={submitPaymentWay}>
-                      <InputAsText
-                        name="paymentWayData"
-                        onBlur={onPaymentWaySubmit}
-                        defaultValue={paymentWay}
-                      />
-                    </Form>
-                    <Form ref={dueDateRef} onSubmit={submitDueDate}>
-                      <InputAsText
-                        name="dueDateData"
-                        onBlur={onDueDateSubmit}
-                        defaultValue={dueDate}
-                      />
-                    </Form>
-                  </>
-                )}
-                {(from === 'Billing' ||
-                  (from !== 'TechnicalArea' && !!status.billing)) && (
-                  <>
-                    <p>{paymentWay}</p>
-                    <p>{dueDate}</p>
-                  </>
-                )}
-                {from === 'TechnicalArea' && (
-                  <>
-                    <p>--</p>
-                    <p>--</p>
-                  </>
-                )}
-                {((from !== 'Billing' && !status.billing) ||
-                  (from === 'Billing' &&
-                    !status.billing &&
-                    userPermission !== 'Billing' &&
-                    userPermission !== 'Admin')) && <p>--</p>}
-                {((from !== 'Billing' && status.billing === 'Aguardando') ||
-                  (from === 'Billing' &&
-                    status.billing === 'Aguardando' &&
-                    userPermission !== 'Billing' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaRegClock className={faRegClock} />
-                    <span>Aguardando para Faturar</span>
-                  </div>
-                )}
-                {((from !== 'Billing' && status.billing === 'Faturado') ||
-                  (from === 'Billing' &&
-                    status.billing === 'Faturado' &&
-                    userPermission !== 'Billing' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaCheckCircle className={`faCheck ${faCheck}`} />
-                    <span>Faturado</span>
-                  </div>
-                )}
-                {((from !== 'Billing' && status.billing === 'Cancelado') ||
-                  (from === 'Billing' &&
-                    status.billing === 'Cancelado' &&
-                    userPermission !== 'Billing' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaTimes className={`faTimes ${faTimes}`} />
-                    <span>Cancelado</span>
-                  </div>
-                )}
-                {from === 'Billing' &&
-                  (userPermission === 'Billing' ||
-                    userPermission === 'Admin') && (
-                    <Status>
-                      <FormControl className={formControl}>
-                        <Select
-                          labelId="demo-simple-select-label"
-                          id="data-select"
-                          value={status.billing}
-                          defaultValue=""
-                          displayEmpty
-                          onChange={(e: ChangeEvent<{ value: unknown }>) => {
-                            setStatus({
-                              ...status,
-                              billing: e.target.value,
-                            });
-                          }}
-                        >
-                          <MenuItem
-                            value=""
-                            disabled={
-                              !!status.billing &&
-                              !!status.billing &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            --
-                          </MenuItem>
-                          <MenuItem
-                            value="Aguardando"
-                            disabled={
-                              !!status.billing &&
-                              status.billing !== 'Aguardando' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaRegClock className={faRegClock} />
-                            Aguardando para Faturar
-                          </MenuItem>
-                          <MenuItem
-                            value="Faturado"
-                            disabled={
-                              !!status.billing &&
-                              status.billing !== 'Aguardando' &&
-                              status.billing !== 'Faturado' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaCheckCircle className={`faCheck ${faCheck}`} />
-                            Faturado
-                          </MenuItem>
-                          <MenuItem
-                            value="Cancelado"
-                            disabled={
-                              !!status.billing &&
-                              status.billing !== 'Aguardando' &&
-                              status.billing !== 'Faturado' &&
-                              status.billing !== 'Cancelado' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaTimes className={faTimes} />
-                            Cancelado
-                          </MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Status>
-                  )}
-                {((from !== 'Billing' && !status.payment) ||
-                  (from === 'Billing' &&
-                    !status.payment &&
-                    userPermission !== 'Billing' &&
-                    userPermission !== 'Admin')) && <p>--</p>}
-                {((from !== 'Billing' && status.payment === 'Aguardando') ||
-                  (from === 'Billing' &&
-                    status.payment === 'Aguardando' &&
-                    userPermission !== 'Billing' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaRegClock className={faRegClock} />
-                    <span>Aguardando Pagamento</span>
-                  </div>
-                )}
-                {((from !== 'Billing' && status.payment === 'Pago') ||
-                  (from === 'Billing' &&
-                    status.payment === 'Pago' &&
-                    userPermission !== 'Billing' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaCheckCircle className={`faCheck ${faCheck}`} />
-                    <span>Pago</span>
-                  </div>
-                )}
-                {((from !== 'Billing' && status.payment === 'Vencido') ||
-                  (from === 'Billing' &&
-                    status.payment === 'Vencido' &&
-                    userPermission !== 'Billing' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaCalendarTimes className={`faAlert ${faAlert}`} />
-                    <span>Vencido</span>
-                  </div>
-                )}
-                {((from !== 'Billing' && status.payment === 'Cancelado') ||
-                  (from === 'Billing' &&
-                    status.payment === 'Cancelado' &&
-                    userPermission !== 'Billing' &&
-                    userPermission !== 'Admin')) && (
-                  <div className="status">
-                    <FaTimes className={`faTimes ${faTimes}`} />
-                    <span>Cancelado</span>
-                  </div>
-                )}
-                {from === 'Billing' &&
-                  (userPermission === 'Billing' ||
-                    userPermission === 'Admin') && (
-                    <Status>
-                      <FormControl className={formControl}>
-                        <Select
-                          labelId="demo-simple-select-label"
-                          id="data-select"
-                          value={status.payment}
-                          defaultValue=""
-                          displayEmpty
-                          onChange={(e: ChangeEvent<{ value: unknown }>) => {
-                            setStatus({
-                              ...status,
-                              payment: e.target.value,
-                            });
-                          }}
-                        >
-                          <MenuItem
-                            value=""
-                            disabled={
-                              !!status.payment &&
-                              !!status.payment &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            --
-                          </MenuItem>
-                          <MenuItem
-                            value="Aguardando"
-                            disabled={
-                              !!status.payment &&
-                              status.payment !== 'Aguardando' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaRegClock className={faRegClock} />
-                            Aguardando Pagamento
-                          </MenuItem>
-                          <MenuItem
-                            value="Pago"
-                            disabled={
-                              !!status.payment &&
-                              status.payment !== 'Aguardando' &&
-                              status.payment !== 'Pago' &&
-                              status.payment !== 'Vencido' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaCheckCircle className={`faCheck ${faCheck}`} />
-                            Pago
-                          </MenuItem>
-                          <MenuItem
-                            value="Vencido"
-                            disabled={
-                              !!status.payment &&
-                              status.payment !== 'Aguardando' &&
-                              status.payment !== 'Pago' &&
-                              status.payment !== 'Vencido' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaCalendarTimes className={`faAlert ${faAlert}`} />
-                            Vencido
-                          </MenuItem>
-                          <MenuItem
-                            value="Cancelado"
-                            disabled={
-                              !!status.payment &&
-                              status.payment !== 'Aguardando' &&
-                              status.payment !== 'Pago' &&
-                              status.payment !== 'Vencido' &&
-                              status.payment !== 'Cancelado' &&
-                              userPermission !== 'Admin'
-                            }
-                          >
-                            <FaTimes className={faTimes} />
-                            Cancelado
-                          </MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Status>
-                  )}
-              </DataForm>
-            </BillingData>
-          </SecondaryContent>
-          <ServicesOrderContent isModalOpen={newServiceOpen}>
-            <TitleRow>
-              <ServiceName>SERVIÇO</ServiceName>
-              <ServiceDescription>DESCRIÇÃO DO SERVIÇO</ServiceDescription>
-              {from !== 'TechnicalArea' && <ServiceValue>VALOR</ServiceValue>}
-            </TitleRow>
-            {services &&
-              services.length > 0 &&
-              services.map((service) => (
-                <ServiceRow color={color} key={service.id}>
-                  <ServiceName>{service.name}</ServiceName>
-                  <ServiceDescription>{service.description}</ServiceDescription>
-                  {from !== 'TechnicalArea' && (
-                    <ServiceValue>
-                      <div>
-                        <span>R$</span>
-                        <span>{formatValue(service.value)}</span>
-                      </div>
-                      {from === 'Comercial' && (
-                        <div>
-                          <button
-                            type="button"
-                            onClick={() => handleEditServiceItem(service)}
-                          >
-                            <MaterialTooltip
-                              title="Alterar"
-                              arrow
-                              placement="left"
-                            >
-                              <FaEdit className="faEdit" />
-                            </MaterialTooltip>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteServiceItem(service.id)}
-                          >
-                            <MaterialTooltip
-                              title="Excluir"
-                              arrow
-                              placement="left"
-                            >
-                              <FaTrashAlt className="faTrashAlt" />
-                            </MaterialTooltip>
-                          </button>
+                    <p>Contato:</p>
+                    <p>E-mail:</p>
+                    <p>Telefone:</p>
+                    <p>Celular:</p>
+                  </TitlesForm>
+                  <DataForm>
+                    <p>{orderData.client.company_name}</p>
+                    <p>{orderData.client.cpf_cnpj}</p>
+                    <p>{orderData.client.contact_name}</p>
+                    <p>{orderData.client.email}</p>
+                    <p>{orderData.client.phone}</p>
+                    <p>{orderData.client.mobile}</p>
+                  </DataForm>
+                </CompanyData>
+                <OrderData>
+                  <TitlesForm>
+                    <p>Pedido Nº:</p>
+                    <p>Vendedor:</p>
+                    <p>Valor total:</p>
+                    <p>Data:</p>
+                    <p>Status:</p>
+                    <p>Data de aprovação:</p>
+                  </TitlesForm>
+                  <DataForm>
+                    <p>{orderData.order_number}</p>
+                    <p>{orderData.seller.name}</p>
+                    <p>{from !== 'TechnicalArea' && totalValue}</p>
+                    <p>{orderData.created_at}</p>
+                    {from !== 'Comercial' &&
+                      orderData.status_order === 'Rascunho' && (
+                        <div className="status">
+                          <RiDraftFill
+                            className={`faRegClock ${riDraftFill}`}
+                          />
+                          <span>Rascunho</span>
                         </div>
                       )}
-                    </ServiceValue>
+                    {from !== 'Comercial' &&
+                      orderData.status_order === 'Aguardando' && (
+                        <div className="status">
+                          <FaRegClock className={`faRegClock ${faRegClock}`} />
+                          <span>Aguardando cliente</span>
+                        </div>
+                      )}
+                    {from !== 'Comercial' &&
+                      orderData.status_order === 'Reprovado' && (
+                        <div className="status">
+                          <IoMdThumbsDown
+                            className={`ioThumbsDown ${ioThumbsDown}`}
+                          />
+                          <span>Reprovado</span>
+                        </div>
+                      )}
+                    {from !== 'Comercial' &&
+                      orderData.status_order === 'Aprovado' && (
+                        <div className="status">
+                          <FaCheckCircle className={`faCheck ${faCheck}`} />
+                          <span>Aprovado</span>
+                        </div>
+                      )}
+                    {from !== 'Comercial' &&
+                      orderData.status_order === 'Cancelado' && (
+                        <div className="status">
+                          <FaTimes className={`faTimes ${faTimes}`} />
+                          <span>Cancelado</span>
+                        </div>
+                      )}
+                    {from === 'Comercial' && (
+                      <Status>
+                        <FormControl className={formControl}>
+                          <Select
+                            labelId="demo-simple-select-label"
+                            id="data-select"
+                            value={orderData.status_order}
+                            defaultValue=""
+                            displayEmpty
+                            onChange={(e: ChangeEvent<{ value: unknown }>) => {
+                              updateOrderStatus(e);
+                            }}
+                          >
+                            <MenuItem
+                              value="Rascunho"
+                              disabled={userPermission !== 'Admin'}
+                            >
+                              <RiDraftFill className={riDraftFill} />
+                              Rascunho
+                            </MenuItem>
+                            <MenuItem
+                              value="Aguardando"
+                              disabled={
+                                orderData.status_order !== 'Rascunho' &&
+                                orderData.status_order !== 'Aguardando' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaRegClock className={faRegClock} />
+                              Aguardando cliente
+                            </MenuItem>
+                            <MenuItem
+                              value="Reprovado"
+                              disabled={
+                                orderData.status_order !== 'Rascunho' &&
+                                orderData.status_order !== 'Aguardando' &&
+                                orderData.status_order !== 'Reprovado' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <IoMdThumbsDown className={ioThumbsDown} />
+                              Reprovado
+                            </MenuItem>
+                            <MenuItem
+                              value="Aprovado"
+                              disabled={
+                                orderData.status_order !== 'Rascunho' &&
+                                orderData.status_order !== 'Aguardando' &&
+                                orderData.status_order !== 'Reprovado' &&
+                                orderData.status_order !== 'Aprovado' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaCheckCircle className={faCheck} />
+                              Aprovado
+                            </MenuItem>
+                            <MenuItem
+                              value="Cancelado"
+                              disabled={
+                                orderData.status_order !== 'Rascunho' &&
+                                orderData.status_order !== 'Aguardando' &&
+                                orderData.status_order !== 'Reprovado' &&
+                                orderData.status_order !== 'Aprovado' &&
+                                orderData.status_order !== 'Cancelado' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaTimes className={faTimes} />
+                              Cancelado
+                            </MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Status>
+                    )}
+                    <p>
+                      {orderData.status_order === 'Aprovado' &&
+                        orderData.approved_at}
+                    </p>
+                  </DataForm>
+                </OrderData>
+              </PrimaryContent>
+              <SecondaryContent isModalOpen={newServiceOpen || productViewOpen}>
+                {((from === 'Comercial' &&
+                  !orderData.status_delivery &&
+                  !orderData.status_billing &&
+                  !orderData.status_payment) ||
+                  (from === 'Comercial' && userPermission === 'Admin')) && (
+                  <AddServiceButton
+                    type="button"
+                    color={color}
+                    onClick={() => overlapNewServiceOpen(!newServiceOpen)}
+                  >
+                    <MaterialTooltip
+                      title="Adicionar Serviço"
+                      arrow
+                      placement="top"
+                    >
+                      <FaPlus />
+                    </MaterialTooltip>
+                  </AddServiceButton>
+                )}
+                <DeliveryData>
+                  <TitlesForm>
+                    <p>Condições de entrega:</p>
+                    <p>Data de entrega solicitada:</p>
+                    <p>
+                      {orderData.status_delivery === 'Concluído'
+                        ? 'Data da entrega:'
+                        : 'Data de entrega prevista:'}
+                    </p>
+                    <p>Status área técnica:</p>
+                  </TitlesForm>
+                  <DataForm>
+                    {from === 'Comercial' && !orderData.status_delivery && (
+                      <>
+                        <Form
+                          ref={deliveryConditionsRef}
+                          onSubmit={submitDeliveryConditions}
+                        >
+                          <InputAsText
+                            name="deliveryConditionsData"
+                            onBlur={onDeliveryConditionsSubmit}
+                            defaultValue={orderData.delivery_conditions}
+                          />
+                        </Form>
+                        <Form
+                          ref={requestedDeliveryDateRef}
+                          onSubmit={submitRequestedDeliveryDate}
+                        >
+                          {orderData && orderData.requested_delivery_date && (
+                            <InputAsTextWithMask
+                              name="requestedDeliveryDateData"
+                              onBlur={onRequestedDeliveryDateSubmit}
+                              defaultValue={orderData.requested_delivery_date}
+                              mask="99/99/9999"
+                              maskChar={null}
+                              styled={{ width: '6em' }}
+                            />
+                          )}
+                          {orderData && !orderData.requested_delivery_date && (
+                            <InputAsTextWithMask
+                              name="requestedDeliveryDateData"
+                              onBlur={onRequestedDeliveryDateSubmit}
+                              defaultValue={orderData.requested_delivery_date}
+                              mask="99/99/9999"
+                              maskChar={null}
+                              styled={{ width: '6em' }}
+                            />
+                          )}
+                        </Form>
+                        <p>{orderData && orderData.delivery_date}</p>
+                      </>
+                    )}
+                    {from !== 'TechnicalArea' && !!orderData.status_delivery && (
+                      <>
+                        <p>{orderData && orderData.delivery_conditions}</p>
+                        <p>{orderData && orderData.requested_delivery_date}</p>
+                        <p>{orderData && orderData.delivery_date}</p>
+                      </>
+                    )}
+                    {from === 'TechnicalArea' && (
+                      <>
+                        <p>{orderData && orderData.delivery_conditions}</p>
+                        <p>{orderData && orderData.requested_delivery_date}</p>
+                        <Form
+                          ref={deliveryDateRef}
+                          onSubmit={submitDeliveryDate}
+                        >
+                          {orderData && orderData.delivery_date && (
+                            <InputAsTextWithMask
+                              name="deliveryDateData"
+                              onBlur={onDeliveryDateSubmit}
+                              defaultValue={orderData.delivery_date}
+                              mask="99/99/9999"
+                              maskChar={null}
+                              styled={{ width: '6em' }}
+                            />
+                          )}
+                          {orderData && !orderData.delivery_date && (
+                            <InputAsTextWithMask
+                              name="deliveryDateData"
+                              onBlur={onDeliveryDateSubmit}
+                              defaultValue={orderData.delivery_date}
+                              mask="99/99/9999"
+                              maskChar={null}
+                              styled={{ width: '6em' }}
+                            />
+                          )}
+                        </Form>
+                      </>
+                    )}
+                    {from !== 'TechnicalArea' && !orderData.status_delivery && (
+                      <p />
+                    )}
+                    {from !== 'TechnicalArea' &&
+                      orderData.status_delivery === 'Agendado' && (
+                        <div className="status">
+                          <FaRegClock className={faRegClock} />
+                          <span>Agendado com o cliente</span>
+                        </div>
+                      )}
+                    {from !== 'TechnicalArea' &&
+                      orderData.status_delivery === 'Execução' && (
+                        <div className="status">
+                          <HiOutlineRefresh
+                            className={`hiRefresh ${hiRefresh}`}
+                          />
+                          <span>Em execução</span>
+                        </div>
+                      )}
+                    {from !== 'TechnicalArea' &&
+                      orderData.status_delivery === 'Concluído' && (
+                        <div className="status">
+                          <FaCheckCircle className={`faCheck ${faCheck}`} />
+                          <span>Concluído</span>
+                        </div>
+                      )}
+                    {from !== 'TechnicalArea' &&
+                      orderData.status_delivery === 'Cancelado' && (
+                        <div className="status">
+                          <FaTimes className={`faTimes ${faTimes}`} />
+                          <span>Cancelado</span>
+                        </div>
+                      )}
+                    {from === 'TechnicalArea' && (
+                      <Status>
+                        <FormControl className={formControl}>
+                          <Select
+                            labelId="demo-simple-select-label"
+                            id="data-select"
+                            value={orderData.status_delivery}
+                            defaultValue=""
+                            displayEmpty
+                            onChange={(e: ChangeEvent<{ value: unknown }>) => {
+                              updateDeliveryStatus(e);
+                            }}
+                          >
+                            {(!orderData.status_delivery ||
+                              userPermission === 'Admin') && (
+                              <MenuItem value="">
+                                -- Selecione um status --
+                              </MenuItem>
+                            )}
+                            <MenuItem
+                              value="Agendado"
+                              disabled={
+                                !!orderData.status_delivery &&
+                                orderData.status_delivery !== 'Agendado' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaRegClock className={faRegClock} />
+                              Agendado com o cliente
+                            </MenuItem>
+                            <MenuItem
+                              value="Execução"
+                              disabled={
+                                !!orderData.status_delivery &&
+                                orderData.status_delivery !== 'Agendado' &&
+                                orderData.status_delivery !== 'Execução' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <HiOutlineRefresh
+                                className={`hiRefresh ${hiRefresh}`}
+                              />
+                              Em execução
+                            </MenuItem>
+                            <MenuItem
+                              value="Concluído"
+                              disabled={
+                                !!orderData.status_delivery &&
+                                orderData.status_delivery !== 'Agendado' &&
+                                orderData.status_delivery !== 'Execução' &&
+                                orderData.status_delivery !== 'Concluído' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaCheckCircle className={`faCheck ${faCheck}`} />
+                              Concluído
+                            </MenuItem>
+                            <MenuItem
+                              value="Cancelado"
+                              disabled={
+                                !!orderData.status_delivery &&
+                                orderData.status_delivery !== 'Agendado' &&
+                                orderData.status_delivery !== 'Execução' &&
+                                orderData.status_delivery !== 'Concluído' &&
+                                orderData.status_delivery !== 'Cancelado' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaTimes className={faTimes} />
+                              Cancelado
+                            </MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Status>
+                    )}
+                  </DataForm>
+                </DeliveryData>
+                <BillingData>
+                  <TitlesForm>
+                    <p>Forma de pagamento:</p>
+                    <p>Vencimento:</p>
+                    <p>Status faturamento:</p>
+                    <p>Status financeiro:</p>
+                  </TitlesForm>
+                  <DataForm>
+                    {from === 'Comercial' && !orderData.status_billing && (
+                      <>
+                        <Form ref={paymentWayRef} onSubmit={submitPaymentWay}>
+                          <InputAsText
+                            name="paymentWayData"
+                            onBlur={onPaymentWaySubmit}
+                            defaultValue={orderData.payment_way}
+                          />
+                        </Form>
+                        <Form ref={dueDateRef} onSubmit={submitDueDate}>
+                          <InputAsText
+                            name="dueDateData"
+                            onBlur={onDueDateSubmit}
+                            defaultValue={orderData.due_date}
+                          />
+                        </Form>
+                      </>
+                    )}
+                    {(from === 'Billing' ||
+                      (from !== 'TechnicalArea' &&
+                        !!orderData.status_billing)) && (
+                      <>
+                        <p>{orderData && orderData.payment_way}</p>
+                        <p>{orderData && orderData.due_date}</p>
+                      </>
+                    )}
+                    {from === 'TechnicalArea' && (
+                      <>
+                        <p />
+                        <p />
+                      </>
+                    )}
+                    {from !== 'Billing' && !orderData.status_billing && <p />}
+                    {from !== 'Billing' &&
+                      orderData.status_billing === 'Aguardando' && (
+                        <div className="status">
+                          <FaRegClock className={faRegClock} />
+                          <span>Aguardando para Faturar</span>
+                        </div>
+                      )}
+                    {from !== 'Billing' &&
+                      orderData.status_billing === 'Faturado' && (
+                        <div className="status">
+                          <FaCheckCircle className={`faCheck ${faCheck}`} />
+                          <span>Faturado</span>
+                        </div>
+                      )}
+                    {from !== 'Billing' &&
+                      orderData.status_billing === 'Cancelado' && (
+                        <div className="status">
+                          <FaTimes className={`faTimes ${faTimes}`} />
+                          <span>Cancelado</span>
+                        </div>
+                      )}
+                    {from === 'Billing' && (
+                      <Status>
+                        <FormControl className={formControl}>
+                          <Select
+                            labelId="demo-simple-select-label"
+                            id="data-select"
+                            value={orderData.status_billing}
+                            defaultValue=""
+                            displayEmpty
+                            onChange={(e: ChangeEvent<{ value: unknown }>) => {
+                              updateBillingStatus(e);
+                            }}
+                          >
+                            {(!orderData.status_billing ||
+                              userPermission === 'Admin') && (
+                              <MenuItem value="">
+                                -- Selecione um status --
+                              </MenuItem>
+                            )}
+                            <MenuItem
+                              value="Aguardando"
+                              disabled={
+                                !!orderData.status_billing &&
+                                orderData.status_billing !== 'Aguardando' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaRegClock className={faRegClock} />
+                              Aguardando para Faturar
+                            </MenuItem>
+                            <MenuItem
+                              value="Faturado"
+                              disabled={
+                                !!orderData.status_billing &&
+                                orderData.status_billing !== 'Aguardando' &&
+                                orderData.status_billing !== 'Faturado' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaCheckCircle className={`faCheck ${faCheck}`} />
+                              Faturado
+                            </MenuItem>
+                            <MenuItem
+                              value="Cancelado"
+                              disabled={
+                                !!orderData.status_billing &&
+                                orderData.status_billing !== 'Aguardando' &&
+                                orderData.status_billing !== 'Faturado' &&
+                                orderData.status_billing !== 'Cancelado' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaTimes className={faTimes} />
+                              Cancelado
+                            </MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Status>
+                    )}
+                    {from !== 'Billing' && !orderData.status_payment && <p />}
+                    {from !== 'Billing' &&
+                      orderData.status_payment === 'Aguardando' && (
+                        <div className="status">
+                          <FaRegClock className={faRegClock} />
+                          <span>Aguardando Pagamento</span>
+                        </div>
+                      )}
+                    {from !== 'Billing' && orderData.status_payment === 'Pago' && (
+                      <div className="status">
+                        <FaCheckCircle className={`faCheck ${faCheck}`} />
+                        <span>Pago</span>
+                      </div>
+                    )}
+                    {from !== 'Billing' &&
+                      orderData.status_payment === 'Vencido' && (
+                        <div className="status">
+                          <FaCalendarTimes
+                            className={`faCalendarTimes ${faCalendarTimes}`}
+                          />
+                          <span>Vencido</span>
+                        </div>
+                      )}
+                    {from !== 'Billing' &&
+                      orderData.status_payment === 'Cancelado' && (
+                        <div className="status">
+                          <FaTimes className={`faTimes ${faTimes}`} />
+                          <span>Cancelado</span>
+                        </div>
+                      )}
+                    {from === 'Billing' && (
+                      <Status>
+                        <FormControl className={formControl}>
+                          <Select
+                            labelId="demo-simple-select-label"
+                            id="data-select"
+                            value={orderData.status_payment}
+                            defaultValue=""
+                            displayEmpty
+                            onChange={(e: ChangeEvent<{ value: unknown }>) => {
+                              updatePaymentStatus(e);
+                            }}
+                          >
+                            {(!orderData.status_payment ||
+                              userPermission === 'Admin') && (
+                              <MenuItem value="">
+                                -- Selecione um status --
+                              </MenuItem>
+                            )}
+                            <MenuItem
+                              value="Aguardando"
+                              disabled={
+                                !!orderData.status_payment &&
+                                orderData.status_payment !== 'Aguardando' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaRegClock className={faRegClock} />
+                              Aguardando Pagamento
+                            </MenuItem>
+                            <MenuItem
+                              value="Pago"
+                              disabled={
+                                !!orderData.status_payment &&
+                                orderData.status_payment !== 'Aguardando' &&
+                                orderData.status_payment !== 'Pago' &&
+                                orderData.status_payment !== 'Vencido' &&
+                                userPermission !== 'Admin'
+                              }
+                            >
+                              <FaCheckCircle className={`faCheck ${faCheck}`} />
+                              Pago
+                            </MenuItem>
+                            {orderData.status_payment !== 'Pago' && (
+                              <MenuItem
+                                value="Vencido"
+                                disabled={
+                                  !!orderData.status_payment &&
+                                  orderData.status_payment !== 'Aguardando' &&
+                                  orderData.status_payment !== 'Vencido' &&
+                                  userPermission !== 'Admin'
+                                }
+                              >
+                                <FaCalendarTimes
+                                  className={`faCalendarTimes ${faCalendarTimes}`}
+                                />
+                                Vencido
+                              </MenuItem>
+                            )}
+                          </Select>
+                        </FormControl>
+                      </Status>
+                    )}
+                  </DataForm>
+                </BillingData>
+              </SecondaryContent>
+              <ServicesOrderContent
+                isModalOpen={newServiceOpen || productViewOpen}
+              >
+                <TitleRow>
+                  <TitleServiceName>SERVIÇO</TitleServiceName>
+                  <TitleServiceDescription>
+                    DESCRIÇÃO DO SERVIÇO
+                  </TitleServiceDescription>
+                  {from !== 'TechnicalArea' && (
+                    <TitleServiceValue>VALOR</TitleServiceValue>
                   )}
-                </ServiceRow>
-              ))}
-          </ServicesOrderContent>
-        </ThemeProvider>
-      </Container>
+                </TitleRow>
+                {orderData.orders_products &&
+                  orderData.orders_products.length > 0 &&
+                  orderData.orders_products.map((service) => (
+                    <ServiceRow color={color} key={service.id}>
+                      <ServiceName
+                        type="button"
+                        onClick={() => handleSelectProduct(service)}
+                      >
+                        <span>{service.product.name}</span>
+                      </ServiceName>
+                      <ServiceDescription
+                        type="button"
+                        onClick={() => handleSelectProduct(service)}
+                      >
+                        <span>{service.product_description}</span>
+                      </ServiceDescription>
+                      {from !== 'TechnicalArea' && (
+                        <ServiceValue>
+                          <button
+                            className="service-value"
+                            type="button"
+                            onClick={() => handleSelectProduct(service)}
+                          >
+                            <span>R$</span>
+                            <span>
+                              {formatValue(Number(service.product_value))}
+                            </span>
+                          </button>
+                          {((from === 'Comercial' &&
+                            !orderData.status_delivery &&
+                            !orderData.status_billing &&
+                            !orderData.status_payment) ||
+                            (from === 'Comercial' &&
+                              userPermission === 'Admin')) && (
+                            <div>
+                              <button
+                                className="edit-service"
+                                type="button"
+                                onClick={() => handleSelectProduct(service)}
+                              >
+                                <MaterialTooltip
+                                  title="Alterar"
+                                  arrow
+                                  placement="left"
+                                >
+                                  <FaEdit className="faEdit" />
+                                </MaterialTooltip>
+                              </button>
+                              <button
+                                className="delete-service"
+                                type="button"
+                                onClick={() => {
+                                  handleDeleteServiceItem(service.id);
+                                }}
+                              >
+                                <MaterialTooltip
+                                  title="Excluir"
+                                  arrow
+                                  placement="left"
+                                >
+                                  <FaTrashAlt className="faTrashAlt" />
+                                </MaterialTooltip>
+                              </button>
+                            </div>
+                          )}
+                        </ServiceValue>
+                      )}
+                    </ServiceRow>
+                  ))}
+              </ServicesOrderContent>
+            </ThemeProvider>
+          </Container>
+        </>
+      )}
     </OrderOverlap>
   );
 };

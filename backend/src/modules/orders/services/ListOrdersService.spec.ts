@@ -43,11 +43,25 @@ describe('ListOrders', () => {
     const orderOne = await fakeOrdersRepository.create({
       client_id: client.id,
       seller_id: seller.id,
+      status_order: 'Rascunho',
+      status_delivery: '',
+      status_billing: '',
+      status_payment: '',
+      delivery_conditions: '',
+      payment_way: '',
+      due_date: '',
     });
 
     const orderTwo = await fakeOrdersRepository.create({
       client_id: client.id,
       seller_id: seller.id,
+      status_order: 'Rascunho',
+      status_delivery: '',
+      status_billing: '',
+      status_payment: '',
+      delivery_conditions: '',
+      payment_way: '',
+      due_date: '',
     });
 
     const orders = await listOrder.execute();

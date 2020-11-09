@@ -1,6 +1,6 @@
 import Order from '../infra/typeorm/entities/Order';
 
-export default interface ICreateOrdersProductsDTO {
+export default interface ICreateOrderProductDTO {
   order: Order;
   product_id: string;
   product_description: string;

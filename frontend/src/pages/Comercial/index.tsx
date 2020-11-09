@@ -38,12 +38,12 @@ const Comercial: React.FC = () => {
     searchStatus,
   } = useSearch();
 
-  if (userPermission !== 'Comercial' && userPermission !== 'Admin') {
-    push('/Loading');
-  }
-
   // This hook must be executed only once
   useEffect(() => {
+    if (userPermission !== 'Comercial' && userPermission !== 'Admin') {
+      push('/Loading');
+    }
+
     if (selectedDate) {
       searchDate(null);
     }

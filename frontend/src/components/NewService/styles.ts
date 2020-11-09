@@ -47,6 +47,7 @@ export const Header = styled.div<HeaderProps>`
 
   strong {
     font-size: 20px;
+    padding-top: 10px;
   }
 
   button {

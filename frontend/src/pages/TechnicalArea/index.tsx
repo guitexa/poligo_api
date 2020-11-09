@@ -30,16 +30,12 @@ const TechnicalArea: React.FC = () => {
     searchStatus,
   } = useSearch();
 
-  if (
-    userPermission !== 'TechnicalArea' &&
-    userPermission !== 'Admin' &&
-    userPermission !== 'Comercial'
-  ) {
-    push('/Loading');
-  }
-
   // This hook must be executed only once
   useEffect(() => {
+    if (userPermission !== 'TechnicalArea' && userPermission !== 'Admin') {
+      push('/Loading');
+    }
+
     if (selectedDate) {
       searchDate(null);
     }

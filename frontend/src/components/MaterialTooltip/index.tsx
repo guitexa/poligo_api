@@ -18,7 +18,7 @@ const MaterialTooltip: React.FC<TooltipProps> = ({ children, ...rest }) => {
 
   return (
     <Tooltip arrow classes={classes} {...rest} enterDelay={0} leaveDelay={100}>
-      <div>{children}</div>
+      <div style={{ display: 'flex' }}>{children}</div>
     </Tooltip>
   );
 };

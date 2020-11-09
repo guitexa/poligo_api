@@ -22,14 +22,14 @@ interface AddServiceButtonProps {
 }
 
 export const OrderOverlap = styled.div`
-  > button {
+  .headerButton {
     position: absolute;
     top: 8px;
     right: 15px;
   }
 `;
 
-export const NewServiceOverlap = styled.div`
+export const ModalOverlap = styled.div`
   position: absolute;
   top: 0;
   right: 0;
@@ -37,12 +37,6 @@ export const NewServiceOverlap = styled.div`
   width: 100vw;
   height: 100vh;
   z-index: 200;
-
-  & > button {
-    position: absolute;
-    top: 8px;
-    right: 15px;
-  }
 `;
 
 export const Container = styled.div`
@@ -133,6 +127,7 @@ export const DataForm = styled.div`
   p {
     font-size: 13px;
     line-height: 1.6em;
+    height: 1.6em;
     color: #222;
     flex: 1;
     text-align: left;
@@ -154,7 +149,6 @@ export const DataForm = styled.div`
 
     svg {
       font-size: 13px;
-      color: #888;
     }
 
     .faCheck {
@@ -162,16 +156,22 @@ export const DataForm = styled.div`
     }
 
     .faRegClock {
-      color: #999;
+      color: #555;
+    }
+
+    .riDraftFill {
+      color: #888;
     }
 
     .faTimes {
       color: #f00;
       font-size: 15px;
+      margin-left: -2px;
     }
 
-    .faAlert {
-      color: #c53030;
+    .faCalendarTimes,
+    .ioThumbsDown {
+      color: #c00000;
     }
 
     .hiRefresh {
@@ -284,72 +284,104 @@ export const TitleRow = styled.div`
   text-decoration: underline;
 `;
 
+export const TitleServiceName = styled.div`
+  width: 20%;
+  text-align: left;
+`;
+
+export const TitleServiceDescription = styled.div`
+  flex: 1;
+  text-align: left;
+`;
+
+export const TitleServiceValue = styled.div`
+  width: 15%;
+  max-width: 200px;
+  text-align: left;
+`;
+
 export const ServiceRow = styled.div<ServiceRowProps>`
   width: 100%;
-  padding: 11px 15px 10px 15px;
+  padding: 0 15px;
   display: flex;
   height: 24px;
   align-items: center;
   justify-content: flex-start;
-  cursor: default;
+  font-size: 13px;
 
   &:hover {
     background: ${({ color }) => color};
-    color: #fff;
 
     button {
+      color: #fff;
       svg {
         color: #ffffff70;
       }
     }
   }
+`;
 
-  > div {
-    padding: 0 20px 0 5px;
+export const ServiceName = styled.button`
+  width: 20%;
+  font-size: 13px;
+  text-align: left;
+  padding: 4.5px 25px 3.5px 5px;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: transparent;
 
-    &:last-child {
-      padding-right: 0;
-    }
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
   }
 `;
 
-export const ServiceName = styled.div`
-  width: 25%;
-  text-align: left;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-`;
-
-export const ServiceDescription = styled.div`
+export const ServiceDescription = styled.button`
   flex: 1;
+  font-size: 13px;
   text-align: left;
+  padding: 4.5px 25px 3.5px 5px;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: transparent;
 
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
 `;
 
 export const ServiceValue = styled.div`
   width: 15%;
-  max-width: 180px;
+  max-width: 200px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  div:first-child {
-    width: 60%;
+  .service-value {
+    width: 70%;
+    font-size: 13px;
+    padding: 4.5px 10px 3.5px 5px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    background: transparent;
   }
 
-  button {
+  .edit-service,
+  .delete-service {
+    font-size: 13px;
     background: transparent;
     outline: none;
     border: none;

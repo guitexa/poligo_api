@@ -12,7 +12,7 @@ import {
 
 import Client from '@modules/clients/infra/typeorm/entities/Client';
 import User from '@modules/users/infra/typeorm/entities/User';
-import OrdersProducts from './OrdersProducts';
+import OrderProduct from './OrderProduct';
 
 @Entity('orders')
 export default class Order {
@@ -24,7 +24,7 @@ export default class Order {
   order_number: number;
 
   // ONE order can have ONE client
-  @OneToOne(() => Client, client => client.id, { eager: true })
+  @OneToOne(() => Client, client => client.id)
   @JoinColumn({ name: 'client_id' })
   client: Client;
 
@@ -32,7 +32,7 @@ export default class Order {
   client_id: string;
 
   // ONE order can have ONE seller
-  @OneToOne(() => User, user => user.id, { eager: true })
+  @OneToOne(() => User, user => user.id)
   @JoinColumn({ name: 'seller_id' })
   seller: User;
 
@@ -70,19 +70,18 @@ export default class Order {
   status_payment: string;
 
   // ONE order can have ONE technical
-  @OneToOne(() => User, user => user.id, { eager: true })
+  @OneToOne(() => User, user => user.id)
   @JoinColumn({ name: 'technical_id' })
   technical: User;
 
   @Column()
   technical_id: string;
 
-  // ONE order can have MANY order_products
-  @OneToMany(() => OrdersProducts, orders_products => orders_products.order, {
+  // ONE order can have MANY orders_products
+  @OneToMany(() => OrderProduct, orders_products => orders_products.order, {
     cascade: true,
-    eager: true,
   })
-  order_products: OrdersProducts[];
+  orders_products: OrderProduct[];
 
   @CreateDateColumn()
   created_at: Date;
