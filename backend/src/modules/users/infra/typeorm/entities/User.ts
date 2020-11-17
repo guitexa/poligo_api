@@ -4,12 +4,8 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
-  OneToOne,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-
-import Permission from '@modules/permissions/infra/typeorm/entities/Permission';
 
 @Entity('users')
 export default class User {
@@ -27,12 +23,7 @@ export default class User {
   password: string;
 
   @Column()
-  permissions_id: string;
-
-  // ONE user can have ONE permission
-  @OneToOne(() => Permission)
-  @JoinColumn({ name: 'permissions_id' })
-  permissions: Permission;
+  permissions: string;
 
   @CreateDateColumn()
   created_at: Date;

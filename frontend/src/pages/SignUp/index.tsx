@@ -1,9 +1,16 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { FiUser, FiMail, FiLock, FiArrowLeft } from 'react-icons/fi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
+import {
+  // Select,
+  MenuItem,
+  ThemeProvider,
+  createMuiTheme,
+} from '@material-ui/core';
+import { Select } from 'unform-material-ui';
 
 import { useToast } from '../../hooks/toast';
 import api from '../../services/api';
@@ -21,10 +28,12 @@ interface DataForm {
   name: string;
   email: string;
   password: string;
-  permissions_id: string;
+  permissions: 'TechnicalArea' | 'Billing' | 'Comercial' | 'Admin';
 }
 
 const SignUp: React.FC = () => {
+  const [permission, setPermission] = useState('');
+
   const formRef = useRef<FormHandles>(null);
 
   const { checkToken } = useAuth();
@@ -32,6 +41,41 @@ const SignUp: React.FC = () => {
   const { addToast } = useToast();
 
   const history = useHistory();
+
+  const signUpMaterialTheme = createMuiTheme({
+    palette: {
+      primary: {
+        main: '#222',
+      },
+    },
+    overrides: {
+      MuiFormControl: {
+        root: {
+          width: '100%',
+        },
+      },
+      MuiMenuItem: {
+        root: {
+          '&:hover': {
+            backgroundColor: '#222',
+            color: '#fff',
+          },
+          '&&[aria-disabled="true"]': {
+            backgroundColor: '#fff',
+            color: '#aaa',
+          },
+          '&$selected': {
+            backgroundColor: '#222',
+            color: '#fff',
+            '&:hover': {
+              backgroundColor: '#222',
+              color: '#fff',
+            },
+          },
+        },
+      },
+    },
+  });
 
   const handleSubmit = useCallback(
     async (data: DataForm) => {
@@ -44,6 +88,7 @@ const SignUp: React.FC = () => {
             .required('Email obrigatório')
             .email('Digite um e-mail válido'),
           password: Yup.string().min(6, 'Senha deve ter no mínimo 6 dígitos'),
+          permissions: Yup.string().required(),
         });
 
         await schema.validate(data, {
@@ -56,14 +101,8 @@ const SignUp: React.FC = () => {
           name: data.name,
           email: data.email,
           password: data.password,
-          permissions_id: 'da499a8b-a8fd-47b0-8b5a-6d5db1ee43db',
+          permissions: data.permissions,
         });
-
-        /*
-          1. Buscar no backend quais as permissões existents com GET
-          2. Colocar essas opções num menu suspenso com valor em ID
-          3. Enviar no formulário a resposta escolhida
-        */
 
         addToast({
           type: 'success',
@@ -77,6 +116,13 @@ const SignUp: React.FC = () => {
 
           formRef.current?.setErrors(errors);
 
+          if (!permission) {
+            addToast({
+              type: 'error',
+              description: 'Selecione uma Permissão de acesso.',
+            });
+          }
+
           return;
         }
 
@@ -86,12 +132,12 @@ const SignUp: React.FC = () => {
         });
       }
     },
-    [checkToken, addToast, history]
+    [checkToken, addToast, history, permission]
   );
 
   return (
     <Container>
-      <Content>
+      <Content isSelected={!!permission}>
         <div>
           <img src={Logo} alt="Logo Poligo" />
           <Form ref={formRef} onSubmit={handleSubmit}>
@@ -103,12 +149,29 @@ const SignUp: React.FC = () => {
               type="password"
               placeholder="Senha"
             />
+            <ThemeProvider theme={signUpMaterialTheme}>
+              <Select
+                name="permissions"
+                variant="outlined"
+                displayEmpty
+                value={permission}
+                onChange={(e) => setPermission(e.target.value as string)}
+              >
+                <MenuItem value="" disabled>
+                  Permissão de acesso
+                </MenuItem>
+                <MenuItem value="TechnicalArea">Área Técnica</MenuItem>
+                <MenuItem value="Billing">Faturamento</MenuItem>
+                <MenuItem value="Comercial">Comercial</MenuItem>
+                <MenuItem value="Admin">Administrativo</MenuItem>
+              </Select>
+            </ThemeProvider>
             <Button>Cadastrar</Button>
           </Form>
         </div>
         <Link to="/">
           <FiArrowLeft size={20} />
-          Voltar para página de login
+          Voltar
         </Link>
       </Content>
     </Container>

@@ -69,6 +69,14 @@ export const Menu = styled.div`
     }
   }
 
+  #settings {
+    background: #363635;
+
+    &:hover {
+      background: ${shade(0.1, '#363635')};
+    }
+  }
+
   #exit {
     background: #111;
 
@@ -89,6 +97,7 @@ export const Menu = styled.div`
 
     a {
       display: inline-flex;
+      align-items: center;
       padding: 10px 15px;
       text-decoration: none;
       color: #fff;

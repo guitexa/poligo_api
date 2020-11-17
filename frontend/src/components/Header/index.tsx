@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { MdSettings } from 'react-icons/md';
+
 import IconTechnicalArea from '../../assets/icons/icon-technical-area.svg';
 import IconComercial from '../../assets/icons/icon-comercial.svg';
 import IconBilling from '../../assets/icons/icon-billing.svg';
@@ -27,8 +29,8 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
         onMouseLeave={() => setMenuIsOpen(!menuIsOpen)}
       >
         <div id="sub-menu">
-          {(user.permissions.name === 'Comercial' ||
-            user.permissions.name === 'Admin') && (
+          {(user.permissions === 'Comercial' ||
+            user.permissions === 'Admin') && (
             <Link id="comercial" to="/Comercial">
               <img src={IconComercial} alt="" />
               <div>
@@ -39,8 +41,8 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
               </div>
             </Link>
           )}
-          {(user.permissions.name === 'TechnicalArea' ||
-            user.permissions.name === 'Admin') && (
+          {(user.permissions === 'TechnicalArea' ||
+            user.permissions === 'Admin') && (
             <Link id="technical-area" to="/TechnicalArea">
               <img src={IconTechnicalArea} alt="" />
               <div>
@@ -51,8 +53,8 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
               </div>
             </Link>
           )}
-          {(user.permissions.name === 'Billing' ||
-            user.permissions.name === 'Admin') && (
+          {(user.permissions === 'Billing' ||
+            user.permissions === 'Admin') && (
             <Link id="billing" to="/Billing">
               <img src={IconBilling} alt="" />
               <div>
@@ -60,6 +62,17 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
                 <p className="text">Gerencie o</p>
                 <p className="text">faturamento dos</p>
                 <p className="text">pedidos do comercial</p>
+              </div>
+            </Link>
+          )}
+          {user.permissions === 'Admin' && (
+            <Link id="settings" to="/SignUp">
+              <MdSettings size={40} color="#fff" />
+              <div>
+                <p className="title">Configurações</p>
+                <p className="text">Configure o sistema de</p>
+                <p className="text">forma que melhor atenda</p>
+                <p className="text">suas necessidades</p>
               </div>
             </Link>
           )}

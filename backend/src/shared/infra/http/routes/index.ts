@@ -9,15 +9,11 @@ import ordersRouter from '@modules/orders/infra/http/routes/orders.routes';
 import ordersProductsRouter from '@modules/orders/infra/http/routes/orders_products.routes';
 import searchOrdersRouter from '@modules/orders/infra/http/routes/search_orders.routes';
 
-import permissionsRouter from '@modules/permissions/infra/http/routes/permissions.routes';
-
 const routes = Router();
 
 routes.use('/users', usersRouter);
 routes.use('/sessions-mail', sessionsMailRouter);
 routes.use('/sessions-password', sessionsPasswordRouter);
-
-routes.use('/permissions', permissionsRouter);
 
 routes.use('/clients', clientsRouter);
 

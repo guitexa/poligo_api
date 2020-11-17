@@ -40,8 +40,8 @@ const Comercial: React.FC = () => {
   // This hook must be executed only once
   useEffect(() => {
     if (
-      user.permissions.name !== 'Comercial' &&
-      user.permissions.name !== 'Admin'
+      user.permissions !== 'Comercial' &&
+      user.permissions !== 'Admin'
     ) {
       push('/Loading');
     }

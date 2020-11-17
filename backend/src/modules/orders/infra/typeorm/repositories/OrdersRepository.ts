@@ -91,6 +91,8 @@ export default class OrdersRepository implements IOrdersRepository {
               technical: 'orders.technical',
             },
           },
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           where: qb => {
             qb.where({
               created_at: Between(start_created_at, end_created_at),
@@ -129,6 +131,8 @@ export default class OrdersRepository implements IOrdersRepository {
             technical: 'orders.technical',
           },
         },
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         where: qb => {
           qb.where('client.company_name ILIKE :clientName', {
             clientName: `%${company_name}%`,
@@ -164,6 +168,8 @@ export default class OrdersRepository implements IOrdersRepository {
             seller: 'orders.seller',
           },
         },
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         where: qb => {
           qb.where({
             created_at: Between(start_created_at, end_created_at),
@@ -215,6 +221,8 @@ export default class OrdersRepository implements IOrdersRepository {
               // orders_products: 'orders.orders_products',
             },
           },
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           where: qb => {
             qb.where('client.company_name ILIKE :clientName', {
               clientName: `%${company_name}%`,

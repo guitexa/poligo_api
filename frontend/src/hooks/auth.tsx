@@ -4,15 +4,11 @@ import { fromUnixTime, isAfter } from 'date-fns';
 
 import api from '../services/api';
 
-interface Permissions {
-  name: string;
-}
-
 export interface User {
   id: string;
   name: string;
   email: string;
-  permissions: Permissions;
+  permissions: string;
 }
 
 interface TokenDecode {
@@ -54,14 +50,7 @@ export const AuthProvider: React.FC = ({ children }) => {
     return '';
   });
 
-  const [user, setUser] = useState<User>({
-    email: '',
-    id: '',
-    name: '',
-    permissions: {
-      name: '',
-    },
-  });
+  const [user, setUser] = useState<User>({} as User);
 
   const signInMail = useCallback(async ({ email }) => {
     const response = await api.post('/sessions-mail', {

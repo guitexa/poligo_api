@@ -7,7 +7,7 @@ import { classToClass } from 'class-transformer';
 
 export default class UsersController {
   public async create(req: Request, res: Response): Promise<Response> {
-    const { name, email, password, permissions_id } = req.body;
+    const { name, email, password, permissions } = req.body;
 
     const createUser = container.resolve(CreateUserService);
 
@@ -15,7 +15,7 @@ export default class UsersController {
       name,
       email,
       password,
-      permissions_id,
+      permissions,
     });
 
     return res.json(classToClass(user));

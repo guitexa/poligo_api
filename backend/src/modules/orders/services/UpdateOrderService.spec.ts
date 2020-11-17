@@ -2,7 +2,6 @@ import AppError from '@shared/errors/AppError';
 
 import FakeClientsRepository from '@modules/clients/repositories/fakes/FakeClientsRepository';
 import FakeUsersRepository from '@modules/users/repositories/fakes/FakeUsersRepository';
-import FakePermissionsRepository from '@modules/permissions/repositories/fakes/FakePermissionsRepository';
 import FakeProductsRepository from '@modules/products/repositories/fakes/FakeProductsRepository';
 import User from '@modules/users/infra/typeorm/entities/User';
 import Client from '@modules/clients/infra/typeorm/entities/Client';
@@ -14,7 +13,6 @@ import Order from '../infra/typeorm/entities/Order';
 
 let fakeClientsRepository: FakeClientsRepository;
 let fakeUsersRepository: FakeUsersRepository;
-let fakePermissionsRepository: FakePermissionsRepository;
 let fakeProductsRepository: FakeProductsRepository;
 let fakeOrdersRepository: FakeOrdersRepository;
 let fakeOrdersProductsRepository: FakeOrdersProductsRepository;
@@ -29,7 +27,6 @@ describe('UpdateOrder', () => {
   beforeEach(async () => {
     fakeClientsRepository = new FakeClientsRepository();
     fakeUsersRepository = new FakeUsersRepository();
-    fakePermissionsRepository = new FakePermissionsRepository();
     fakeProductsRepository = new FakeProductsRepository();
     fakeOrdersRepository = new FakeOrdersRepository();
     fakeOrdersProductsRepository = new FakeOrdersProductsRepository();
@@ -49,22 +46,18 @@ describe('UpdateOrder', () => {
       mobile: '34988335566',
     });
 
-    const permission = await fakePermissionsRepository.create({
-      name: 'permission-name',
-    });
-
     seller = await fakeUsersRepository.create({
       name: 'Jane Doe',
       email: 'janedoe@mail.com',
       password: '123456',
-      permissions_id: permission.id,
+      permissions: 'Admin',
     });
 
     technical = await fakeUsersRepository.create({
       name: 'John Doe',
       email: 'johndoe@mail.com',
       password: '123456',
-      permissions_id: permission.id,
+      permissions: 'Admin',
     });
 
     // product = await fakeProductsRepository.create({

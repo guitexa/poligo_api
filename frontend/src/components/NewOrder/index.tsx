@@ -115,7 +115,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const clientPhoneRef = useRef<FormHandles>(null);
   const clientMobilePhoneRef = useRef<FormHandles>(null);
 
-  const defaultMaterialTheme = createMuiTheme({
+  const newOrderMaterialTheme = createMuiTheme({
     palette: {
       primary: {
         main: color,
@@ -857,7 +857,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         icon={FaTimes}
         color={color}
       />
-      <ThemeProvider theme={defaultMaterialTheme}>
+      <ThemeProvider theme={newOrderMaterialTheme}>
         <Container>
           <Content color={color}>
             {clientNameOpen && clients && (

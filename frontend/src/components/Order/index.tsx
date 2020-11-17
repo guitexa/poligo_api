@@ -468,7 +468,7 @@ const Order: React.FC<OrderProps> = ({
     hiRefresh,
   } = useStyles();
 
-  const defaultMaterialTheme = createMuiTheme({
+  const orderMaterialTheme = createMuiTheme({
     palette: {
       primary: {
         main: color,
@@ -551,7 +551,7 @@ const Order: React.FC<OrderProps> = ({
                 color: '#fff',
                 '&[class*="ioThumbsDown"]': {
                   margin: '0 10px -1px -3px',
-                  fontSize: '15px',
+                  fontSize: '17px',
                 },
                 '&[class*="faTimes"]': {
                   margin: '0 10px -1px -4px',
@@ -862,7 +862,7 @@ const Order: React.FC<OrderProps> = ({
             className="headerButton"
           />
           <Container>
-            <ThemeProvider theme={defaultMaterialTheme}>
+            <ThemeProvider theme={orderMaterialTheme}>
               <PrimaryContent isModalOpen={newServiceOpen || productViewOpen}>
                 <CompanyData>
                   <TitlesForm>
@@ -954,7 +954,7 @@ const Order: React.FC<OrderProps> = ({
                           >
                             <MenuItem
                               value="Rascunho"
-                              disabled={user.permissions.name !== 'Admin'}
+                              disabled={user.permissions !== 'Admin'}
                             >
                               <RiDraftFill className={riDraftFill} />
                               Rascunho
@@ -964,7 +964,7 @@ const Order: React.FC<OrderProps> = ({
                               disabled={
                                 orderData.status_order !== 'Rascunho' &&
                                 orderData.status_order !== 'Aguardando' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaRegClock className={faRegClock} />
@@ -976,7 +976,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_order !== 'Rascunho' &&
                                 orderData.status_order !== 'Aguardando' &&
                                 orderData.status_order !== 'Reprovado' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <IoMdThumbsDown className={ioThumbsDown} />
@@ -989,7 +989,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_order !== 'Aguardando' &&
                                 orderData.status_order !== 'Reprovado' &&
                                 orderData.status_order !== 'Aprovado' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaCheckCircle className={faCheck} />
@@ -1003,7 +1003,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_order !== 'Reprovado' &&
                                 orderData.status_order !== 'Aprovado' &&
                                 orderData.status_order !== 'Cancelado' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaTimes className={faTimes} />
@@ -1025,8 +1025,7 @@ const Order: React.FC<OrderProps> = ({
                   !orderData.status_delivery &&
                   !orderData.status_billing &&
                   !orderData.status_payment) ||
-                  (from === 'Comercial' &&
-                    user.permissions.name === 'Admin')) && (
+                  (from === 'Comercial' && user.permissions === 'Admin')) && (
                   <AddServiceButton
                     type="button"
                     color={color}
@@ -1178,7 +1177,7 @@ const Order: React.FC<OrderProps> = ({
                             }}
                           >
                             {(!orderData.status_delivery ||
-                              user.permissions.name === 'Admin') && (
+                              user.permissions === 'Admin') && (
                               <MenuItem value="">
                                 -- Selecione um status --
                               </MenuItem>
@@ -1188,7 +1187,7 @@ const Order: React.FC<OrderProps> = ({
                               disabled={
                                 !!orderData.status_delivery &&
                                 orderData.status_delivery !== 'Agendado' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaRegClock className={faRegClock} />
@@ -1200,7 +1199,7 @@ const Order: React.FC<OrderProps> = ({
                                 !!orderData.status_delivery &&
                                 orderData.status_delivery !== 'Agendado' &&
                                 orderData.status_delivery !== 'Execução' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <HiOutlineRefresh
@@ -1215,7 +1214,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_delivery !== 'Agendado' &&
                                 orderData.status_delivery !== 'Execução' &&
                                 orderData.status_delivery !== 'Concluído' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaCheckCircle className={`faCheck ${faCheck}`} />
@@ -1229,7 +1228,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_delivery !== 'Execução' &&
                                 orderData.status_delivery !== 'Concluído' &&
                                 orderData.status_delivery !== 'Cancelado' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaTimes className={faTimes} />
@@ -1317,7 +1316,7 @@ const Order: React.FC<OrderProps> = ({
                             }}
                           >
                             {(!orderData.status_billing ||
-                              user.permissions.name === 'Admin') && (
+                              user.permissions === 'Admin') && (
                               <MenuItem value="">
                                 -- Selecione um status --
                               </MenuItem>
@@ -1327,7 +1326,7 @@ const Order: React.FC<OrderProps> = ({
                               disabled={
                                 !!orderData.status_billing &&
                                 orderData.status_billing !== 'Aguardando' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaRegClock className={faRegClock} />
@@ -1339,7 +1338,7 @@ const Order: React.FC<OrderProps> = ({
                                 !!orderData.status_billing &&
                                 orderData.status_billing !== 'Aguardando' &&
                                 orderData.status_billing !== 'Faturado' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaCheckCircle className={`faCheck ${faCheck}`} />
@@ -1352,7 +1351,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_billing !== 'Aguardando' &&
                                 orderData.status_billing !== 'Faturado' &&
                                 orderData.status_billing !== 'Cancelado' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaTimes className={faTimes} />
@@ -1406,7 +1405,7 @@ const Order: React.FC<OrderProps> = ({
                             }}
                           >
                             {(!orderData.status_payment ||
-                              user.permissions.name === 'Admin') && (
+                              user.permissions === 'Admin') && (
                               <MenuItem value="">
                                 -- Selecione um status --
                               </MenuItem>
@@ -1416,7 +1415,7 @@ const Order: React.FC<OrderProps> = ({
                               disabled={
                                 !!orderData.status_payment &&
                                 orderData.status_payment !== 'Aguardando' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaRegClock className={faRegClock} />
@@ -1429,7 +1428,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_payment !== 'Aguardando' &&
                                 orderData.status_payment !== 'Pago' &&
                                 orderData.status_payment !== 'Vencido' &&
-                                user.permissions.name !== 'Admin'
+                                user.permissions !== 'Admin'
                               }
                             >
                               <FaCheckCircle className={`faCheck ${faCheck}`} />
@@ -1442,7 +1441,7 @@ const Order: React.FC<OrderProps> = ({
                                   !!orderData.status_payment &&
                                   orderData.status_payment !== 'Aguardando' &&
                                   orderData.status_payment !== 'Vencido' &&
-                                  user.permissions.name !== 'Admin'
+                                  user.permissions !== 'Admin'
                                 }
                               >
                                 <FaCalendarTimes
@@ -1503,7 +1502,7 @@ const Order: React.FC<OrderProps> = ({
                             !orderData.status_billing &&
                             !orderData.status_payment) ||
                             (from === 'Comercial' &&
-                              user.permissions.name === 'Admin')) && (
+                              user.permissions === 'Admin')) && (
                             <div>
                               <button
                                 className="edit-service"

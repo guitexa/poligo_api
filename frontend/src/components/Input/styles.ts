@@ -34,11 +34,11 @@ export const Container = styled.div<InputProps>`
     color: #222;
     background-color: transparent;
     flex: 1;
-    padding: 10px 0;
+    padding: 10px 0 9px 0;
     border: none;
 
     &::placeholder {
-      font-size: 15px;
+      font-size: 1rem;
       color: #333;
     }
   }

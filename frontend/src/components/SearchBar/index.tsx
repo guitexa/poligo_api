@@ -83,12 +83,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
     checkToken();
     api.get<User[]>('/users').then((response) => {
       setSellers(
-        response.data.filter((user) => user.permissions.name === 'Comercial')
+        response.data.filter((user) => user.permissions === 'Comercial')
       );
       setTechnicals(
-        response.data.filter(
-          (user) => user.permissions.name === 'TechnicalArea'
-        )
+        response.data.filter((user) => user.permissions === 'TechnicalArea')
       );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,7 +106,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
     [searchDeliveryDate]
   );
 
-  const defaultMaterialTheme = createMuiTheme({
+  const searchBarMaterialTheme = createMuiTheme({
     palette: {
       primary: {
         main: color,
@@ -216,7 +214,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
 
   return (
     <Container color={color}>
-      <ThemeProvider theme={defaultMaterialTheme}>
+      <ThemeProvider theme={searchBarMaterialTheme}>
         <Date isFilled={!!selectedDate}>
           <Grid container alignItems="flex-end">
             <Grid item>

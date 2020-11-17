@@ -11,19 +11,19 @@ const Loading: React.FC = () => {
   const { push } = useHistory();
   const { user } = useAuth();
 
-  if (user.permissions.name === 'Admin') {
+  if (user.permissions === 'Admin') {
     push('/Comercial');
   }
 
-  if (user.permissions.name === 'Comercial') {
+  if (user.permissions === 'Comercial') {
     push('/Comercial');
   }
 
-  if (user.permissions.name === 'TechnicalArea') {
+  if (user.permissions === 'TechnicalArea') {
     push('/TechnicalArea');
   }
 
-  if (user.permissions.name === 'Billing') {
+  if (user.permissions === 'Billing') {
     push('/Billing');
   }
 

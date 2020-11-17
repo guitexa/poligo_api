@@ -131,7 +131,7 @@ const NewService: React.FC<NewServiceProps> = ({
       .then((response) => setServices(response.data));
   }, []);
 
-  const defaultMaterialTheme = createMuiTheme({
+  const newServiceMaterialTheme = createMuiTheme({
     palette: {
       primary: {
         main: color,
@@ -314,7 +314,7 @@ const NewService: React.FC<NewServiceProps> = ({
   return (
     <>
       {order_product_id && service && value.formattedValue && (
-        <ThemeProvider theme={defaultMaterialTheme}>
+        <ThemeProvider theme={newServiceMaterialTheme}>
           <ModalContainer>
             <Header color={color}>
               <strong>ALTERAR SERVIÇO</strong>
@@ -433,7 +433,7 @@ const NewService: React.FC<NewServiceProps> = ({
         </ThemeProvider>
       )}
       {order_id && !order_product_id && (
-        <ThemeProvider theme={defaultMaterialTheme}>
+        <ThemeProvider theme={newServiceMaterialTheme}>
           <ModalContainer>
             <Header color={color}>
               <strong>ADICIONAR SERVIÇO</strong>

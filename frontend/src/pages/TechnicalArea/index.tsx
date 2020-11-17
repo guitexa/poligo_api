@@ -32,8 +32,8 @@ const TechnicalArea: React.FC = () => {
   // This hook must be executed only once
   useEffect(() => {
     if (
-      user.permissions.name !== 'TechnicalArea' &&
-      user.permissions.name !== 'Admin'
+      user.permissions !== 'TechnicalArea' &&
+      user.permissions !== 'Admin'
     ) {
       push('/Loading');
     }

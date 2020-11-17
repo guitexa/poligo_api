@@ -31,10 +31,7 @@ const Billing: React.FC = () => {
 
   // This hook must be executed only once
   useEffect(() => {
-    if (
-      user.permissions.name !== 'Billing' &&
-      user.permissions.name !== 'Admin'
-    ) {
+    if (user.permissions !== 'Billing' && user.permissions !== 'Admin') {
       push('/Loading');
     }
 
