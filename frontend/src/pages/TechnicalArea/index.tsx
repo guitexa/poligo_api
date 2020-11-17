@@ -13,55 +13,48 @@ import { Container } from './styles';
 
 const TechnicalArea: React.FC = () => {
   const { push } = useHistory();
-  const { userPermission, checkToken } = useAuth();
+  const { user, checkToken } = useAuth();
   const { orderOpen, overlapOrderOpen } = useOverlap();
   const {
+    company_name,
     selectedDate,
     selectedDeliveryDate,
-    companyName,
+    seller,
     service,
+    status_billing,
+    status_delivery,
+    status_order,
     technical,
-    status,
-    searchDate,
-    searchDeliveryDate,
-    searchCompanyName,
-    searchService,
-    searchTechnical,
-    searchStatus,
+    total_value,
+    clearAllResults,
   } = useSearch();
 
   // This hook must be executed only once
   useEffect(() => {
-    if (userPermission !== 'TechnicalArea' && userPermission !== 'Admin') {
+    if (
+      user.permissions.name !== 'TechnicalArea' &&
+      user.permissions.name !== 'Admin'
+    ) {
       push('/Loading');
-    }
-
-    if (selectedDate) {
-      searchDate(null);
-    }
-
-    if (companyName) {
-      searchCompanyName('');
-    }
-
-    if (service) {
-      searchService('');
-    }
-
-    if (technical) {
-      searchTechnical('');
-    }
-
-    if (selectedDeliveryDate) {
-      searchDeliveryDate(null);
-    }
-
-    if (status) {
-      searchStatus('');
     }
 
     if (orderOpen) {
       overlapOrderOpen(false);
+    }
+
+    if (
+      company_name ||
+      selectedDate ||
+      selectedDeliveryDate ||
+      seller ||
+      service ||
+      status_billing ||
+      status_delivery ||
+      status_order ||
+      technical ||
+      total_value
+    ) {
+      clearAllResults();
     }
 
     checkToken();

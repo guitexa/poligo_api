@@ -52,13 +52,13 @@ interface NewServiceProps {
   addNewOrderProduct(data: ServiceOrderData): void;
 }
 
-interface ServiceState {
+interface ServiceData {
   inputValue?: string;
   id?: string;
   name: string;
 }
 
-interface CreateProductResponse {
+interface CreateProduct {
   id: string;
   name: string;
 }
@@ -111,11 +111,11 @@ const NewService: React.FC<NewServiceProps> = ({
   updateOrderProduct,
   addNewOrderProduct,
 }) => {
-  const [services, setServices] = useState<ServiceState[]>([]);
+  const [services, setServices] = useState<ServiceData[]>([]);
   const [product, setProduct] = useState<ServiceOrderData>(
     {} as ServiceOrderData
   );
-  const [service, setService] = useState<ServiceState>({} as ServiceState);
+  const [service, setService] = useState<ServiceData>({} as ServiceData);
   const [description, setDescription] = useState('');
   const [value, setValue] = useState<ValueState>({
     formattedValue: '',
@@ -127,7 +127,7 @@ const NewService: React.FC<NewServiceProps> = ({
 
   useEffect(() => {
     api
-      .get<ServiceState[]>('/products')
+      .get<ServiceData[]>('/products')
       .then((response) => setServices(response.data));
   }, []);
 
@@ -179,7 +179,7 @@ const NewService: React.FC<NewServiceProps> = ({
     },
   });
 
-  const filter = createFilterOptions<ServiceState>();
+  const filter = createFilterOptions<ServiceData>();
 
   const handleChangeValue = (event: ChangeEvent<HTMLInputElement>): void => {
     setValue({
@@ -285,7 +285,7 @@ const NewService: React.FC<NewServiceProps> = ({
   const handleAddNewService = useCallback(
     (newServiceToAdd: string) => {
       api
-        .post<CreateProductResponse>('/products', {
+        .post<CreateProduct>('/products', {
           name: newServiceToAdd,
         })
         .then((response) => {
@@ -338,14 +338,11 @@ const NewService: React.FC<NewServiceProps> = ({
                         setService(newService);
                       }
                       if (!newService) {
-                        setService({} as ServiceState);
+                        setService({} as ServiceData);
                       }
                     }}
                     filterOptions={(options, params) => {
-                      const filtered = filter(
-                        options,
-                        params
-                      ) as ServiceState[];
+                      const filtered = filter(options, params) as ServiceData[];
 
                       if (params.inputValue !== '') {
                         filtered.push({
@@ -367,8 +364,8 @@ const NewService: React.FC<NewServiceProps> = ({
                     renderInput={(params) => (
                       <OriginalTextField
                         autoFocus
-                        {...params}
                         label="Serviço"
+                        {...params}
                       />
                     )}
                     renderOption={({ name }, { inputValue }) => {
@@ -460,14 +457,11 @@ const NewService: React.FC<NewServiceProps> = ({
                         setService(newService);
                       }
                       if (!newService) {
-                        setService({} as ServiceState);
+                        setService({} as ServiceData);
                       }
                     }}
                     filterOptions={(options, params) => {
-                      const filtered = filter(
-                        options,
-                        params
-                      ) as ServiceState[];
+                      const filtered = filter(options, params) as ServiceData[];
 
                       if (params.inputValue !== '') {
                         filtered.push({

@@ -20,7 +20,9 @@ export default class UsersRepository implements IUsersRepository {
   }
 
   public async findAll(): Promise<User[] | undefined> {
-    const users = await this.ormRepository.find();
+    const users = await this.ormRepository.find({
+      relations: ['permissions'],
+    });
 
     return users;
   }
@@ -30,6 +32,7 @@ export default class UsersRepository implements IUsersRepository {
       where: {
         email,
       },
+      relations: ['permissions'],
     });
 
     return user;
@@ -40,6 +43,7 @@ export default class UsersRepository implements IUsersRepository {
       where: {
         id: user_id,
       },
+      relations: ['permissions'],
     });
 
     return user;

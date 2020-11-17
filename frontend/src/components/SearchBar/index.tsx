@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import 'date-fns';
 import DateFnsUtils from '@date-io/date-fns';
 import {
@@ -26,9 +26,13 @@ import * as themeAugmentation from '@material-ui/lab/themeAugmentation';
 import parse from 'autosuggest-highlight/parse';
 import match from 'autosuggest-highlight/match';
 import { FaCheckCircle, FaRegClock, FaTimes } from 'react-icons/fa';
-import NumberFormat from 'react-number-format';
+import { HiOutlineRefresh } from 'react-icons/hi';
+import { RiDraftFill } from 'react-icons/ri';
+import { IoMdThumbsDown } from 'react-icons/io';
 
 import { useSearch } from '../../hooks/search';
+
+import { useAuth, User } from '../../hooks/auth';
 
 import {
   Container,
@@ -39,65 +43,56 @@ import {
   Value,
   Status,
 } from './styles';
+import api from '../../services/api';
 
 interface SearchBarProps {
   color: string;
   from: string;
 }
 
-interface NumberFormatCustomProps {
-  inputRef: (instance: NumberFormat | null) => void;
-  onChange: (event: { target: { name: string; value: string } }) => void;
-  name: string;
-}
-
-function NumberFormatCustom(props: NumberFormatCustomProps): JSX.Element {
-  const { inputRef, onChange, ...other } = props;
-
-  return (
-    <NumberFormat
-      {...other}
-      getInputRef={inputRef}
-      onValueChange={(value) => {
-        onChange({
-          target: {
-            name: props.name,
-            value: value.value,
-          },
-        });
-      }}
-      thousandSeparator="."
-      decimalSeparator=","
-      isNumericString
-      fixedDecimalScale
-      prefix="R$ "
-      decimalScale={2}
-    />
-  );
-}
-
 const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
-  const sellers = [{ name: 'Christiane' }, { name: 'Tainara' }];
-  const technicals = [{ name: 'Leandro' }, { name: 'Aline' }];
+  const [sellers, setSellers] = useState<User[]>([]);
+  const [technicals, setTechnicals] = useState<User[]>([]);
 
   const {
     selectedDate,
     selectedDeliveryDate,
-    companyName,
+    company_name,
     service,
     seller,
     technical,
-    value,
-    status,
+    total_value,
+    status_order,
+    status_delivery,
+    status_billing,
     searchDate,
     searchDeliveryDate,
     searchCompanyName,
     searchService,
     searchSeller,
     searchTechnical,
-    searchValue,
-    searchStatus,
+    searchTotalValue,
+    searchStatusOrder,
+    searchStatusDelivery,
+    searchStatusBilling,
   } = useSearch();
+
+  const { checkToken } = useAuth();
+
+  useEffect(() => {
+    checkToken();
+    api.get<User[]>('/users').then((response) => {
+      setSellers(
+        response.data.filter((user) => user.permissions.name === 'Comercial')
+      );
+      setTechnicals(
+        response.data.filter(
+          (user) => user.permissions.name === 'TechnicalArea'
+        )
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDateChange = useCallback(
     (date: Date | null) => {
@@ -178,15 +173,32 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
         color: '#1b914f',
       },
       faRegClock: {
+        color: '#555',
+      },
+      riDraftFill: {
         color: '#999',
       },
       faTimes: {
         color: '#f00',
       },
+      ioThumbsDown: {
+        color: '#c00000',
+      },
+      hiRefresh: {
+        color: '#000',
+      },
     })
   );
 
-  const { formControl, faCheck, faRegClock, faTimes } = useStyles();
+  const {
+    formControl,
+    faCheck,
+    faRegClock,
+    riDraftFill,
+    faTimes,
+    ioThumbsDown,
+    hiRefresh,
+  } = useStyles();
 
   const handleChangeSeller = useCallback(
     (event, selectedSeller) => {
@@ -212,6 +224,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
                 <KeyboardDatePicker
                   disableToolbar
                   variant="inline"
+                  autoOk
                   id="date-picker-inline"
                   label="Data"
                   format="dd/MM/yyyy"
@@ -241,12 +254,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
               <TextField
                 id="input-with-icon-grid-company-name"
                 label="Razão Social"
-                value={companyName}
+                value={company_name}
                 onChange={(e) => searchCompanyName(e.target.value)}
               />
             </Grid>
             <Grid item>
-              {companyName ? (
+              {company_name ? (
                 <IconButton onClick={() => searchCompanyName('')}>
                   <Close />
                 </IconButton>
@@ -318,18 +331,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
                 <Grid item>
                   <TextField
                     label="Valor"
-                    value={value}
-                    onChange={(e) => searchValue(e.target.value)}
+                    value={total_value}
+                    onChange={(e) => searchTotalValue(e.target.value)}
                     name="formattedValue"
                     id="formatted-formattedValue-input"
-                    InputProps={{
-                      inputComponent: NumberFormatCustom as any,
-                    }}
                   />
                 </Grid>
                 <Grid item>
-                  {value ? (
-                    <IconButton onClick={() => searchValue('')}>
+                  {total_value ? (
+                    <IconButton onClick={() => searchTotalValue('')}>
                       <Close />
                     </IconButton>
                   ) : (
@@ -406,30 +416,116 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
                 </Grid>
               </Grid>
             </Date>
+            <Status value={!!status_delivery}>
+              <FormControl className={formControl}>
+                <InputLabel id="demo-simple-select-label">Status</InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={status_delivery}
+                  onChange={(e) => {
+                    searchStatusDelivery(e.target.value as string);
+                  }}
+                >
+                  <MenuItem value="">&nbsp;</MenuItem>
+                  <MenuItem
+                    value="Agendado"
+                    style={{ justifyContent: 'center' }}
+                  >
+                    <FaRegClock className={faRegClock} />
+                  </MenuItem>
+                  <MenuItem
+                    value="Execução"
+                    style={{ justifyContent: 'center' }}
+                  >
+                    <HiOutlineRefresh className={hiRefresh} />
+                  </MenuItem>
+                  <MenuItem
+                    value="Concluído"
+                    style={{ justifyContent: 'center' }}
+                  >
+                    <FaCheckCircle className={faCheck} />
+                  </MenuItem>
+                  <MenuItem
+                    value="Cancelado"
+                    style={{ justifyContent: 'center' }}
+                  >
+                    <FaTimes className={faTimes} />
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Status>
           </>
         )}
-        <Status value={!!status}>
-          <FormControl className={formControl}>
-            <InputLabel id="demo-simple-select-label">Status</InputLabel>
-            <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              value={status}
-              onChange={(e) => searchStatus(e.target.value as string)}
-            >
-              <MenuItem value="">&nbsp;</MenuItem>
-              <MenuItem value="Aprovado" style={{ justifyContent: 'center' }}>
-                <FaCheckCircle className={faCheck} />
-              </MenuItem>
-              <MenuItem value="Aguardando" style={{ justifyContent: 'center' }}>
-                <FaRegClock className={faRegClock} />
-              </MenuItem>
-              <MenuItem value="Cancelado" style={{ justifyContent: 'center' }}>
-                <FaTimes className={faTimes} />
-              </MenuItem>
-            </Select>
-          </FormControl>
-        </Status>
+        {from === 'Billing' && (
+          <Status value={!!status_billing}>
+            <FormControl className={formControl}>
+              <InputLabel id="demo-simple-select-label">Status</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={status_billing}
+                onChange={(e) => searchStatusBilling(e.target.value as string)}
+              >
+                <MenuItem value="">&nbsp;</MenuItem>
+                <MenuItem
+                  value="Aguardando"
+                  style={{ justifyContent: 'center' }}
+                >
+                  <FaRegClock className={faRegClock} />
+                </MenuItem>
+                <MenuItem value="Faturado" style={{ justifyContent: 'center' }}>
+                  <FaCheckCircle className={faCheck} />
+                </MenuItem>
+                <MenuItem
+                  value="Cancelado"
+                  style={{ justifyContent: 'center' }}
+                >
+                  <FaTimes className={faTimes} />
+                </MenuItem>
+              </Select>
+            </FormControl>
+          </Status>
+        )}
+        {from === 'Comercial' && (
+          <Status value={!!status_order}>
+            <FormControl className={formControl}>
+              <InputLabel id="demo-simple-select-label">Status</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={status_order}
+                onChange={(e) => searchStatusOrder(e.target.value as string)}
+              >
+                <MenuItem value="">&nbsp;</MenuItem>
+                <MenuItem value="Rascunho" style={{ justifyContent: 'center' }}>
+                  <RiDraftFill className={riDraftFill} />
+                </MenuItem>
+                <MenuItem
+                  value="Aguardando"
+                  style={{ justifyContent: 'center' }}
+                >
+                  <FaRegClock className={faRegClock} />
+                </MenuItem>
+                <MenuItem
+                  value="Reprovado"
+                  style={{ justifyContent: 'center' }}
+                >
+                  <IoMdThumbsDown className={ioThumbsDown} />
+                </MenuItem>
+                <MenuItem value="Aprovado" style={{ justifyContent: 'center' }}>
+                  <FaCheckCircle className={faCheck} />
+                </MenuItem>
+                <MenuItem
+                  value="Cancelado"
+                  style={{ justifyContent: 'center' }}
+                >
+                  <FaTimes className={faTimes} />
+                </MenuItem>
+              </Select>
+            </FormControl>
+          </Status>
+        )}
       </ThemeProvider>
     </Container>
   );

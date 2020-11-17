@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { format, isValid, parseISO } from 'date-fns';
+import { parseISO } from 'date-fns';
 import { RiDraftFill } from 'react-icons/ri';
 import {
   FaCalendarTimes,
@@ -35,19 +35,16 @@ import {
 import { useAuth } from '../../hooks/auth';
 
 interface ClientData {
+  id: string;
   company_name: string;
   cpf_cnpj: string;
   contact_name: string;
-  email: string;
+  email?: string;
   phone: string;
-  mobile: string;
+  mobile?: string;
 }
 
-interface SellerData {
-  name: string;
-}
-
-interface TechnicalData {
+interface UserData {
   name: string;
 }
 
@@ -91,8 +88,9 @@ export interface OrderDataType {
   status_payment?: '' | 'Aguardando' | 'Pago' | 'Vencido' | unknown;
   created_at: string;
   client: ClientData;
-  seller: SellerData;
-  technical?: TechnicalData;
+  seller: UserData;
+  technical?: UserData;
+  total_value?: string;
   orders_products?: ServiceOrderData[];
 }
 
@@ -237,7 +235,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
     [searchResults]
   );
 
-  const servicesValuesToShow = useCallback(
+  const totalValue = useCallback(
     (order_id: string): string => {
       const getOrderIndex = searchResults.findIndex(
         (result) => result.id === order_id
@@ -255,25 +253,40 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
 
       return '';
     },
-    [searchResults]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [searchResults, updateSearchResults]
   );
 
-  // const {
-  //   selectedDate,
-  //   selectedDeliveryDate,
-  //   companyName,
-  //   service,
-  //   seller,
-  //   technical,
-  //   value,
-  //   status,
-  // } = useSearch();
+  const {
+    company_name,
+    selectedDate,
+    selectedDeliveryDate,
+    seller,
+    service,
+    status_billing,
+    status_delivery,
+    status_order,
+    technical,
+    total_value,
+  } = useSearch();
 
-  const { orderOpen, overlapOrderOpen } = useOverlap();
+  const { orderOpen, overlapOrderOpen, newOrderOpen } = useOverlap();
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) {
+    if (
+      user &&
+      (!company_name || company_name.length <= 3) &&
+      !selectedDate &&
+      !selectedDeliveryDate &&
+      !seller &&
+      !service &&
+      !status_billing &&
+      !status_delivery &&
+      !status_order &&
+      !technical &&
+      !total_value
+    ) {
       api.get<OrderDataType[]>('/orders').then((response) => {
         const sortedResponse = response.data.sort((a, b) => {
           if (a.created_at < b.created_at) return 1;
@@ -282,63 +295,57 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
         });
         setSearchResults(sortedResponse);
       });
+    } else if (
+      user &&
+      (company_name.length > 3 ||
+        selectedDate ||
+        selectedDeliveryDate ||
+        seller ||
+        service ||
+        status_billing ||
+        status_delivery ||
+        status_order ||
+        technical ||
+        total_value.length > 1)
+    ) {
+      api
+        .get<OrderDataType[]>('/search-orders', {
+          params: {
+            created_at: selectedDate,
+            company_name,
+            // selectedDeliveryDate,
+            seller,
+            // service,
+            status_billing,
+            status_delivery,
+            status_order,
+            technical,
+            total_value,
+          },
+        })
+        .then((response) => {
+          const sortedResponse = response.data.sort((a, b) => {
+            if (a.created_at < b.created_at) return 1;
+            if (a.created_at > b.created_at) return -1;
+            return 0;
+          });
+          setSearchResults(sortedResponse);
+        });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // if (selectedDate && isValid(selectedDate)) {
-  //   const formattedDate = format(selectedDate, 'dd/MM/yyyy');
-
-  //   searchResults = searchResults.filter((i) => {
-  //     return i.formattedDate.match(formattedDate);
-  //   });
-  // }
-
-  // if (selectedDeliveryDate && isValid(selectedDeliveryDate)) {
-  //   const formattedDeliveryDate = format(selectedDeliveryDate, 'dd/MM/yyyy');
-
-  //   searchResults = searchResults.filter((i) => {
-  //     return i.formattedDeliveryDate?.match(formattedDeliveryDate);
-  //   });
-  // }
-
-  // if (companyName.length > 2) {
-  //   searchResults = searchResults.filter((i) => {
-  //     return i.companyName.toLowerCase().match(companyName.toLowerCase());
-  //   });
-  // }
-
-  // if (service.length > 2) {
-  //   searchResults = searchResults.filter((i) => {
-  //     return i.service?.toLowerCase().match(service.toLowerCase());
-  //   });
-  // }
-
-  // if (seller) {
-  //   searchResults = searchResults.filter((i) => {
-  //     return i.seller?.toLowerCase().match(seller.toLowerCase());
-  //   });
-  // }
-
-  // if (technical) {
-  //   searchResults = searchResults.filter((i) => {
-  //     return i.technical?.toLowerCase().match(technical.toLowerCase());
-  //   });
-  // }
-
-  // if (value.length > 4) {
-  //   searchResults = searchResults.filter((i) => {
-  //     return i.formattedValue
-  //       ?.toLowerCase()
-  //       .match(formatValue(Number(value)).toLowerCase());
-  //   });
-  // }
-
-  // if (status) {
-  //   searchResults = searchResults.filter((i) => {
-  //     return i.status?.toLowerCase().match(status.toLowerCase());
-  //   });
-  // }
+  }, [
+    company_name,
+    selectedDate,
+    selectedDeliveryDate,
+    seller,
+    service,
+    status_billing,
+    status_delivery,
+    status_order,
+    technical,
+    total_value,
+    newOrderOpen,
+  ]);
 
   const statusReturn = useCallback((sts: string | unknown):
     | IconBaseProps
@@ -424,18 +431,20 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
               key={search.id}
             >
               <DateField>{formatToDate(parseISO(search.created_at))}</DateField>
-              <CompanyName>{search.client.company_name}</CompanyName>
+              <CompanyName>
+                {search.client && search.client.company_name}
+              </CompanyName>
               <Service>{servicesToShow(search.id)}</Service>
               {(from === 'Comercial' || from === 'Billing') && (
                 <>
-                  <Professional>{search.seller.name}</Professional>
+                  <Professional>
+                    {search.seller && search.seller.name}
+                  </Professional>
                   <Value>
-                    <div>
-                      {search.orders_products && search.orders_products.length
-                        ? 'R$'
-                        : ''}
-                    </div>
-                    <div>{servicesValuesToShow(search.id)}</div>
+                    {search.orders_products && search.orders_products.length
+                      ? 'R$'
+                      : ''}
+                    <div>{totalValue(search.id)}</div>
                   </Value>
                 </>
               )}

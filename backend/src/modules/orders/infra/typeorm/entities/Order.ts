@@ -77,6 +77,9 @@ export default class Order {
   @Column()
   technical_id: string;
 
+  @Column()
+  total_value: string;
+
   // ONE order can have MANY orders_products
   @OneToMany(() => OrderProduct, orders_products => orders_products.order, {
     cascade: true,

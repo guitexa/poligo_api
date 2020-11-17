@@ -5,7 +5,6 @@ import User from '@modules/users/infra/typeorm/entities/User';
 import authConfig from '@config/auth';
 import AppError from '@shared/errors/AppError';
 
-import IPermissionsRepository from '@modules/permissions/repositories/IPermissionsRepository';
 import IUsersRepository from '../repositories/IUsersRepository';
 import IHashProvider from '../providers/HashProvider/models/IHashProvider';
 
@@ -17,7 +16,6 @@ interface IRequest {
 interface IResponse {
   user: User;
   token: string;
-  permission: string;
 }
 
 @injectable()
@@ -28,9 +26,6 @@ export default class AuthenticateUserPasswordService {
 
     @inject('HashProvider')
     private hashProvider: IHashProvider,
-
-    @inject('PermissionsRepository')
-    private permissionsRepository: IPermissionsRepository,
   ) {}
 
   public async execute({ email, password }: IRequest): Promise<IResponse> {
@@ -48,17 +43,10 @@ export default class AuthenticateUserPasswordService {
     if (!checkPassword) {
       throw new AppError('Email or Password not valid', 401);
     }
-    const permissions = await this.permissionsRepository.findById(
-      user.permissions_id,
-    );
-
-    if (!permissions) {
-      throw new AppError('This user has no permissions', 401);
-    }
 
     const { expiresIn, secret } = authConfig.jwt;
 
-    const token = sign({ typ: permissions.id }, secret, {
+    const token = sign({}, secret, {
       subject: user.id,
       expiresIn,
     });
@@ -66,7 +54,6 @@ export default class AuthenticateUserPasswordService {
     return {
       user,
       token,
-      permission: permissions.name,
     };
   }
 }

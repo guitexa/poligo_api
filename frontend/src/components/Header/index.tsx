@@ -16,7 +16,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
-  const { userPermission, signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   const [menuIsOpen, setMenuIsOpen] = useState(false);
 
@@ -27,7 +27,8 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
         onMouseLeave={() => setMenuIsOpen(!menuIsOpen)}
       >
         <div id="sub-menu">
-          {(userPermission === 'Comercial' || userPermission === 'Admin') && (
+          {(user.permissions.name === 'Comercial' ||
+            user.permissions.name === 'Admin') && (
             <Link id="comercial" to="/Comercial">
               <img src={IconComercial} alt="" />
               <div>
@@ -38,8 +39,8 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
               </div>
             </Link>
           )}
-          {(userPermission === 'TechnicalArea' ||
-            userPermission === 'Admin') && (
+          {(user.permissions.name === 'TechnicalArea' ||
+            user.permissions.name === 'Admin') && (
             <Link id="technical-area" to="/TechnicalArea">
               <img src={IconTechnicalArea} alt="" />
               <div>
@@ -50,7 +51,8 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
               </div>
             </Link>
           )}
-          {(userPermission === 'Billing' || userPermission === 'Admin') && (
+          {(user.permissions.name === 'Billing' ||
+            user.permissions.name === 'Admin') && (
             <Link id="billing" to="/Billing">
               <img src={IconBilling} alt="" />
               <div>

@@ -5,32 +5,32 @@ interface ContentProps {
   color: string;
 }
 
-interface CompanyNameProps {
-  companyNameOpen: boolean;
+interface ClientNameProps {
+  clientNameOpen: boolean;
 }
 
-interface CompanyCnpjProps {
-  companyCnpjOpen: boolean;
+interface ClientCnpjProps {
+  clientCnpjOpen: boolean;
 }
 
-interface CompanyCpfProps {
-  companyCpfOpen: boolean;
+interface ClientCpfProps {
+  clientCpfOpen: boolean;
 }
 
-interface CompanyNameContactProps {
-  companyNameContactOpen: boolean;
+interface ClientNameContactProps {
+  clientNameContactOpen: boolean;
 }
 
-interface CompanyEmailProps {
-  companyEmailOpen: boolean;
+interface ClientEmailProps {
+  clientEmailOpen: boolean;
 }
 
-interface CompanyPhoneProps {
-  companyPhoneOpen: boolean;
+interface ClientPhoneProps {
+  clientPhoneOpen: boolean;
 }
 
 interface CompMobilePhoneProps {
-  companyMobilePhoneContactOpen: boolean;
+  clientMobilePhoneOpen: boolean;
 }
 
 interface ProgressProps {
@@ -159,8 +159,8 @@ export const SubmitQuestionButton = styled.div`
   }
 `;
 
-export const WhatIsCompanyName = styled.div<CompanyNameProps>`
-  display: ${({ companyNameOpen }) => (companyNameOpen ? 'flex' : 'none')};
+export const WhatIsClientName = styled.div<ClientNameProps>`
+  display: ${({ clientNameOpen }) => (clientNameOpen ? 'flex' : 'none')};
 
   .MuiAutocomplete-root {
     width: 100%;
@@ -191,8 +191,8 @@ export const WhatIsCompanyName = styled.div<CompanyNameProps>`
   }
 `;
 
-export const WhatIsCompanyCnpj = styled.div<CompanyCnpjProps>`
-  display: ${({ companyCnpjOpen }) => (companyCnpjOpen ? 'flex' : 'none')};
+export const WhatIsClientCnpj = styled.div<ClientCnpjProps>`
+  display: ${({ clientCnpjOpen }) => (clientCnpjOpen ? 'flex' : 'none')};
 
   .MuiFormControl-root {
     width: 100%;
@@ -220,8 +220,8 @@ export const WhatIsCompanyCnpj = styled.div<CompanyCnpjProps>`
   }
 `;
 
-export const WhatIsCompanyCpf = styled.div<CompanyCpfProps>`
-  display: ${({ companyCpfOpen }) => (companyCpfOpen ? 'flex' : 'none')};
+export const WhatIsClientCpf = styled.div<ClientCpfProps>`
+  display: ${({ clientCpfOpen }) => (clientCpfOpen ? 'flex' : 'none')};
 
   .MuiFormControl-root {
     width: 100%;
@@ -249,9 +249,9 @@ export const WhatIsCompanyCpf = styled.div<CompanyCpfProps>`
   }
 `;
 
-export const WhatIsCompanyNameContact = styled.div<CompanyNameContactProps>`
-  display: ${({ companyNameContactOpen }) =>
-    companyNameContactOpen ? 'flex' : 'none'};
+export const WhatIsClientNameContact = styled.div<ClientNameContactProps>`
+  display: ${({ clientNameContactOpen }) =>
+    clientNameContactOpen ? 'flex' : 'none'};
 
   .MuiFormControl-root {
     width: 100%;
@@ -279,8 +279,8 @@ export const WhatIsCompanyNameContact = styled.div<CompanyNameContactProps>`
   }
 `;
 
-export const WhatIsCompanyEmail = styled.div<CompanyEmailProps>`
-  display: ${({ companyEmailOpen }) => (companyEmailOpen ? 'flex' : 'none')};
+export const WhatIsClientEmail = styled.div<ClientEmailProps>`
+  display: ${({ clientEmailOpen }) => (clientEmailOpen ? 'flex' : 'none')};
 
   .MuiFormControl-root {
     width: 100%;
@@ -308,8 +308,8 @@ export const WhatIsCompanyEmail = styled.div<CompanyEmailProps>`
   }
 `;
 
-export const WhatIsCompanyPhone = styled.div<CompanyPhoneProps>`
-  display: ${({ companyPhoneOpen }) => (companyPhoneOpen ? 'flex' : 'none')};
+export const WhatIsClientPhone = styled.div<ClientPhoneProps>`
+  display: ${({ clientPhoneOpen }) => (clientPhoneOpen ? 'flex' : 'none')};
 
   .MuiFormControl-root {
     width: 100%;
@@ -337,9 +337,9 @@ export const WhatIsCompanyPhone = styled.div<CompanyPhoneProps>`
   }
 `;
 
-export const WhatIsCompanyMobilePhone = styled.div<CompMobilePhoneProps>`
-  display: ${({ companyMobilePhoneContactOpen }) =>
-    companyMobilePhoneContactOpen ? 'flex' : 'none'};
+export const WhatIsClientMobilePhone = styled.div<CompMobilePhoneProps>`
+  display: ${({ clientMobilePhoneOpen }) =>
+    clientMobilePhoneOpen ? 'flex' : 'none'};
 
   .MuiFormControl-root {
     width: 100%;

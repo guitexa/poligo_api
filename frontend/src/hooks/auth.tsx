@@ -4,19 +4,15 @@ import { fromUnixTime, isAfter } from 'date-fns';
 
 import api from '../services/api';
 
-interface User {
+interface Permissions {
+  name: string;
+}
+
+export interface User {
   id: string;
   name: string;
   email: string;
-}
-
-interface Permission {
-  id: string;
-  name: string;
-}
-
-interface TokenState {
-  token: string;
+  permissions: Permissions;
 }
 
 interface TokenDecode {
@@ -24,16 +20,12 @@ interface TokenDecode {
   sub: string;
   typ: string;
 }
-interface UserState {
-  user: User;
-  permission: string;
-}
 
 interface SignInMailCredencials {
   email: string;
 }
 
-interface signInPasswordCredencials {
+interface SignInPasswordCredencials {
   email: string;
   password: string;
 }
@@ -41,9 +33,8 @@ interface signInPasswordCredencials {
 interface AuthContextData {
   user: User;
   token: string;
-  userPermission: string;
   signInMail(email: SignInMailCredencials): Promise<void>;
-  signInPassword(credentials: signInPasswordCredencials): Promise<void>;
+  signInPassword(credentials: SignInPasswordCredencials): Promise<void>;
   signOut(): void;
   checkToken(): void;
 }
@@ -51,61 +42,57 @@ interface AuthContextData {
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider: React.FC = ({ children }) => {
-  const [dataToken, setDataToken] = useState<TokenState>(() => {
-    const token = localStorage.getItem('@Poligo:token');
+  const [token, setToken] = useState(() => {
+    const getToken = localStorage.getItem('@Poligo:token');
 
-    if (token) {
-      api.defaults.headers.authorization = `Bearer ${token}`;
+    if (getToken) {
+      api.defaults.headers.authorization = `Bearer ${getToken}`;
 
-      return { token };
+      return getToken;
     }
 
-    return {} as TokenState;
+    return '';
   });
 
-  const [dataUser, setDataUser] = useState<UserState>({} as UserState);
-
-  const signInMail = useCallback(
-    async ({ email }) => {
-      const response = await api.post('/sessions-mail', {
-        email,
-      });
-
-      const user = response.data;
-
-      setDataUser({ ...dataUser, user });
+  const [user, setUser] = useState<User>({
+    email: '',
+    id: '',
+    name: '',
+    permissions: {
+      name: '',
     },
-    [dataUser]
-  );
+  });
 
-  const signInPassword = useCallback(
-    async ({ email, password }) => {
-      const response = await api.post('/sessions-password', {
-        email,
-        password,
-      });
+  const signInMail = useCallback(async ({ email }) => {
+    const response = await api.post('/sessions-mail', {
+      email,
+    });
 
-      const { token, permission } = response.data;
+    setUser(response.data);
+  }, []);
 
-      localStorage.setItem('@Poligo:token', token);
+  const signInPassword = useCallback(async ({ email, password }) => {
+    const response = await api.post('/sessions-password', {
+      email,
+      password,
+    });
 
-      api.defaults.headers.authorization = `Bearer ${token}`;
+    localStorage.setItem('@Poligo:token', response.data.token);
 
-      setDataToken({ token });
-      setDataUser({ ...dataUser, permission });
-    },
-    [dataUser]
-  );
+    api.defaults.headers.authorization = `Bearer ${response.data.token}`;
+
+    setToken(response.data.token);
+  }, []);
 
   const signOut = useCallback(() => {
     localStorage.removeItem('@Poligo:token');
 
-    setDataToken({} as TokenState);
-    setDataUser({} as UserState);
+    setToken('');
+    setUser({} as User);
   }, []);
 
   const checkToken = useCallback(async () => {
-    const userToken = decode(dataToken.token) as TokenDecode;
+    const userToken = decode(token) as TokenDecode;
 
     const checkIfTokenIsExpired = isAfter(
       fromUnixTime(userToken.exp),
@@ -116,29 +103,26 @@ export const AuthProvider: React.FC = ({ children }) => {
       signOut();
     } else {
       const userResponse = await api.get<User[]>('/users');
-      const permissionsResponse = await api.get<Permission[]>('/permissions');
 
-      const user = userResponse.data.find((usr) => usr.id === userToken.sub);
-      const permission = permissionsResponse.data.find(
-        (perm) => perm.id === userToken.typ
+      const findUser = userResponse.data.find(
+        (usr) => usr.id === userToken.sub
       );
 
-      if (user && permission) {
-        setDataUser({ user, permission: permission?.name });
+      if (findUser) {
+        setUser(findUser);
       }
     }
-  }, [dataToken.token, signOut]);
+  }, [token, signOut, setUser]);
 
-  if (!dataUser.user && !!dataToken.token) {
+  if (!user.id && !!token) {
     checkToken();
   }
 
   return (
     <AuthContext.Provider
       value={{
-        user: dataUser.user,
-        token: dataToken.token,
-        userPermission: dataUser.permission,
+        user,
+        token,
         signInMail,
         signInPassword,
         signOut,

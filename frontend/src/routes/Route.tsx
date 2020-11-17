@@ -25,7 +25,9 @@ const Route: React.FC<RouteProps> = ({
     <RouteDOM
       {...rest}
       render={({ location }) => {
-        return isPrivate === !!token && isMailFilled === (!!user && !token) ? (
+        return isPrivate === !!token &&
+          isMailFilled === (!!user.id && !token) ? (
+          // eslint-disable-next-line react/jsx-indent
           <Component />
         ) : (
           <Redirect

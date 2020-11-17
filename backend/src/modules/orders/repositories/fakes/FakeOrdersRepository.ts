@@ -2,6 +2,7 @@ import { uuid } from 'uuidv4';
 
 import IOrdersRepository from '@modules/orders/repositories/IOrdersRepository';
 import ICreateOrderDTO from '@modules/orders/dtos/ICreateOrderDTO';
+import ISearchOrderDTO from '@modules/orders/dtos/ISearchOrderDTO';
 import Order from '../../infra/typeorm/entities/Order';
 
 export default class FakeOrdersRepository implements IOrdersRepository {
@@ -33,5 +34,11 @@ export default class FakeOrdersRepository implements IOrdersRepository {
 
   public async save(order: Order): Promise<Order> {
     return order;
+  }
+
+  public async search(
+    searchData: ISearchOrderDTO,
+  ): Promise<Order[] | undefined> {
+    return this.orderRepository;
   }
 }

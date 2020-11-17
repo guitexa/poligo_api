@@ -139,10 +139,11 @@ const Order: React.FC<OrderProps> = ({
     overlapProductViewOpen,
   } = useOverlap();
   const { addToast } = useToast();
-  const { userPermission, user } = useAuth();
+  const { user, checkToken } = useAuth();
 
   // This hook must be executed only once
   useEffect(() => {
+    checkToken();
     api.get<OrderDataType>(`/orders/${order_id}`).then((response) => {
       const {
         client,
@@ -154,6 +155,7 @@ const Order: React.FC<OrderProps> = ({
         requested_delivery_date,
         delivery_date,
         orders_products,
+        total_value,
         ...rest
       } = response.data;
 
@@ -177,9 +179,10 @@ const Order: React.FC<OrderProps> = ({
                 ? formatToCNPJ(client.cpf_cnpj)
                 : formatToCPF(client.cpf_cnpj),
             phone: formatToPhone(client.phone),
-            mobile: formatToPhone(client.mobile),
+            mobile: client.mobile ? formatToPhone(client.mobile) : '',
           },
           seller,
+          total_value: formatValueCurrency(Number(total_value)),
           orders_products: orders_products?.sort((a, b) => {
             if (a.created_at < b.created_at) return -1;
             if (a.created_at > b.created_at) return 1;
@@ -190,6 +193,7 @@ const Order: React.FC<OrderProps> = ({
         setOrderData(formattedOderData);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order_id]);
 
   if (updateOrderProduct.id && orderData.orders_products) {
@@ -236,11 +240,13 @@ const Order: React.FC<OrderProps> = ({
     (e: ChangeEvent<{ value: unknown }>) => {
       if (e.target.value === 'Aprovado') {
         orderData.approved_at = formatToDate(new Date(Date.now()));
+        checkToken();
         api.patch(`/orders/${order_id}`, {
           status_order: e.target.value,
           approved_at: new Date(Date.now()),
         });
       } else {
+        checkToken();
         api.patch(`/orders/${order_id}`, {
           status_order: e.target.value,
         });
@@ -258,12 +264,20 @@ const Order: React.FC<OrderProps> = ({
         description: 'Status atualizado com sucesso!',
       });
     },
-    [addToast, orderData, order_id, updateSearchResults]
+    [
+      addToast,
+      checkToken,
+      orderData.approved_at,
+      orderData.status_order,
+      order_id,
+      updateSearchResults,
+    ]
   );
 
   const updateDeliveryStatus = useCallback(
     (e: ChangeEvent<{ value: unknown }>) => {
       if (!orderData.technical) {
+        checkToken();
         api.patch(`/orders/${order_id}`, {
           status_delivery: e.target.value,
           technical_id: user.id,
@@ -277,6 +291,7 @@ const Order: React.FC<OrderProps> = ({
           technical: user.name,
         });
       } else if (e.target.value === '') {
+        checkToken();
         api.patch(`/orders/${order_id}`, {
           status_delivery: e.target.value,
           technical_id: null,
@@ -291,6 +306,7 @@ const Order: React.FC<OrderProps> = ({
           technical: undefined,
         });
       } else {
+        checkToken();
         api.patch(`/orders/${order_id}`, {
           status_delivery: e.target.value,
         });
@@ -309,6 +325,7 @@ const Order: React.FC<OrderProps> = ({
     },
     [
       addToast,
+      checkToken,
       orderData.status_delivery,
       orderData.technical,
       order_id,
@@ -327,6 +344,7 @@ const Order: React.FC<OrderProps> = ({
         status_billing: e.target.value,
       });
 
+      checkToken();
       api.patch(`/orders/${order_id}`, {
         status_billing: e.target.value,
       });
@@ -336,7 +354,13 @@ const Order: React.FC<OrderProps> = ({
         description: 'Status atualizado com sucesso!',
       });
     },
-    [addToast, orderData.status_billing, order_id, updateSearchResults]
+    [
+      addToast,
+      checkToken,
+      orderData.status_billing,
+      order_id,
+      updateSearchResults,
+    ]
   );
 
   const updatePaymentStatus = useCallback(
@@ -348,6 +372,7 @@ const Order: React.FC<OrderProps> = ({
         status_payment: e.target.value,
       });
 
+      checkToken();
       api.patch(`/orders/${order_id}`, {
         status_payment: e.target.value,
       });
@@ -357,11 +382,18 @@ const Order: React.FC<OrderProps> = ({
         description: 'Status atualizado com sucesso!',
       });
     },
-    [addToast, orderData.status_payment, order_id, updateSearchResults]
+    [
+      addToast,
+      checkToken,
+      orderData.status_payment,
+      order_id,
+      updateSearchResults,
+    ]
   );
 
   const handleDeleteServiceItem = useCallback(
     (order_product_id: string) => {
+      checkToken();
       api.delete(`/orders-products/${order_product_id}`);
 
       orderData.orders_products = orderData.orders_products?.filter(
@@ -378,7 +410,13 @@ const Order: React.FC<OrderProps> = ({
         description: 'Serviço excluído com sucesso!',
       });
     },
-    [addToast, orderData.orders_products, order_id, updateSearchResults]
+    [
+      addToast,
+      checkToken,
+      orderData.orders_products,
+      order_id,
+      updateSearchResults,
+    ]
   );
 
   const useStyles = makeStyles((theme: Theme) =>
@@ -540,6 +578,7 @@ const Order: React.FC<OrderProps> = ({
       if (orderData.delivery_conditions !== deliveryConditionsData) {
         orderData.delivery_conditions = deliveryConditionsData;
 
+        checkToken();
         api.patch(`/orders/${order_id}`, {
           delivery_conditions: deliveryConditionsData,
         });
@@ -550,7 +589,7 @@ const Order: React.FC<OrderProps> = ({
         });
       }
     },
-    [addToast, orderData, order_id]
+    [addToast, checkToken, orderData.delivery_conditions, order_id]
   );
 
   const onDeliveryConditionsSubmit = useCallback(() => {
@@ -571,6 +610,7 @@ const Order: React.FC<OrderProps> = ({
           requestedDeliveryDateRef.current?.setErrors({});
           orderData.requested_delivery_date = requestedDeliveryDateData;
 
+          checkToken();
           api.patch(`/orders/${order_id}`, {
             requested_delivery_date: new Date(year, month, day),
           });
@@ -587,6 +627,7 @@ const Order: React.FC<OrderProps> = ({
           orderData.requested_delivery_date = '';
           requestedDeliveryDateRef.current?.setErrors({});
 
+          checkToken();
           api.patch(`/orders/${order_id}`, {
             requested_delivery_date: null,
           });
@@ -598,7 +639,7 @@ const Order: React.FC<OrderProps> = ({
         }
       }
     },
-    [addToast, orderData, order_id]
+    [addToast, checkToken, orderData.requested_delivery_date, order_id]
   );
 
   const onRequestedDeliveryDateSubmit = useCallback(() => {
@@ -615,6 +656,7 @@ const Order: React.FC<OrderProps> = ({
           deliveryDateRef.current?.setErrors({});
           orderData.delivery_date = deliveryDateData;
 
+          checkToken();
           api.patch(`/orders/${order_id}`, {
             delivery_date: new Date(year, month, day),
           });
@@ -636,6 +678,7 @@ const Order: React.FC<OrderProps> = ({
           orderData.delivery_date = '';
           deliveryDateRef.current?.setErrors({});
 
+          checkToken();
           api.patch(`/orders/${order_id}`, {
             delivery_date: null,
           });
@@ -652,7 +695,13 @@ const Order: React.FC<OrderProps> = ({
         }
       }
     },
-    [addToast, orderData, order_id, updateSearchResults]
+    [
+      addToast,
+      checkToken,
+      orderData.delivery_date,
+      order_id,
+      updateSearchResults,
+    ]
   );
 
   const onDeliveryDateSubmit = useCallback(() => {
@@ -664,6 +713,7 @@ const Order: React.FC<OrderProps> = ({
       if (orderData.payment_way !== paymentWayData) {
         orderData.payment_way = paymentWayData;
 
+        checkToken();
         api.patch(`/orders/${order_id}`, {
           payment_way: paymentWayData,
         });
@@ -674,7 +724,7 @@ const Order: React.FC<OrderProps> = ({
         });
       }
     },
-    [addToast, orderData, order_id]
+    [addToast, checkToken, orderData.payment_way, order_id]
   );
 
   const onPaymentWaySubmit = useCallback(() => {
@@ -686,6 +736,7 @@ const Order: React.FC<OrderProps> = ({
       if (orderData.due_date !== dueDateData) {
         orderData.due_date = dueDateData;
 
+        checkToken();
         api.patch(`/orders/${order_id}`, {
           due_date: dueDateData,
         });
@@ -696,25 +747,34 @@ const Order: React.FC<OrderProps> = ({
         });
       }
     },
-    [addToast, orderData, order_id]
+    [addToast, checkToken, orderData.due_date, order_id]
   );
 
   const onDueDateSubmit = useCallback(() => {
     dueDateRef.current?.submitForm();
   }, []);
 
-  const totalValue = useMemo(() => {
-    // if (services.length > 0 && (from === 'Comercial' || from === 'Billing')) {
-    //   const total = services
-    //     .map((service) => service.value)
-    //     .reduce((accumulator, serviceValue) => {
-    //       return accumulator + serviceValue;
-    //     }, 0);
+  const totalValue = useMemo((): string => {
+    api.patch(`/orders/${order_id}`, {});
 
-    return formatValueCurrency(100);
-    // }
-    // return '--';
-  }, []);
+    if (orderData.orders_products) {
+      const servicesValues = orderData.orders_products
+        .map((service) => Number(service.product_value))
+        .reduce((accumulator, serviceValue) => {
+          return accumulator + serviceValue;
+        }, 0);
+
+      return servicesValues ? formatValueCurrency(servicesValues) : '';
+    }
+
+    return '';
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    orderData,
+    updateOrderProduct,
+    addNewOrderProduct,
+    handleDeleteServiceItem,
+  ]);
 
   const handleSelectProduct = useCallback(
     (data: ServiceOrderData) => {
@@ -863,7 +923,7 @@ const Order: React.FC<OrderProps> = ({
                           >
                             <MenuItem
                               value="Rascunho"
-                              disabled={userPermission !== 'Admin'}
+                              disabled={user.permissions.name !== 'Admin'}
                             >
                               <RiDraftFill className={riDraftFill} />
                               Rascunho
@@ -873,7 +933,7 @@ const Order: React.FC<OrderProps> = ({
                               disabled={
                                 orderData.status_order !== 'Rascunho' &&
                                 orderData.status_order !== 'Aguardando' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaRegClock className={faRegClock} />
@@ -885,7 +945,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_order !== 'Rascunho' &&
                                 orderData.status_order !== 'Aguardando' &&
                                 orderData.status_order !== 'Reprovado' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <IoMdThumbsDown className={ioThumbsDown} />
@@ -898,7 +958,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_order !== 'Aguardando' &&
                                 orderData.status_order !== 'Reprovado' &&
                                 orderData.status_order !== 'Aprovado' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaCheckCircle className={faCheck} />
@@ -912,7 +972,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_order !== 'Reprovado' &&
                                 orderData.status_order !== 'Aprovado' &&
                                 orderData.status_order !== 'Cancelado' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaTimes className={faTimes} />
@@ -934,7 +994,8 @@ const Order: React.FC<OrderProps> = ({
                   !orderData.status_delivery &&
                   !orderData.status_billing &&
                   !orderData.status_payment) ||
-                  (from === 'Comercial' && userPermission === 'Admin')) && (
+                  (from === 'Comercial' &&
+                    user.permissions.name === 'Admin')) && (
                   <AddServiceButton
                     type="button"
                     color={color}
@@ -1086,7 +1147,7 @@ const Order: React.FC<OrderProps> = ({
                             }}
                           >
                             {(!orderData.status_delivery ||
-                              userPermission === 'Admin') && (
+                              user.permissions.name === 'Admin') && (
                               <MenuItem value="">
                                 -- Selecione um status --
                               </MenuItem>
@@ -1096,7 +1157,7 @@ const Order: React.FC<OrderProps> = ({
                               disabled={
                                 !!orderData.status_delivery &&
                                 orderData.status_delivery !== 'Agendado' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaRegClock className={faRegClock} />
@@ -1108,7 +1169,7 @@ const Order: React.FC<OrderProps> = ({
                                 !!orderData.status_delivery &&
                                 orderData.status_delivery !== 'Agendado' &&
                                 orderData.status_delivery !== 'Execução' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <HiOutlineRefresh
@@ -1123,7 +1184,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_delivery !== 'Agendado' &&
                                 orderData.status_delivery !== 'Execução' &&
                                 orderData.status_delivery !== 'Concluído' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaCheckCircle className={`faCheck ${faCheck}`} />
@@ -1137,7 +1198,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_delivery !== 'Execução' &&
                                 orderData.status_delivery !== 'Concluído' &&
                                 orderData.status_delivery !== 'Cancelado' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaTimes className={faTimes} />
@@ -1225,7 +1286,7 @@ const Order: React.FC<OrderProps> = ({
                             }}
                           >
                             {(!orderData.status_billing ||
-                              userPermission === 'Admin') && (
+                              user.permissions.name === 'Admin') && (
                               <MenuItem value="">
                                 -- Selecione um status --
                               </MenuItem>
@@ -1235,7 +1296,7 @@ const Order: React.FC<OrderProps> = ({
                               disabled={
                                 !!orderData.status_billing &&
                                 orderData.status_billing !== 'Aguardando' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaRegClock className={faRegClock} />
@@ -1247,7 +1308,7 @@ const Order: React.FC<OrderProps> = ({
                                 !!orderData.status_billing &&
                                 orderData.status_billing !== 'Aguardando' &&
                                 orderData.status_billing !== 'Faturado' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaCheckCircle className={`faCheck ${faCheck}`} />
@@ -1260,7 +1321,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_billing !== 'Aguardando' &&
                                 orderData.status_billing !== 'Faturado' &&
                                 orderData.status_billing !== 'Cancelado' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaTimes className={faTimes} />
@@ -1314,7 +1375,7 @@ const Order: React.FC<OrderProps> = ({
                             }}
                           >
                             {(!orderData.status_payment ||
-                              userPermission === 'Admin') && (
+                              user.permissions.name === 'Admin') && (
                               <MenuItem value="">
                                 -- Selecione um status --
                               </MenuItem>
@@ -1324,7 +1385,7 @@ const Order: React.FC<OrderProps> = ({
                               disabled={
                                 !!orderData.status_payment &&
                                 orderData.status_payment !== 'Aguardando' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaRegClock className={faRegClock} />
@@ -1337,7 +1398,7 @@ const Order: React.FC<OrderProps> = ({
                                 orderData.status_payment !== 'Aguardando' &&
                                 orderData.status_payment !== 'Pago' &&
                                 orderData.status_payment !== 'Vencido' &&
-                                userPermission !== 'Admin'
+                                user.permissions.name !== 'Admin'
                               }
                             >
                               <FaCheckCircle className={`faCheck ${faCheck}`} />
@@ -1350,7 +1411,7 @@ const Order: React.FC<OrderProps> = ({
                                   !!orderData.status_payment &&
                                   orderData.status_payment !== 'Aguardando' &&
                                   orderData.status_payment !== 'Vencido' &&
-                                  userPermission !== 'Admin'
+                                  user.permissions.name !== 'Admin'
                                 }
                               >
                                 <FaCalendarTimes
@@ -1411,7 +1472,7 @@ const Order: React.FC<OrderProps> = ({
                             !orderData.status_billing &&
                             !orderData.status_payment) ||
                             (from === 'Comercial' &&
-                              userPermission === 'Admin')) && (
+                              user.permissions.name === 'Admin')) && (
                             <div>
                               <button
                                 className="edit-service"

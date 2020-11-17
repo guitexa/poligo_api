@@ -42,6 +42,7 @@ export default class UpdateOrderService {
     product_id,
     product_description,
     product_value,
+    total_value,
   }: IUpdateOrderDTO): Promise<Order | undefined> {
     const order = await this.ordersRepository.findByIdWithoutRelations(
       order_id,
@@ -121,6 +122,20 @@ export default class UpdateOrderService {
         order.technical_id = technical_id;
       }
 
+      const orders = await this.ordersProductsRepository.findOrderProductsByOrderId(
+        order_id,
+      );
+
+      if (orders) {
+        const totalValue = orders
+          .map(e => Number(e.product_value))
+          .reduce((accumulator, serviceValue) => {
+            return accumulator + serviceValue;
+          }, 0);
+
+        order.total_value = String(totalValue).replace(/[/.]/gi, ',');
+      }
+
       return this.ordersRepository.save(order);
     }
 
@@ -176,6 +191,20 @@ export default class UpdateOrderService {
 
     if (technical_id === null) {
       order.technical_id = technical_id;
+    }
+
+    const orders = await this.ordersProductsRepository.findOrderProductsByOrderId(
+      order_id,
+    );
+
+    if (orders) {
+      const totalValue = orders
+        .map(e => Number(e.product_value))
+        .reduce((accumulator, serviceValue) => {
+          return accumulator + serviceValue;
+        }, 0);
+
+      order.total_value = String(totalValue).replace(/[/.]/gi, ',');
     }
 
     return this.ordersRepository.save(order);

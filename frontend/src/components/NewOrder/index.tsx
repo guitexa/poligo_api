@@ -25,20 +25,20 @@ import Order from '../Order';
 import Button from '../Button';
 import DisabledButton from '../DisabledButton';
 
-import { OrderDataType, UpdateSearchResultsData } from '../SearchResults';
+import api from '../../services/api';
 
 import {
   NewOrderOverlap,
   Container,
   Content,
   AskTitle,
-  WhatIsCompanyName,
-  WhatIsCompanyCnpj,
-  WhatIsCompanyCpf,
-  WhatIsCompanyNameContact,
-  WhatIsCompanyEmail,
-  WhatIsCompanyMobilePhone,
-  WhatIsCompanyPhone,
+  WhatIsClientName,
+  WhatIsClientCnpj,
+  WhatIsClientCpf,
+  WhatIsClientNameContact,
+  WhatIsClientEmail,
+  WhatIsClientMobilePhone,
+  WhatIsClientPhone,
   SubmitQuestionButton,
   Footer,
   Progress,
@@ -50,7 +50,8 @@ import {
   SubmitFormButton,
 } from './styles';
 
-interface CompanyState {
+interface ClientData {
+  id?: string;
   inputValue?: string;
   company_name: string;
   cpf_cnpj: string;
@@ -60,13 +61,19 @@ interface CompanyState {
   mobile?: string;
 }
 
+interface CreateOrderType {
+  id: string;
+  client_id: string;
+  seller_id: string;
+}
+
 interface InputData {
-  companyCnpjData: string;
-  companyCpfData: string;
-  companyNameContactData: string;
-  companyEmailData: string;
-  companyPhoneData: string;
-  companyMobilePhoneContactData: string;
+  clientCnpjData: string;
+  clientCpfData: string;
+  clientNameContactData: string;
+  clientEmailData: string;
+  clientPhoneData: string;
+  clientMobilePhoneData: string;
 }
 
 interface NewOrderProps {
@@ -75,47 +82,38 @@ interface NewOrderProps {
 
 const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [orderOpen, setOrderOpen] = useState(false);
-  const [companyName, setCompanyName] = useState<CompanyState>(
-    {} as CompanyState
-  );
-  const [companyCnpj, setCompanyCnpj] = useState('');
-  const [companyCpf, setCompanyCpf] = useState('');
-  const [companyNameContact, setCompanyNameContact] = useState('');
-  const [companyEmail, setCompanyEmail] = useState<string | undefined>('');
-  const [companyPhone, setCompanyPhone] = useState<string | undefined>('');
-  const [companyMobilePhoneContact, setCompanyMobilePhoneContact] = useState(
-    ''
-  );
+  const [orderId, setOrderId] = useState<string | undefined>('');
+  const [clients, setClients] = useState<ClientData[]>([]);
+  const [clientName, setClientName] = useState<ClientData>({} as ClientData);
+  const [clientCnpj, setClientCnpj] = useState('');
+  const [clientCpf, setClientCpf] = useState('');
+  const [clientNameContact, setClientNameContact] = useState('');
+  const [clientEmail, setClientEmail] = useState<string>('');
+  const [clientPhone, setClientPhone] = useState<string>('');
+  const [clientMobilePhone, setClientMobilePhone] = useState('');
 
-  const [companyNameOpen, setCompanyNameOpen] = useState(true);
-  const [companyCnpjOpen, setCompanyCnpjOpen] = useState(false);
-  const [companyCpfOpen, setCompanyCpfOpen] = useState(false);
-  const [companyNameContactOpen, setCompanyNameContactOpen] = useState(false);
-  const [companyEmailOpen, setCompanyEmailOpen] = useState(false);
-  const [companyPhoneOpen, setCompanyPhoneOpen] = useState(false);
-  const [
-    companyMobilePhoneContactOpen,
-    setCompanyMobilePhoneContactOpen,
-  ] = useState(false);
+  const [clientNameOpen, setClientNameOpen] = useState(true);
+  const [clientCnpjOpen, setClientCnpjOpen] = useState(false);
+  const [clientCpfOpen, setClientCpfOpen] = useState(false);
+  const [clientNameContactOpen, setClientNameContactOpen] = useState(false);
+  const [clientEmailOpen, setClientEmailOpen] = useState(false);
+  const [clientPhoneOpen, setClientPhoneOpen] = useState(false);
+  const [clientMobilePhoneOpen, setClientMobilePhoneOpen] = useState(false);
   const [confirmDataOpen, setConfirmDataOpen] = useState(false);
 
   const [counterAnswers, setCounterAnswers] = useState<string[]>([]);
   const [confirmDataHasOpened, setConfirmDataHasOpened] = useState(false);
 
-  const [updateSearchResults, setUpdateSearchResults] = useState<
-    UpdateSearchResultsData | undefined
-  >({} as UpdateSearchResultsData);
-
   const { addToast } = useToast();
-  const { user } = useAuth();
+  const { user, checkToken } = useAuth();
   const { newOrderOpen, overlapNewOrderOpen } = useOverlap();
 
-  const companyCnpjRef = useRef<FormHandles>(null);
-  const companyCpfRef = useRef<FormHandles>(null);
-  const companyNameContactRef = useRef<FormHandles>(null);
-  const companyEmailRef = useRef<FormHandles>(null);
-  const companyPhoneRef = useRef<FormHandles>(null);
-  const companyMobilePhoneContactRef = useRef<FormHandles>(null);
+  const clientCnpjRef = useRef<FormHandles>(null);
+  const clientCpfRef = useRef<FormHandles>(null);
+  const clientNameContactRef = useRef<FormHandles>(null);
+  const clientEmailRef = useRef<FormHandles>(null);
+  const clientPhoneRef = useRef<FormHandles>(null);
+  const clientMobilePhoneRef = useRef<FormHandles>(null);
 
   const defaultMaterialTheme = createMuiTheme({
     palette: {
@@ -151,381 +149,364 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     },
   });
 
-  const filter = createFilterOptions<CompanyState>();
+  const filter = createFilterOptions<ClientData>();
 
-  const companyNames: CompanyState[] = [
-    {
-      company_name: 'American Express',
-      cpf_cnpj: '66201161000151',
-      contact_name: 'Marcos Augusto',
-      email: 'mail@mail.com',
-      phone: '3433158200',
-      mobile: '349885576743',
-    },
-    {
-      company_name: 'Anheuser-Busch InBev',
-      cpf_cnpj: '08809991605',
-      contact_name: 'Marcos Augusto',
-      email: 'mail@mail.com',
-      phone: '3433158200',
-      mobile: '349885576743',
-    },
-  ];
+  useEffect(() => {
+    checkToken();
+    api.get<ClientData[]>('/clients').then((response) => {
+      setClients(response.data);
+    });
+  }, [checkToken]);
 
   const handleShowData = useCallback(() => {
-    setCompanyNameOpen(false);
-    setCompanyCnpjOpen(false);
-    setCompanyCpfOpen(false);
-    setCompanyNameContactOpen(false);
-    setCompanyEmailOpen(false);
-    setCompanyMobilePhoneContactOpen(false);
-    setCompanyPhoneOpen(false);
+    setClientNameOpen(false);
+    setClientCnpjOpen(false);
+    setClientCpfOpen(false);
+    setClientNameContactOpen(false);
+    setClientEmailOpen(false);
+    setClientMobilePhoneOpen(false);
+    setClientPhoneOpen(false);
     setConfirmDataOpen(true);
   }, []);
 
-  const handleSubmitCompanyName = useCallback(() => {
-    if (companyName.company_name) {
-      setCompanyNameOpen(!companyNameOpen); // Close question opened
-      setCompanyCnpjOpen(!companyCnpjOpen); // Open next question
+  const handleSubmitClientName = useCallback(() => {
+    if (clientName.company_name) {
+      setClientNameOpen(!clientNameOpen); // Close question opened
+      setClientCnpjOpen(!clientCnpjOpen); // Open next question
 
-      if (!counterAnswers.find((e) => e === 'companyName')) {
-        setCounterAnswers((state) => [...state, 'companyName']); // Set as answered
+      if (!counterAnswers.find((e) => e === 'clientName')) {
+        setCounterAnswers((state) => [...state, 'clientName']); // Set as answered
       }
     }
 
     if (
       confirmDataHasOpened &&
-      (counterAnswers.includes('companyCnpj') ||
-        counterAnswers.includes('companyCpf')) &&
-      counterAnswers.includes('companyNameContact') &&
-      counterAnswers.includes('companyEmail') &&
-      (counterAnswers.includes('companyPhone') ||
-        counterAnswers.includes('companyMobilePhoneContact'))
+      (counterAnswers.includes('clientCnpj') ||
+        counterAnswers.includes('clientCpf')) &&
+      counterAnswers.includes('clientNameContact') &&
+      counterAnswers.includes('clientEmail') &&
+      (counterAnswers.includes('clientPhone') ||
+        counterAnswers.includes('clientMobilePhone'))
     ) {
       handleShowData();
     }
   }, [
-    companyName.company_name,
+    clientName.company_name,
     confirmDataHasOpened,
     counterAnswers,
-    companyNameOpen,
-    companyCnpjOpen,
+    clientNameOpen,
+    clientCnpjOpen,
     handleShowData,
   ]);
 
-  const handleSubmitCompanyCnpj = useCallback(
-    ({ companyCnpjData }: InputData) => {
-      if (companyCnpjData) {
-        if (isCNPJ(companyCnpjData)) {
-          companyCnpjRef.current?.setErrors({});
-          setCompanyCnpjOpen(!companyCnpjOpen); // Close question opened
-          setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
+  const handleSubmitClientCnpj = useCallback(
+    ({ clientCnpjData }: InputData) => {
+      if (clientCnpjData) {
+        if (isCNPJ(clientCnpjData)) {
+          clientCnpjRef.current?.setErrors({});
+          setClientCnpjOpen(!clientCnpjOpen); // Close question opened
+          setClientNameContactOpen(!clientNameContactOpen); // Open next question
 
-          setCompanyCnpj(companyCnpjData);
+          setClientCnpj(clientCnpjData);
 
-          if (!counterAnswers.find((e) => e === 'companyCnpj')) {
-            setCounterAnswers((state) => [...state, 'companyCnpj']); // Set as answered
+          if (!counterAnswers.find((e) => e === 'clientCnpj')) {
+            setCounterAnswers((state) => [...state, 'clientCnpj']); // Set as answered
           }
 
           if (
             confirmDataHasOpened &&
-            counterAnswers.includes('companyName') &&
-            counterAnswers.includes('companyNameContact') &&
-            counterAnswers.includes('companyEmail') &&
-            (counterAnswers.includes('companyPhone') ||
-              counterAnswers.includes('companyMobilePhoneContact'))
+            counterAnswers.includes('clientName') &&
+            counterAnswers.includes('clientNameContact') &&
+            counterAnswers.includes('clientEmail') &&
+            (counterAnswers.includes('clientPhone') ||
+              counterAnswers.includes('clientMobilePhone'))
           ) {
             handleShowData();
           }
         } else {
-          companyCnpjRef.current?.setErrors({
-            companyCnpjData: 'CNPJ inválido',
+          clientCnpjRef.current?.setErrors({
+            clientCnpjData: 'CNPJ inválido',
           });
         }
       } else {
-        setCompanyCnpjOpen(!companyCnpjOpen); // Close question opened
-        setCompanyCpfOpen(!companyCpfOpen); // Close question opened
+        setClientCnpjOpen(!clientCnpjOpen); // Close question opened
+        setClientCpfOpen(!clientCpfOpen); // Close question opened
 
-        setCompanyCnpj('');
-        setCounterAnswers((state) => state.filter((e) => e !== 'companyCnpj'));
+        setClientCnpj('');
+        setCounterAnswers((state) => state.filter((e) => e !== 'clientCnpj'));
       }
     },
     [
-      companyCnpjOpen,
-      companyCpfOpen,
-      companyNameContactOpen,
+      clientCnpjOpen,
+      clientCpfOpen,
+      clientNameContactOpen,
       confirmDataHasOpened,
       counterAnswers,
       handleShowData,
     ]
   );
 
-  const handleSubmitCompanyCpf = useCallback(
-    ({ companyCpfData }: InputData) => {
-      if (companyCpfData) {
-        if (isCPF(companyCpfData)) {
-          companyCpfRef.current?.setErrors({});
-          setCompanyCpfOpen(!companyCpfOpen); // Close question opened
-          setCompanyNameContactOpen(!companyNameContactOpen); // Open next question
+  const handleSubmitClientCpf = useCallback(
+    ({ clientCpfData }: InputData) => {
+      if (clientCpfData) {
+        if (isCPF(clientCpfData)) {
+          clientCpfRef.current?.setErrors({});
+          setClientCpfOpen(!clientCpfOpen); // Close question opened
+          setClientNameContactOpen(!clientNameContactOpen); // Open next question
 
-          setCompanyCpf(companyCpfData);
+          setClientCpf(clientCpfData);
 
-          if (!counterAnswers.find((e) => e === 'companyCpf')) {
-            setCounterAnswers((state) => [...state, 'companyCpf']); // Set as answered
+          if (!counterAnswers.find((e) => e === 'clientCpf')) {
+            setCounterAnswers((state) => [...state, 'clientCpf']); // Set as answered
           }
 
           if (
             confirmDataHasOpened &&
-            counterAnswers.includes('companyName') &&
-            counterAnswers.includes('companyNameContact') &&
-            counterAnswers.includes('companyEmail') &&
-            (counterAnswers.includes('companyPhone') ||
-              counterAnswers.includes('companyMobilePhoneContact'))
+            counterAnswers.includes('clientName') &&
+            counterAnswers.includes('clientNameContact') &&
+            counterAnswers.includes('clientEmail') &&
+            (counterAnswers.includes('clientPhone') ||
+              counterAnswers.includes('clientMobilePhone'))
           ) {
             handleShowData();
           }
         } else {
-          companyCpfRef.current?.setErrors({
-            companyCpfData: 'CPF inválido',
+          clientCpfRef.current?.setErrors({
+            clientCpfData: 'CPF inválido',
           });
         }
       } else {
-        companyCpfRef.current?.setErrors({
-          companyCpfData: 'Favor preencher um CPF, ou CNPJ',
+        clientCpfRef.current?.setErrors({
+          clientCpfData: 'Favor preencher um CPF, ou CNPJ',
         });
-        setCompanyCpf('');
-        setCounterAnswers((state) => state.filter((e) => e !== 'companyCpf'));
+        setClientCpf('');
+        setCounterAnswers((state) => state.filter((e) => e !== 'clientCpf'));
       }
     },
     [
-      companyCpfOpen,
-      companyNameContactOpen,
+      clientCpfOpen,
+      clientNameContactOpen,
       confirmDataHasOpened,
       counterAnswers,
       handleShowData,
     ]
   );
 
-  const handleSubmitCompanyNameContact = useCallback(
-    ({ companyNameContactData }: InputData) => {
-      if (companyNameContactData) {
-        companyNameContactRef.current?.setErrors({});
-        setCompanyNameContactOpen(!companyNameContactOpen); // Close question opened
-        setCompanyEmailOpen(!companyEmailOpen); // Open next question
+  const handleSubmitClientNameContact = useCallback(
+    ({ clientNameContactData }: InputData) => {
+      if (clientNameContactData) {
+        clientNameContactRef.current?.setErrors({});
+        setClientNameContactOpen(!clientNameContactOpen); // Close question opened
+        setClientEmailOpen(!clientEmailOpen); // Open next question
 
-        setCompanyNameContact(
-          formatToCapitalized(companyNameContactData, {
+        setClientNameContact(
+          formatToCapitalized(clientNameContactData, {
             trimTrailingWhiteSpaces: false,
           })
         );
 
-        if (!counterAnswers.find((e) => e === 'companyNameContact')) {
-          setCounterAnswers((state) => [...state, 'companyNameContact']); // Set as answered
+        if (!counterAnswers.find((e) => e === 'clientNameContact')) {
+          setCounterAnswers((state) => [...state, 'clientNameContact']); // Set as answered
         }
 
         if (
           confirmDataHasOpened &&
-          counterAnswers.includes('companyName') &&
-          (counterAnswers.includes('companyCnpj') ||
-            counterAnswers.includes('companyCpf')) &&
-          counterAnswers.includes('companyEmail') &&
-          (counterAnswers.includes('companyPhone') ||
-            counterAnswers.includes('companyMobilePhoneContact'))
+          counterAnswers.includes('clientName') &&
+          (counterAnswers.includes('clientCnpj') ||
+            counterAnswers.includes('clientCpf')) &&
+          counterAnswers.includes('clientEmail') &&
+          (counterAnswers.includes('clientPhone') ||
+            counterAnswers.includes('clientMobilePhone'))
         ) {
           handleShowData();
         }
       } else {
-        companyNameContactRef.current?.setErrors({
-          companyNameContactData: 'Favor preencher um nome',
+        clientNameContactRef.current?.setErrors({
+          clientNameContactData: 'Favor preencher um nome',
         });
       }
     },
     [
-      companyNameContactOpen,
-      companyEmailOpen,
+      clientNameContactOpen,
+      clientEmailOpen,
       counterAnswers,
       confirmDataHasOpened,
       handleShowData,
     ]
   );
 
-  const handleSubmitCompanyEmail = useCallback(
-    ({ companyEmailData }: InputData) => {
-      if (companyEmailData) {
-        if (isEmail(companyEmailData)) {
-          companyEmailRef.current?.setErrors({});
-          setCompanyEmailOpen(!companyEmailOpen); // Close question opened
-          setCompanyPhoneOpen(!companyPhoneOpen); // Open next question
+  const handleSubmitClientEmail = useCallback(
+    ({ clientEmailData }: InputData) => {
+      if (clientEmailData) {
+        if (isEmail(clientEmailData)) {
+          clientEmailRef.current?.setErrors({});
+          setClientEmailOpen(!clientEmailOpen); // Close question opened
+          setClientPhoneOpen(!clientPhoneOpen); // Open next question
 
-          setCompanyEmail(companyEmailData);
+          setClientEmail(clientEmailData);
 
-          if (!counterAnswers.find((e) => e === 'companyEmail')) {
-            setCounterAnswers((state) => [...state, 'companyEmail']); // Set as answered
+          if (!counterAnswers.find((e) => e === 'clientEmail')) {
+            setCounterAnswers((state) => [...state, 'clientEmail']); // Set as answered
           }
 
           if (
             confirmDataHasOpened &&
-            counterAnswers.includes('companyName') &&
-            (counterAnswers.includes('companyCnpj') ||
-              counterAnswers.includes('companyCpf')) &&
-            counterAnswers.includes('companyNameContact') &&
-            (counterAnswers.includes('companyPhone') ||
-              counterAnswers.includes('companyMobilePhoneContact'))
+            counterAnswers.includes('clientName') &&
+            (counterAnswers.includes('clientCnpj') ||
+              counterAnswers.includes('clientCpf')) &&
+            counterAnswers.includes('clientNameContact') &&
+            (counterAnswers.includes('clientPhone') ||
+              counterAnswers.includes('clientMobilePhone'))
           ) {
             handleShowData();
           }
         } else {
-          companyEmailRef.current?.setErrors({
-            companyEmailData: 'Favor preencher um e-mail válido',
+          clientEmailRef.current?.setErrors({
+            clientEmailData: 'Favor preencher um e-mail válido',
           });
         }
       } else {
-        companyEmailRef.current?.setErrors({
-          companyEmailData: 'Favor preencher um e-mail',
+        clientEmailRef.current?.setErrors({
+          clientEmailData: 'Favor preencher um e-mail',
         });
       }
     },
     [
-      companyEmailOpen,
-      companyPhoneOpen,
+      clientEmailOpen,
+      clientPhoneOpen,
       counterAnswers,
       confirmDataHasOpened,
       handleShowData,
     ]
   );
 
-  const handleSubmitCompanyPhone = useCallback(
-    ({ companyPhoneData }: InputData) => {
-      if (companyPhoneData.length > 1) {
-        if (isPhone(companyPhoneData)) {
-          companyPhoneRef.current?.setErrors({});
-          setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
-          setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Open next question
+  const handleSubmitClientPhone = useCallback(
+    ({ clientPhoneData }: InputData) => {
+      if (clientPhoneData.length > 1) {
+        if (isPhone(clientPhoneData)) {
+          clientPhoneRef.current?.setErrors({});
+          setClientPhoneOpen(!clientPhoneOpen); // Close question opened
+          setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Open next question
 
-          setCompanyPhone(companyPhoneData);
+          setClientPhone(clientPhoneData);
 
-          if (!counterAnswers.find((e) => e === 'companyPhone')) {
-            setCounterAnswers((state) => [...state, 'companyPhone']); // Set as answered
+          if (!counterAnswers.find((e) => e === 'clientPhone')) {
+            setCounterAnswers((state) => [...state, 'clientPhone']); // Set as answered
           }
 
           if (
             confirmDataHasOpened &&
-            counterAnswers.includes('companyName') &&
-            (counterAnswers.includes('companyCnpj') ||
-              counterAnswers.includes('companyCpf')) &&
-            counterAnswers.includes('companyNameContact') &&
-            counterAnswers.includes('companyEmail')
+            counterAnswers.includes('clientName') &&
+            (counterAnswers.includes('clientCnpj') ||
+              counterAnswers.includes('clientCpf')) &&
+            counterAnswers.includes('clientNameContact') &&
+            counterAnswers.includes('clientEmail')
           ) {
             handleShowData();
           }
         } else {
-          companyPhoneRef.current?.setErrors({
-            companyPhoneData: 'Favor preencher um telefone fixo válido',
+          clientPhoneRef.current?.setErrors({
+            clientPhoneData: 'Favor preencher um telefone fixo válido',
           });
         }
-      } else if (companyMobilePhoneContact) {
-        setCompanyPhone('');
-        setCounterAnswers((state) => state.filter((e) => e !== 'companyPhone'));
+      } else if (clientMobilePhone) {
+        setClientPhone('');
+        setCounterAnswers((state) => state.filter((e) => e !== 'clientPhone'));
 
         if (
           confirmDataHasOpened &&
-          counterAnswers.includes('companyName') &&
-          (counterAnswers.includes('companyCnpj') ||
-            counterAnswers.includes('companyCpf')) &&
-          counterAnswers.includes('companyNameContact') &&
-          counterAnswers.includes('companyEmail')
+          counterAnswers.includes('clientName') &&
+          (counterAnswers.includes('clientCnpj') ||
+            counterAnswers.includes('clientCpf')) &&
+          counterAnswers.includes('clientNameContact') &&
+          counterAnswers.includes('clientEmail')
         ) {
           handleShowData();
         }
       } else {
-        setCompanyPhoneOpen(!companyPhoneOpen); // Close question opened
-        setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Open next question
+        setClientPhoneOpen(!clientPhoneOpen); // Close question opened
+        setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Open next question
 
-        setCompanyPhone('');
-        setCounterAnswers((state) => state.filter((e) => e !== 'companyPhone'));
+        setClientPhone('');
+        setCounterAnswers((state) => state.filter((e) => e !== 'clientPhone'));
       }
     },
     [
-      companyMobilePhoneContact,
-      companyPhoneOpen,
-      companyMobilePhoneContactOpen,
+      clientMobilePhone,
+      clientPhoneOpen,
+      clientMobilePhoneOpen,
       counterAnswers,
       confirmDataHasOpened,
       handleShowData,
     ]
   );
 
-  const handleSubmitCompanyMobilePhoneContact = useCallback(
-    ({ companyMobilePhoneContactData }: InputData) => {
-      if (companyMobilePhoneContactData.length > 1) {
-        if (isPhone(companyMobilePhoneContactData)) {
-          companyMobilePhoneContactRef.current?.setErrors({});
-          setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Close question opened
+  const handleSubmitClientMobilePhone = useCallback(
+    ({ clientMobilePhoneData }: InputData) => {
+      if (clientMobilePhoneData.length > 1) {
+        if (isPhone(clientMobilePhoneData)) {
+          clientMobilePhoneRef.current?.setErrors({});
+          setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Close question opened
           setConfirmDataOpen(!confirmDataOpen); // Open next question
 
           setConfirmDataHasOpened(true);
 
-          setCompanyMobilePhoneContact(companyMobilePhoneContactData);
+          setClientMobilePhone(clientMobilePhoneData);
 
-          if (!counterAnswers.find((e) => e === 'companyMobilePhoneContact')) {
-            setCounterAnswers((state) => [
-              ...state,
-              'companyMobilePhoneContact',
-            ]); // Set as answered
+          if (!counterAnswers.find((e) => e === 'clientMobilePhone')) {
+            setCounterAnswers((state) => [...state, 'clientMobilePhone']); // Set as answered
           }
 
           if (
             confirmDataHasOpened &&
-            counterAnswers.includes('companyName') &&
-            (counterAnswers.includes('companyCnpj') ||
-              counterAnswers.includes('companyCpf')) &&
-            counterAnswers.includes('companyNameContact') &&
-            counterAnswers.includes('companyEmail')
+            counterAnswers.includes('clientName') &&
+            (counterAnswers.includes('clientCnpj') ||
+              counterAnswers.includes('clientCpf')) &&
+            counterAnswers.includes('clientNameContact') &&
+            counterAnswers.includes('clientEmail')
           ) {
             handleShowData();
           }
         } else {
-          companyMobilePhoneContactRef.current?.setErrors({
-            companyMobilePhoneContactData:
-              'Favor preencher um telefone celular válido',
+          clientMobilePhoneRef.current?.setErrors({
+            clientMobilePhoneData: 'Favor preencher um telefone celular válido',
           });
         }
-      } else if (companyPhone) {
-        setCompanyMobilePhoneContact('');
+      } else if (clientPhone) {
+        setClientMobilePhone('');
         setCounterAnswers((state) =>
-          state.filter((e) => e !== 'companyMobilePhoneContact')
+          state.filter((e) => e !== 'clientMobilePhone')
         );
 
         if (
           confirmDataHasOpened &&
-          counterAnswers.includes('companyName') &&
-          (counterAnswers.includes('companyCnpj') ||
-            counterAnswers.includes('companyCpf')) &&
-          counterAnswers.includes('companyNameContact') &&
-          counterAnswers.includes('companyEmail')
+          counterAnswers.includes('clientName') &&
+          (counterAnswers.includes('clientCnpj') ||
+            counterAnswers.includes('clientCpf')) &&
+          counterAnswers.includes('clientNameContact') &&
+          counterAnswers.includes('clientEmail')
         ) {
           handleShowData();
         } else {
-          companyMobilePhoneContactRef.current?.setErrors({});
-          setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen); // Close question opened
+          clientMobilePhoneRef.current?.setErrors({});
+          setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Close question opened
           setConfirmDataOpen(!confirmDataOpen); // Open next question
 
           setConfirmDataHasOpened(true);
         }
       } else {
-        setCompanyMobilePhoneContact('');
+        setClientMobilePhone('');
         setCounterAnswers((state) =>
-          state.filter((e) => e !== 'companyMobilePhoneContact')
+          state.filter((e) => e !== 'clientMobilePhone')
         );
-        companyMobilePhoneContactRef.current?.setErrors({
-          companyMobilePhoneContactData:
-            'Favor preencher um telefone celular, ou fixo',
+        clientMobilePhoneRef.current?.setErrors({
+          clientMobilePhoneData: 'Favor preencher um telefone celular, ou fixo',
         });
       }
     },
     [
-      companyPhone,
-      companyMobilePhoneContactOpen,
+      clientPhone,
+      clientMobilePhoneOpen,
       confirmDataOpen,
       counterAnswers,
       confirmDataHasOpened,
@@ -534,52 +515,98 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   );
 
   const handleFinishForm = useCallback(
-    (newCompanyName: CompanyState) => {
-      setCompanyName(newCompanyName);
+    (newClientName: ClientData) => {
+      setClientName(newClientName);
 
-      setCounterAnswers((state) => [...state, 'companyName']); // Set as answered
+      setCounterAnswers((state) => [...state, 'clientName']); // Set as answered
 
-      const existentCompany = companyNames.find(
-        (company) => company.company_name === newCompanyName.company_name
+      const existentClient = clients.find(
+        (client) => client.company_name === newClientName.company_name
       );
 
-      if (existentCompany) {
-        if (existentCompany.cpf_cnpj.length > 11) {
-          setCompanyCnpj(existentCompany.cpf_cnpj);
-          setCounterAnswers((state) => [...state, 'companyCnpj']); // Set as answered
+      if (existentClient) {
+        if (existentClient.cpf_cnpj.length > 11) {
+          setClientCnpj(existentClient.cpf_cnpj);
+          setCounterAnswers((state) => [...state, 'clientCnpj']); // Set as answered
         } else {
-          setCompanyCpf(existentCompany.cpf_cnpj);
-          setCounterAnswers((state) => [...state, 'companyCpf']); // Set as answered
+          setClientCpf(existentClient.cpf_cnpj);
+          setCounterAnswers((state) => [...state, 'clientCpf']); // Set as answered
         }
 
-        if (existentCompany.contact_name) {
-          setCompanyNameContact(existentCompany.contact_name);
-          setCounterAnswers((state) => [...state, 'companyNameContact']); // Set as answered
+        if (existentClient.contact_name) {
+          setClientNameContact(existentClient.contact_name);
+          setCounterAnswers((state) => [...state, 'clientNameContact']); // Set as answered
         }
 
-        if (existentCompany.email) {
-          setCompanyEmail(existentCompany.email);
-          setCounterAnswers((state) => [...state, 'companyEmail']); // Set as answered
+        if (existentClient.email) {
+          setClientEmail(existentClient.email);
+          setCounterAnswers((state) => [...state, 'clientEmail']); // Set as answered
         }
 
-        if (existentCompany.phone) {
-          setCompanyPhone(existentCompany.phone);
-          setCounterAnswers((state) => [...state, 'companyPhone']); // Set as answered
+        if (existentClient.phone) {
+          setClientPhone(existentClient.phone);
+          setCounterAnswers((state) => [...state, 'clientPhone']); // Set as answered
         }
 
-        if (existentCompany.mobile) {
-          setCompanyMobilePhoneContact(existentCompany.mobile);
-          setCounterAnswers((state) => [...state, 'companyMobilePhoneContact']); // Set as answered
+        if (existentClient.mobile) {
+          setClientMobilePhone(existentClient.mobile);
+          setCounterAnswers((state) => [...state, 'clientMobilePhone']); // Set as answered
         }
 
         handleShowData();
       }
     },
-    [companyNames, handleShowData]
+    [clients, handleShowData]
   );
 
   const handleSubmitForm = useCallback(() => {
     try {
+      const formattedClientCnpj = clientCnpj.replace(/[^\w\s]/gi, '');
+      const formattedClientCpf = clientCpf.replace(/[^\w\s]/gi, '');
+      const formattedClientPhone = clientPhone.replace(/[^\w]/gi, '');
+      const formattedClientMobilePhone = clientMobilePhone.replace(
+        /[^\w]/gi,
+        ''
+      );
+
+      const getClientIndex = clients.find(
+        (client) =>
+          client.cpf_cnpj === (formattedClientCnpj || formattedClientCpf)
+      );
+
+      if (!getClientIndex) {
+        api
+          .post<ClientData>('/clients', {
+            company_name: clientName.company_name,
+            cpf_cnpj:
+              (clientCnpj && formattedClientCnpj) ||
+              (clientCpf && formattedClientCpf),
+            contact_name: clientNameContact,
+            email: clientEmail,
+            phone: formattedClientPhone,
+            mobile: formattedClientMobilePhone,
+          })
+          .then((client_response) => {
+            api
+              .post<CreateOrderType>('/orders', {
+                client_id: client_response.data.id,
+                seller_id: user.id,
+              })
+              .then((order_response) => {
+                setOrderId(order_response.data.id);
+              });
+          });
+      } else {
+        api
+          .post<CreateOrderType>('/orders', {
+            client_id: getClientIndex.id,
+            seller_id: user.id,
+          })
+          .then((order_response) => {
+            setOrderId(order_response.data.id);
+          });
+      }
+
       addToast({
         type: 'success',
         description: 'Pedido criado com sucesso!',
@@ -592,141 +619,149 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         description: 'Erro inesperado ao criar o pedido',
       });
     }
-  }, [addToast]);
+  }, [
+    addToast,
+    clientCnpj,
+    clientCpf,
+    clientEmail,
+    clientMobilePhone,
+    clientName.company_name,
+    clientNameContact,
+    clientPhone,
+    clients,
+    user.id,
+  ]);
 
   const handleChangeToPreviousQuestion = useCallback(() => {
     if (
-      companyNameOpen &&
-      companyName.company_name &&
-      (companyCnpj || companyCpf) &&
-      companyNameContact &&
-      companyEmail &&
-      (companyPhone || companyMobilePhoneContact)
+      clientNameOpen &&
+      clientName.company_name &&
+      (clientCnpj || clientCpf) &&
+      clientNameContact &&
+      clientEmail &&
+      (clientPhone || clientMobilePhone)
     ) {
-      setCompanyNameOpen(!companyNameOpen);
+      setClientNameOpen(!clientNameOpen);
       setConfirmDataOpen(!confirmDataOpen);
     }
-    if (companyCnpjOpen) {
-      setCompanyCnpjOpen(!companyCnpjOpen);
-      setCompanyNameOpen(!companyNameOpen);
+    if (clientCnpjOpen) {
+      setClientCnpjOpen(!clientCnpjOpen);
+      setClientNameOpen(!clientNameOpen);
     }
-    if (companyCpfOpen && !companyCpf) {
-      setCompanyCpfOpen(!companyCpfOpen);
-      setCompanyCnpjOpen(!companyCnpjOpen);
+    if (clientCpfOpen && !clientCpf) {
+      setClientCpfOpen(!clientCpfOpen);
+      setClientCnpjOpen(!clientCnpjOpen);
     }
-    if (companyCpfOpen && companyCpf) {
-      setCompanyCpfOpen(!companyCpfOpen);
-      setCompanyNameOpen(!companyNameOpen);
+    if (clientCpfOpen && clientCpf) {
+      setClientCpfOpen(!clientCpfOpen);
+      setClientNameOpen(!clientNameOpen);
     }
-    if (companyNameContactOpen && companyCnpj) {
-      setCompanyNameContactOpen(!companyNameContactOpen);
-      setCompanyCnpjOpen(!companyCnpjOpen);
+    if (clientNameContactOpen && clientCnpj) {
+      setClientNameContactOpen(!clientNameContactOpen);
+      setClientCnpjOpen(!clientCnpjOpen);
     }
-    if (companyNameContactOpen && companyCpf) {
-      setCompanyNameContactOpen(!companyNameContactOpen);
-      setCompanyCpfOpen(!companyCpfOpen);
+    if (clientNameContactOpen && clientCpf) {
+      setClientNameContactOpen(!clientNameContactOpen);
+      setClientCpfOpen(!clientCpfOpen);
     }
-    if (companyEmailOpen) {
-      setCompanyEmailOpen(!companyEmailOpen);
-      setCompanyNameContactOpen(!companyNameContactOpen);
+    if (clientEmailOpen) {
+      setClientEmailOpen(!clientEmailOpen);
+      setClientNameContactOpen(!clientNameContactOpen);
     }
-    if (companyPhoneOpen) {
-      setCompanyPhoneOpen(!companyPhoneOpen);
-      setCompanyEmailOpen(!companyEmailOpen);
+    if (clientPhoneOpen) {
+      setClientPhoneOpen(!clientPhoneOpen);
+      setClientEmailOpen(!clientEmailOpen);
     }
-    if (companyMobilePhoneContactOpen) {
-      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
-      setCompanyPhoneOpen(!companyPhoneOpen);
+    if (clientMobilePhoneOpen) {
+      setClientMobilePhoneOpen(!clientMobilePhoneOpen);
+      setClientPhoneOpen(!clientPhoneOpen);
     }
     if (confirmDataOpen) {
       setConfirmDataOpen(!confirmDataOpen);
-      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
+      setClientMobilePhoneOpen(!clientMobilePhoneOpen);
     }
   }, [
-    companyNameOpen,
-    companyName.company_name,
-    companyCnpj,
-    companyCpf,
-    companyNameContact,
-    companyEmail,
-    companyPhone,
-    companyMobilePhoneContact,
-    companyCnpjOpen,
-    companyCpfOpen,
-    companyNameContactOpen,
-    companyEmailOpen,
-    companyPhoneOpen,
-    companyMobilePhoneContactOpen,
+    clientNameOpen,
+    clientName.company_name,
+    clientCnpj,
+    clientCpf,
+    clientNameContact,
+    clientEmail,
+    clientPhone,
+    clientMobilePhone,
+    clientCnpjOpen,
+    clientCpfOpen,
+    clientNameContactOpen,
+    clientEmailOpen,
+    clientPhoneOpen,
+    clientMobilePhoneOpen,
     confirmDataOpen,
   ]);
 
   const handleChangeToNextQuestion = useCallback(() => {
-    if (companyNameOpen && companyName.company_name && companyCnpj) {
-      setCompanyNameOpen(!companyNameOpen);
-      setCompanyCnpjOpen(!companyCnpjOpen);
+    if (clientNameOpen && clientName.company_name && clientCnpj) {
+      setClientNameOpen(!clientNameOpen);
+      setClientCnpjOpen(!clientCnpjOpen);
     }
-    if (companyNameOpen && companyName.company_name && companyCpf) {
-      setCompanyNameOpen(!companyNameOpen);
-      setCompanyCpfOpen(!companyCpfOpen);
+    if (clientNameOpen && clientName.company_name && clientCpf) {
+      setClientNameOpen(!clientNameOpen);
+      setClientCpfOpen(!clientCpfOpen);
     }
-    if (companyCnpjOpen && !companyCnpj) {
-      setCompanyCnpjOpen(!companyCnpjOpen);
-      setCompanyCpfOpen(!companyCpfOpen);
+    if (clientCnpjOpen && !clientCnpj) {
+      setClientCnpjOpen(!clientCnpjOpen);
+      setClientCpfOpen(!clientCpfOpen);
     }
-    if (companyCnpjOpen && companyCnpj) {
-      setCompanyCnpjOpen(!companyCnpjOpen);
-      setCompanyNameContactOpen(!companyNameContactOpen);
+    if (clientCnpjOpen && clientCnpj) {
+      setClientCnpjOpen(!clientCnpjOpen);
+      setClientNameContactOpen(!clientNameContactOpen);
     }
-    if (companyCpfOpen && companyCpf) {
-      setCompanyCpfOpen(!companyCpfOpen);
-      setCompanyNameContactOpen(!companyNameContactOpen);
+    if (clientCpfOpen && clientCpf) {
+      setClientCpfOpen(!clientCpfOpen);
+      setClientNameContactOpen(!clientNameContactOpen);
     }
-    if (companyNameContactOpen && companyNameContact) {
-      setCompanyNameContactOpen(!companyNameContactOpen);
-      setCompanyEmailOpen(!companyEmailOpen);
+    if (clientNameContactOpen && clientNameContact) {
+      setClientNameContactOpen(!clientNameContactOpen);
+      setClientEmailOpen(!clientEmailOpen);
     }
-    if (companyEmailOpen && companyEmail) {
-      setCompanyEmailOpen(!companyEmailOpen);
-      setCompanyPhoneOpen(!companyPhoneOpen);
+    if (clientEmailOpen && clientEmail) {
+      setClientEmailOpen(!clientEmailOpen);
+      setClientPhoneOpen(!clientPhoneOpen);
     }
-    if (companyPhoneOpen) {
-      setCompanyPhoneOpen(!companyPhoneOpen);
-      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
+    if (clientPhoneOpen) {
+      setClientPhoneOpen(!clientPhoneOpen);
+      setClientMobilePhoneOpen(!clientMobilePhoneOpen);
     }
-    if (
-      companyMobilePhoneContactOpen &&
-      (companyMobilePhoneContact || companyPhoneOpen)
-    ) {
-      setCompanyMobilePhoneContactOpen(!companyMobilePhoneContactOpen);
+    if (clientMobilePhoneOpen && (clientMobilePhone || clientPhoneOpen)) {
+      setClientMobilePhoneOpen(!clientMobilePhoneOpen);
       setConfirmDataOpen(!confirmDataOpen);
     }
-    if (confirmDataOpen && companyName.company_name) {
+    if (confirmDataOpen && clientName.company_name) {
       setConfirmDataOpen(!confirmDataOpen);
-      setCompanyNameOpen(!companyNameOpen);
+      setClientNameOpen(!clientNameOpen);
     }
   }, [
-    companyNameOpen,
-    companyName.company_name,
-    companyCnpjOpen,
-    companyCpfOpen,
-    companyCpf,
-    companyCnpj,
-    companyNameContactOpen,
-    companyNameContact,
-    companyEmailOpen,
-    companyEmail,
-    companyPhoneOpen,
-    companyMobilePhoneContactOpen,
-    companyMobilePhoneContact,
+    clientNameOpen,
+    clientName.company_name,
+    clientCnpjOpen,
+    clientCpfOpen,
+    clientCpf,
+    clientCnpj,
+    clientNameContactOpen,
+    clientNameContact,
+    clientEmailOpen,
+    clientEmail,
+    clientPhoneOpen,
+    clientMobilePhoneOpen,
+    clientMobilePhone,
     confirmDataOpen,
   ]);
 
   // This function clear answer when field is empty
   useEffect(() => {
-    if (!companyName.company_name) {
-      setCounterAnswers((state) => state.filter((e) => e !== 'companyName'));
+    if (!clientName.company_name) {
+      setCounterAnswers((state) => state.filter((e) => e !== 'clientName'));
     }
-  }, [companyName]);
+  }, [clientName]);
 
   // Monitor keyboard events
   const eventKeyPress = useCallback(
@@ -806,12 +841,13 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
 
   return (
     <NewOrderOverlap>
-      {orderOpen && (
+      {orderOpen && orderId && (
         <Order
           color={color}
-          order_id="bf58aa7e-b8ec-4e18-a026-948f55ef5706"
+          order_id={orderId}
           from="Comercial"
-          updateSearchResults={(e) => setUpdateSearchResults(e)}
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          updateSearchResults={() => {}}
         />
       )}
       <HeaderButton
@@ -824,12 +860,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       <ThemeProvider theme={defaultMaterialTheme}>
         <Container>
           <Content color={color}>
-            {companyNameOpen && (
+            {clientNameOpen && clients && (
               <form
                 onSubmit={(e) => e.preventDefault()}
                 className="individual-form"
               >
-                <WhatIsCompanyName companyNameOpen={companyNameOpen}>
+                <WhatIsClientName clientNameOpen={clientNameOpen}>
                   <AskTitle>
                     <div>
                       <span>1</span>
@@ -843,25 +879,22 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     openText=""
                     clearText=""
                     clearOnBlur={false}
-                    value={companyName}
-                    onChange={(event, newCompanyName) => {
-                      if (newCompanyName && newCompanyName.inputValue) {
-                        setCompanyName({
-                          ...companyName,
-                          company_name: newCompanyName.inputValue,
+                    value={clientName}
+                    onChange={(event, newClientName) => {
+                      if (newClientName && newClientName.inputValue) {
+                        setClientName({
+                          ...clientName,
+                          company_name: newClientName.inputValue,
                         });
-                      } else if (newCompanyName) {
-                        handleFinishForm(newCompanyName);
+                      } else if (newClientName) {
+                        handleFinishForm(newClientName);
                       }
-                      if (!newCompanyName) {
-                        setCompanyName({} as CompanyState);
+                      if (!newClientName) {
+                        setClientName({} as ClientData);
                       }
                     }}
                     filterOptions={(options, params) => {
-                      const filtered = filter(
-                        options,
-                        params
-                      ) as CompanyState[];
+                      const filtered = filter(options, params) as ClientData[];
 
                       if (params.inputValue !== '') {
                         filtered.push({
@@ -875,7 +908,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
 
                       return filtered;
                     }}
-                    options={companyNames}
+                    options={clients}
                     noOptionsText=""
                     getOptionLabel={({ company_name, inputValue }) => {
                       if (inputValue) {
@@ -885,7 +918,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     }}
                     renderInput={(params) => (
                       <OriginalTextField
-                        name="companyName"
+                        name="clientName"
                         autoFocus
                         autoComplete="off"
                         placeholder="Escreva ou selecione uma opção"
@@ -911,9 +944,9 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       );
                     }}
                   />
-                  {companyName.company_name ? (
+                  {clientName.company_name ? (
                     <SubmitQuestionButton>
-                      <Button onClick={handleSubmitCompanyName}>
+                      <Button onClick={handleSubmitClientName}>
                         Continuar
                       </Button>
                       <div>
@@ -926,16 +959,16 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   ) : (
                     <DisabledButton>Continuar</DisabledButton>
                   )}
-                </WhatIsCompanyName>
+                </WhatIsClientName>
               </form>
             )}
-            {companyCnpjOpen && (
+            {clientCnpjOpen && (
               <Form
-                ref={companyCnpjRef}
+                ref={clientCnpjRef}
                 className="individual-form"
-                onSubmit={handleSubmitCompanyCnpj}
+                onSubmit={handleSubmitClientCnpj}
               >
-                <WhatIsCompanyCnpj companyCnpjOpen={companyCnpjOpen}>
+                <WhatIsClientCnpj clientCnpjOpen={clientCnpjOpen}>
                   <AskTitle>
                     <div>
                       <span>2</span>
@@ -946,12 +979,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </div>
                   </AskTitle>
                   <TextField
-                    id="companyCnpj-input"
-                    name="companyCnpjData"
+                    id="clientCnpj-input"
+                    name="clientCnpjData"
                     autoFocus
                     autoComplete="off"
                     placeholder="Digite aqui"
-                    defaultValue={companyCnpj}
+                    defaultValue={clientCnpj}
                     InputProps={{
                       inputComponent: InputWithCNPJMask as any,
                     }}
@@ -966,16 +999,16 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       <span>↵</span>
                     </div>
                   </SubmitQuestionButton>
-                </WhatIsCompanyCnpj>
+                </WhatIsClientCnpj>
               </Form>
             )}
-            {companyCpfOpen && (
+            {clientCpfOpen && (
               <Form
-                ref={companyCpfRef}
+                ref={clientCpfRef}
                 className="individual-form"
-                onSubmit={handleSubmitCompanyCpf}
+                onSubmit={handleSubmitClientCpf}
               >
-                <WhatIsCompanyCpf companyCpfOpen={companyCpfOpen}>
+                <WhatIsClientCpf clientCpfOpen={clientCpfOpen}>
                   <AskTitle>
                     <div>
                       <span>2</span>
@@ -986,12 +1019,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </div>
                   </AskTitle>
                   <TextField
-                    id="companyCpf-input"
-                    name="companyCpfData"
+                    id="clientCpf-input"
+                    name="clientCpfData"
                     autoFocus
                     autoComplete="off"
                     placeholder="Digite aqui"
-                    defaultValue={companyCpf}
+                    defaultValue={clientCpf}
                     InputProps={{
                       inputComponent: InputWithCPFMask as any,
                     }}
@@ -1006,17 +1039,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       <span>↵</span>
                     </div>
                   </SubmitQuestionButton>
-                </WhatIsCompanyCpf>
+                </WhatIsClientCpf>
               </Form>
             )}
-            {companyNameContactOpen && (
+            {clientNameContactOpen && (
               <Form
-                ref={companyNameContactRef}
-                onSubmit={handleSubmitCompanyNameContact}
+                ref={clientNameContactRef}
+                onSubmit={handleSubmitClientNameContact}
                 className="individual-form"
               >
-                <WhatIsCompanyNameContact
-                  companyNameContactOpen={companyNameContactOpen}
+                <WhatIsClientNameContact
+                  clientNameContactOpen={clientNameContactOpen}
                 >
                   <AskTitle>
                     <div>
@@ -1028,12 +1061,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </div>
                   </AskTitle>
                   <TextField
-                    id="companyNameContact-input"
-                    name="companyNameContactData"
+                    id="clientNameContact-input"
+                    name="clientNameContactData"
                     autoFocus
                     autoComplete="off"
                     placeholder="Digite aqui"
-                    defaultValue={companyNameContact}
+                    defaultValue={clientNameContact}
                     helperText=" "
                   />
                   <SubmitQuestionButton>
@@ -1045,16 +1078,16 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       <span>↵</span>
                     </div>
                   </SubmitQuestionButton>
-                </WhatIsCompanyNameContact>
+                </WhatIsClientNameContact>
               </Form>
             )}
-            {companyEmailOpen && (
+            {clientEmailOpen && (
               <Form
-                ref={companyEmailRef}
-                onSubmit={handleSubmitCompanyEmail}
+                ref={clientEmailRef}
+                onSubmit={handleSubmitClientEmail}
                 className="individual-form"
               >
-                <WhatIsCompanyEmail companyEmailOpen={companyEmailOpen}>
+                <WhatIsClientEmail clientEmailOpen={clientEmailOpen}>
                   <AskTitle>
                     <div>
                       <span>4</span>
@@ -1065,12 +1098,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </div>
                   </AskTitle>
                   <TextField
-                    id="companyEmail-input"
-                    name="companyEmailData"
+                    id="clientEmail-input"
+                    name="clientEmailData"
                     autoFocus
                     autoComplete="off"
                     placeholder="Digite aqui"
-                    defaultValue={companyEmail}
+                    defaultValue={clientEmail}
                     helperText=" "
                   />
                   <SubmitQuestionButton>
@@ -1082,16 +1115,16 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       <span>↵</span>
                     </div>
                   </SubmitQuestionButton>
-                </WhatIsCompanyEmail>
+                </WhatIsClientEmail>
               </Form>
             )}
-            {companyPhoneOpen && (
+            {clientPhoneOpen && (
               <Form
-                ref={companyPhoneRef}
-                onSubmit={handleSubmitCompanyPhone}
+                ref={clientPhoneRef}
+                onSubmit={handleSubmitClientPhone}
                 className="individual-form"
               >
-                <WhatIsCompanyPhone companyPhoneOpen={companyPhoneOpen}>
+                <WhatIsClientPhone clientPhoneOpen={clientPhoneOpen}>
                   <AskTitle>
                     <div>
                       <span>5</span>
@@ -1102,12 +1135,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </div>
                   </AskTitle>
                   <TextField
-                    id="companyPhone-input"
-                    name="companyPhoneData"
+                    id="clientPhone-input"
+                    name="clientPhoneData"
                     autoFocus
                     autoComplete="off"
                     placeholder="Digite aqui"
-                    defaultValue={companyPhone}
+                    defaultValue={clientPhone}
                     InputProps={{
                       inputComponent: InputWithPhoneMask as any,
                     }}
@@ -1122,17 +1155,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       <span>↵</span>
                     </div>
                   </SubmitQuestionButton>
-                </WhatIsCompanyPhone>
+                </WhatIsClientPhone>
               </Form>
             )}
-            {companyMobilePhoneContactOpen && (
+            {clientMobilePhoneOpen && (
               <Form
-                ref={companyMobilePhoneContactRef}
-                onSubmit={handleSubmitCompanyMobilePhoneContact}
+                ref={clientMobilePhoneRef}
+                onSubmit={handleSubmitClientMobilePhone}
                 className="individual-form"
               >
-                <WhatIsCompanyMobilePhone
-                  companyMobilePhoneContactOpen={companyMobilePhoneContactOpen}
+                <WhatIsClientMobilePhone
+                  clientMobilePhoneOpen={clientMobilePhoneOpen}
                 >
                   <AskTitle>
                     <div>
@@ -1144,12 +1177,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     </div>
                   </AskTitle>
                   <TextField
-                    id="companyMobilePhoneContact-input"
-                    name="companyMobilePhoneContactData"
+                    id="clientMobilePhone-input"
+                    name="clientMobilePhoneData"
                     autoFocus
                     autoComplete="off"
                     placeholder="Digite aqui"
-                    defaultValue={companyMobilePhoneContact}
+                    defaultValue={clientMobilePhone}
                     InputProps={{
                       inputComponent: InputWithMobilePhoneMask as any,
                     }}
@@ -1164,7 +1197,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       <span>↵</span>
                     </div>
                   </SubmitQuestionButton>
-                </WhatIsCompanyMobilePhone>
+                </WhatIsClientMobilePhone>
               </Form>
             )}
           </Content>
@@ -1188,24 +1221,20 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
               <QuestionData>
                 <QuestionsContainer>
                   <p>Razão Social: </p>
-                  {companyCnpj && <p>CNPJ: </p>}
-                  {companyCpf && <p>CPF: </p>}
+                  {clientCnpj && <p>CNPJ: </p>}
+                  {clientCpf && <p>CPF: </p>}
                   <p>Nome do responsável: </p>
                   <p>E-mail do responsável: </p>
-                  {companyPhone && <p>Telefone da empresa: </p>}
-                  {companyMobilePhoneContact && (
-                    <p>Telefone do responsável: </p>
-                  )}
+                  {clientPhone && <p>Telefone da empresa: </p>}
+                  {clientMobilePhone && <p>Telefone do responsável: </p>}
                 </QuestionsContainer>
                 <AnswersContainer>
-                  <p>{companyName.company_name}</p>
-                  <p>{companyCnpj || companyCpf}</p>
-                  <p>{companyNameContact}</p>
-                  <p>{companyEmail}</p>
-                  {companyPhone && <p>{companyPhone}</p>}
-                  {companyMobilePhoneContact && (
-                    <p>{companyMobilePhoneContact}</p>
-                  )}
+                  <p>{clientName.company_name}</p>
+                  <p>{clientCnpj || clientCpf}</p>
+                  <p>{clientNameContact}</p>
+                  <p>{clientEmail}</p>
+                  {clientPhone && <p>{clientPhone}</p>}
+                  {clientMobilePhone && <p>{clientMobilePhone}</p>}
                 </AnswersContainer>
               </QuestionData>
               <SubmitFormButton>

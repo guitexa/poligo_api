@@ -1,5 +1,6 @@
 import ICreateOrderDTO from '../dtos/ICreateOrderDTO';
 import Order from '../infra/typeorm/entities/Order';
+import ISearchOrderDTO from '../dtos/ISearchOrderDTO';
 
 export default interface IOrdersRepository {
   create(orderData: ICreateOrderDTO): Promise<Order>;
@@ -7,4 +8,5 @@ export default interface IOrdersRepository {
   findById(order_id: string): Promise<Order | undefined>;
   findByIdWithoutRelations(order_id: string): Promise<Order | undefined>;
   save(order: Order): Promise<Order>;
+  search(searchData: ISearchOrderDTO): Promise<Order[] | undefined>;
 }

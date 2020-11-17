@@ -9,21 +9,21 @@ import { Container } from './styles';
 
 const Loading: React.FC = () => {
   const { push } = useHistory();
-  const { userPermission } = useAuth();
+  const { user } = useAuth();
 
-  if (userPermission === 'Admin') {
+  if (user.permissions.name === 'Admin') {
     push('/Comercial');
   }
 
-  if (userPermission === 'Comercial') {
+  if (user.permissions.name === 'Comercial') {
     push('/Comercial');
   }
 
-  if (userPermission === 'TechnicalArea') {
+  if (user.permissions.name === 'TechnicalArea') {
     push('/TechnicalArea');
   }
 
-  if (userPermission === 'Billing') {
+  if (user.permissions.name === 'Billing') {
     push('/Billing');
   }
 

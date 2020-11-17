@@ -22,54 +22,47 @@ const Comercial: React.FC = () => {
     overlapOrderOpen,
   } = useOverlap();
   const { push } = useHistory();
-  const { userPermission, checkToken } = useAuth();
+  const { user, checkToken } = useAuth();
   const {
+    company_name,
     selectedDate,
-    companyName,
-    service,
+    selectedDeliveryDate,
     seller,
-    status,
-    value,
-    searchDate,
-    searchCompanyName,
-    searchService,
-    searchSeller,
-    searchValue,
-    searchStatus,
+    service,
+    status_billing,
+    status_delivery,
+    status_order,
+    technical,
+    total_value,
+    clearAllResults,
   } = useSearch();
 
   // This hook must be executed only once
   useEffect(() => {
-    if (userPermission !== 'Comercial' && userPermission !== 'Admin') {
+    if (
+      user.permissions.name !== 'Comercial' &&
+      user.permissions.name !== 'Admin'
+    ) {
       push('/Loading');
-    }
-
-    if (selectedDate) {
-      searchDate(null);
-    }
-
-    if (companyName) {
-      searchCompanyName('');
-    }
-
-    if (service) {
-      searchService('');
-    }
-
-    if (seller) {
-      searchSeller('');
-    }
-
-    if (value) {
-      searchValue('');
-    }
-
-    if (status) {
-      searchStatus('');
     }
 
     if (orderOpen) {
       overlapOrderOpen(false);
+    }
+
+    if (
+      company_name ||
+      selectedDate ||
+      selectedDeliveryDate ||
+      seller ||
+      service ||
+      status_billing ||
+      status_delivery ||
+      status_order ||
+      technical ||
+      total_value
+    ) {
+      clearAllResults();
     }
 
     checkToken();

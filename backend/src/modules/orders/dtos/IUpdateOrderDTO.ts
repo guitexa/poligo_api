@@ -14,4 +14,5 @@ export default interface IUpdateOrderDTO {
   product_id?: string;
   product_description?: string;
   product_value?: number;
+  total_value?: string;
 }

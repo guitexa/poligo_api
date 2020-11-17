@@ -15,6 +15,7 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 
 import { Container, Content } from './styles';
+import { useAuth } from '../../hooks/auth';
 
 interface DataForm {
   name: string;
@@ -25,6 +26,8 @@ interface DataForm {
 
 const SignUp: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
+
+  const { checkToken } = useAuth();
 
   const { addToast } = useToast();
 
@@ -46,6 +49,8 @@ const SignUp: React.FC = () => {
         await schema.validate(data, {
           abortEarly: false,
         });
+
+        checkToken();
 
         await api.post('/users', {
           name: data.name,
@@ -81,7 +86,7 @@ const SignUp: React.FC = () => {
         });
       }
     },
-    [history, addToast]
+    [checkToken, addToast, history]
   );
 
   return (
