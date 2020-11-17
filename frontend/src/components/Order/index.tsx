@@ -303,7 +303,7 @@ const Order: React.FC<OrderProps> = ({
         updateSearchResults({
           order_id,
           status_delivery: '',
-          technical: undefined,
+          technical: '',
         });
       } else {
         checkToken();
@@ -685,7 +685,7 @@ const Order: React.FC<OrderProps> = ({
 
           updateSearchResults({
             order_id,
-            delivery_date: undefined,
+            delivery_date: '',
           });
 
           addToast({
@@ -755,7 +755,9 @@ const Order: React.FC<OrderProps> = ({
   }, []);
 
   const totalValue = useMemo((): string => {
-    api.patch(`/orders/${order_id}`, {});
+    if (order_id) {
+      api.patch(`/orders/${order_id}`, {});
+    }
 
     if (orderData.orders_products) {
       const servicesValues = orderData.orders_products
@@ -795,6 +797,35 @@ const Order: React.FC<OrderProps> = ({
     ]
   );
 
+  const handleCloseOrder = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+      if (from === 'TechnicalArea') {
+        if (
+          (orderData &&
+            !!orderData.delivery_date &&
+            !!orderData.status_delivery) ||
+          (orderData && !orderData.delivery_date && !orderData.status_delivery)
+        ) {
+          overlapOrderOpen(!e);
+        } else if (
+          orderData &&
+          !orderData.delivery_date &&
+          !!orderData.status_delivery
+        ) {
+          addToast({
+            type: 'info',
+            description: 'Favor preencher a data de entrega',
+          });
+        } else {
+          overlapOrderOpen(!e);
+        }
+      } else {
+        overlapOrderOpen(!e);
+      }
+    },
+    [addToast, from, orderData, overlapOrderOpen]
+  );
+
   return (
     <OrderOverlap>
       {newServiceOpen && (
@@ -824,7 +855,7 @@ const Order: React.FC<OrderProps> = ({
         <>
           <HeaderButton
             show={orderOpen && !newServiceOpen && !productViewOpen}
-            handleClick={(e) => overlapOrderOpen(!e)}
+            handleClick={(e) => handleCloseOrder(e)}
             type="button"
             icon={FaTimes}
             color={color}

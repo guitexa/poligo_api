@@ -83,6 +83,7 @@ export const Content = styled.div`
   align-items: center;
 
   div {
+    width: 100%;
     margin: 10px 0;
 
     strong {

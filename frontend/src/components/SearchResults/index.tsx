@@ -146,16 +146,23 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
             updateSearchResults.status_payment;
         }
 
-        if (updateSearchResults.delivery_date) {
+        if (updateSearchResults.delivery_date?.length === 0) {
+          searchResults[getOrderIndex].delivery_date = undefined;
+        } else if (
+          updateSearchResults.delivery_date &&
+          updateSearchResults.delivery_date.length > 0
+        ) {
           searchResults[getOrderIndex].delivery_date = convertDate(
             updateSearchResults.delivery_date
           );
-        } else if (updateSearchResults.delivery_date === undefined) {
-          searchResults[getOrderIndex].delivery_date =
-            updateSearchResults.delivery_date;
         }
 
-        if (updateSearchResults.technical) {
+        if (updateSearchResults.technical?.length === 0) {
+          searchResults[getOrderIndex].technical = undefined;
+        } else if (
+          updateSearchResults.technical &&
+          updateSearchResults.technical.length > 0
+        ) {
           searchResults[getOrderIndex].technical = {
             name: updateSearchResults.technical,
           };
