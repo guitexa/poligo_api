@@ -53,7 +53,7 @@ import {
 interface ClientData {
   id?: string;
   inputValue?: string;
-  company_name: string;
+  name: string;
   cpf_cnpj: string;
   contact_name: string;
   email?: string;
@@ -170,7 +170,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   }, []);
 
   const handleSubmitClientName = useCallback(() => {
-    if (clientName.company_name) {
+    if (clientName.name) {
       setClientNameOpen(!clientNameOpen); // Close question opened
       setClientCnpjOpen(!clientCnpjOpen); // Open next question
 
@@ -191,7 +191,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       handleShowData();
     }
   }, [
-    clientName.company_name,
+    clientName.name,
     confirmDataHasOpened,
     counterAnswers,
     clientNameOpen,
@@ -521,7 +521,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       setCounterAnswers((state) => [...state, 'clientName']); // Set as answered
 
       const existentClient = clients.find(
-        (client) => client.company_name === newClientName.company_name
+        (client) => client.name === newClientName.name
       );
 
       if (existentClient) {
@@ -577,7 +577,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       if (!getClientIndex) {
         api
           .post<ClientData>('/clients', {
-            company_name: clientName.company_name,
+            name: clientName.name,
             cpf_cnpj:
               (clientCnpj && formattedClientCnpj) ||
               (clientCpf && formattedClientCpf),
@@ -625,7 +625,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     clientCpf,
     clientEmail,
     clientMobilePhone,
-    clientName.company_name,
+    clientName.name,
     clientNameContact,
     clientPhone,
     clients,
@@ -635,7 +635,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const handleChangeToPreviousQuestion = useCallback(() => {
     if (
       clientNameOpen &&
-      clientName.company_name &&
+      clientName.name &&
       (clientCnpj || clientCpf) &&
       clientNameContact &&
       clientEmail &&
@@ -682,7 +682,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     }
   }, [
     clientNameOpen,
-    clientName.company_name,
+    clientName.name,
     clientCnpj,
     clientCpf,
     clientNameContact,
@@ -699,11 +699,11 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   ]);
 
   const handleChangeToNextQuestion = useCallback(() => {
-    if (clientNameOpen && clientName.company_name && clientCnpj) {
+    if (clientNameOpen && clientName.name && clientCnpj) {
       setClientNameOpen(!clientNameOpen);
       setClientCnpjOpen(!clientCnpjOpen);
     }
-    if (clientNameOpen && clientName.company_name && clientCpf) {
+    if (clientNameOpen && clientName.name && clientCpf) {
       setClientNameOpen(!clientNameOpen);
       setClientCpfOpen(!clientCpfOpen);
     }
@@ -735,13 +735,13 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       setClientMobilePhoneOpen(!clientMobilePhoneOpen);
       setConfirmDataOpen(!confirmDataOpen);
     }
-    if (confirmDataOpen && clientName.company_name) {
+    if (confirmDataOpen && clientName.name) {
       setConfirmDataOpen(!confirmDataOpen);
       setClientNameOpen(!clientNameOpen);
     }
   }, [
     clientNameOpen,
-    clientName.company_name,
+    clientName.name,
     clientCnpjOpen,
     clientCpfOpen,
     clientCpf,
@@ -758,7 +758,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
 
   // This function clear answer when field is empty
   useEffect(() => {
-    if (!clientName.company_name) {
+    if (!clientName.name) {
       setCounterAnswers((state) => state.filter((e) => e !== 'clientName'));
     }
   }, [clientName]);
@@ -884,7 +884,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       if (newClientName && newClientName.inputValue) {
                         setClientName({
                           ...clientName,
-                          company_name: newClientName.inputValue,
+                          name: newClientName.inputValue,
                         });
                       } else if (newClientName) {
                         handleFinishForm(newClientName);
@@ -899,7 +899,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       if (params.inputValue !== '') {
                         filtered.push({
                           inputValue: params.inputValue,
-                          company_name: `Adicionar ${params.inputValue}`,
+                          name: `Adicionar ${params.inputValue}`,
                           cpf_cnpj: '',
                           contact_name: '',
                           phone: '',
@@ -910,11 +910,11 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                     }}
                     options={clients}
                     noOptionsText=""
-                    getOptionLabel={({ company_name, inputValue }) => {
+                    getOptionLabel={({ name, inputValue }) => {
                       if (inputValue) {
                         return inputValue;
                       }
-                      return company_name;
+                      return name;
                     }}
                     renderInput={(params) => (
                       <OriginalTextField
@@ -926,9 +926,9 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                         {...params}
                       />
                     )}
-                    renderOption={({ company_name }, { inputValue }) => {
-                      const matches = match(company_name, inputValue);
-                      const parts = parse(company_name, matches);
+                    renderOption={({ name }, { inputValue }) => {
+                      const matches = match(name, inputValue);
+                      const parts = parse(name, matches);
 
                       return (
                         <div>
@@ -944,7 +944,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                       );
                     }}
                   />
-                  {clientName.company_name ? (
+                  {clientName.name ? (
                     <SubmitQuestionButton>
                       <Button onClick={handleSubmitClientName}>
                         Continuar
@@ -1229,7 +1229,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                   {clientMobilePhone && <p>Telefone do responsável: </p>}
                 </QuestionsContainer>
                 <AnswersContainer>
-                  <p>{clientName.company_name}</p>
+                  <p>{clientName.name}</p>
                   <p>{clientCnpj || clientCpf}</p>
                   <p>{clientNameContact}</p>
                   <p>{clientEmail}</p>

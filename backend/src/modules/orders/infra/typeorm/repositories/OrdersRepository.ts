@@ -68,7 +68,7 @@ export default class OrdersRepository implements IOrdersRepository {
 
   public async search({
     created_at,
-    company_name,
+    company,
     seller,
     technical,
     // product,
@@ -97,8 +97,8 @@ export default class OrdersRepository implements IOrdersRepository {
             qb.where({
               created_at: Between(start_created_at, end_created_at),
             });
-            qb.andWhere('client.company_name ILIKE :clientName', {
-              clientName: `%${company_name}%`,
+            qb.andWhere('client.name ILIKE :clientName', {
+              clientName: `%${company}%`,
             });
             qb.andWhere('seller.name ILIKE :sellerName', {
               sellerName: `%${seller}%`,
@@ -134,8 +134,8 @@ export default class OrdersRepository implements IOrdersRepository {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         where: qb => {
-          qb.where('client.company_name ILIKE :clientName', {
-            clientName: `%${company_name}%`,
+          qb.where('client.name ILIKE :clientName', {
+            clientName: `%${company}%`,
           });
           qb.andWhere('seller.name ILIKE :sellerName', {
             sellerName: `%${seller}%`,
@@ -174,8 +174,8 @@ export default class OrdersRepository implements IOrdersRepository {
           qb.where({
             created_at: Between(start_created_at, end_created_at),
           });
-          qb.andWhere('client.company_name ILIKE :clientName', {
-            clientName: `%${company_name}%`,
+          qb.andWhere('client.name ILIKE :clientName', {
+            clientName: `%${company}%`,
           });
           qb.andWhere('seller.name ILIKE :sellerName', {
             sellerName: `%${seller}%`,
@@ -224,8 +224,8 @@ export default class OrdersRepository implements IOrdersRepository {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           where: qb => {
-            qb.where('client.company_name ILIKE :clientName', {
-              clientName: `%${company_name}%`,
+            qb.where('client.name ILIKE :clientName', {
+              clientName: `%${company}%`,
             });
             // qb.andWhere({
             //   orders_products: oqb => {

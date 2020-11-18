@@ -1,5 +1,5 @@
 export default interface ICreateClientDTO {
-  company_name: string;
+  name: string;
   cpf_cnpj: string;
   contact_name: string;
   email?: string;

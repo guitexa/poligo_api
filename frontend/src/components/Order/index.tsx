@@ -648,10 +648,11 @@ const Order: React.FC<OrderProps> = ({
 
   const submitDeliveryDate = useCallback(
     ({ deliveryDateData }: InputData) => {
-      const year = new Date(convertDate(deliveryDateData)).getFullYear();
-      const month = new Date(convertDate(deliveryDateData)).getMonth();
-      const day = new Date(convertDate(deliveryDateData)).getDate() + 1;
       if (orderData.delivery_date !== deliveryDateData) {
+        const year = new Date(convertDate(deliveryDateData)).getFullYear();
+        const month = new Date(convertDate(deliveryDateData)).getMonth();
+        const day = new Date(convertDate(deliveryDateData)).getDate() + 1;
+
         if (isValid(new Date(year, month, day))) {
           deliveryDateRef.current?.setErrors({});
           orderData.delivery_date = deliveryDateData;
@@ -694,14 +695,17 @@ const Order: React.FC<OrderProps> = ({
           });
         }
       }
+      if (
+        orderData &&
+        !orderData.delivery_date &&
+        !!orderData.status_delivery
+      ) {
+        deliveryDateRef.current?.setErrors({
+          deliveryDateData: 'Digite uma data',
+        });
+      }
     },
-    [
-      addToast,
-      checkToken,
-      orderData.delivery_date,
-      order_id,
-      updateSearchResults,
-    ]
+    [addToast, checkToken, orderData, order_id, updateSearchResults]
   );
 
   const onDeliveryDateSubmit = useCallback(() => {
@@ -812,6 +816,9 @@ const Order: React.FC<OrderProps> = ({
           !orderData.delivery_date &&
           !!orderData.status_delivery
         ) {
+          submitDeliveryDate({
+            deliveryDateData: '',
+          } as InputData);
           addToast({
             type: 'info',
             description: 'Favor preencher a data de entrega',
@@ -823,7 +830,7 @@ const Order: React.FC<OrderProps> = ({
         overlapOrderOpen(!e);
       }
     },
-    [addToast, from, orderData, overlapOrderOpen]
+    [addToast, from, orderData, overlapOrderOpen, submitDeliveryDate]
   );
 
   return (
@@ -878,7 +885,7 @@ const Order: React.FC<OrderProps> = ({
                     <p>Celular:</p>
                   </TitlesForm>
                   <DataForm>
-                    <p>{orderData.client.company_name}</p>
+                    <p>{orderData.client.name}</p>
                     <p>{orderData.client.cpf_cnpj}</p>
                     <p>{orderData.client.contact_name}</p>
                     <p>{orderData.client.email}</p>

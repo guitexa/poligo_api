@@ -12,7 +12,7 @@ export default class CreateClientService {
   ) {}
 
   public async execute({
-    company_name,
+    name,
     cpf_cnpj,
     contact_name,
     email,
@@ -20,7 +20,7 @@ export default class CreateClientService {
     mobile,
   }: ICreateClientDTO): Promise<Client> {
     const client = await this.clientsRepository.create({
-      company_name,
+      name,
       cpf_cnpj,
       contact_name,
       email,

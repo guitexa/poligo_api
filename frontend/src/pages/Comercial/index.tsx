@@ -24,7 +24,7 @@ const Comercial: React.FC = () => {
   const { push } = useHistory();
   const { user, checkToken } = useAuth();
   const {
-    company_name,
+    company,
     selectedDate,
     selectedDeliveryDate,
     seller,
@@ -48,7 +48,7 @@ const Comercial: React.FC = () => {
     }
 
     if (
-      company_name ||
+      company ||
       selectedDate ||
       selectedDeliveryDate ||
       seller ||

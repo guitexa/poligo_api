@@ -38,7 +38,7 @@ describe('UpdateOrder', () => {
     );
 
     client = await fakeClientsRepository.create({
-      company_name: 'New Company',
+      name: 'New Company',
       cpf_cnpj: '81023545000115',
       contact_name: 'John Doe',
       email: 'johndoe@mail.com',

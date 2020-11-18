@@ -7,7 +7,7 @@ import ListClientsService from '@modules/clients/services/ListClientsService';
 export default class ClientsController {
   public async create(req: Request, res: Response): Promise<Response> {
     const {
-      company_name,
+      name,
       cpf_cnpj,
       contact_name,
       email,
@@ -18,7 +18,7 @@ export default class ClientsController {
     const createClient = container.resolve(CreateClientService);
 
     const client = await createClient.execute({
-      company_name,
+      name,
       cpf_cnpj,
       contact_name,
       email,

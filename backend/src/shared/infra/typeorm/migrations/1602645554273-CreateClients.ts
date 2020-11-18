@@ -14,7 +14,7 @@ export default class CreateClients1602645554273 implements MigrationInterface {
             default: 'uuid_generate_v4()',
           },
           {
-            name: 'company_name',
+            name: 'name',
             type: 'varchar',
           },
           {

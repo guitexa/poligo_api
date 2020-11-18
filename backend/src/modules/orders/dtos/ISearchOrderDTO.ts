@@ -1,6 +1,6 @@
 export default interface ISearchOrderDTO {
   created_at?: Date;
-  company_name?: string;
+  company?: string;
   seller?: string;
   technical?: string;
   product?: string;

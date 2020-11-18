@@ -16,7 +16,7 @@ const Billing: React.FC = () => {
   const { user, checkToken } = useAuth();
   const { orderOpen, overlapOrderOpen } = useOverlap();
   const {
-    company_name,
+    company,
     selectedDate,
     selectedDeliveryDate,
     seller,
@@ -40,7 +40,7 @@ const Billing: React.FC = () => {
     }
 
     if (
-      company_name ||
+      company ||
       selectedDate ||
       selectedDeliveryDate ||
       seller ||

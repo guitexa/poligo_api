@@ -20,7 +20,7 @@ describe('ListOrder', () => {
 
   it('should be able to list one specific order', async () => {
     const client = await fakeClientsRepository.create({
-      company_name: 'New Company',
+      name: 'New Company',
       cpf_cnpj: '81023545000115',
       contact_name: 'John Doe',
       email: 'johndoe@mail.com',

@@ -57,7 +57,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
   const {
     selectedDate,
     selectedDeliveryDate,
-    company_name,
+    company,
     product,
     seller,
     technical,
@@ -252,12 +252,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
               <TextField
                 id="input-with-icon-grid-company-name"
                 label="Razão Social"
-                value={company_name}
+                value={company}
                 onChange={(e) => searchCompanyName(e.target.value)}
               />
             </Grid>
             <Grid item>
-              {company_name ? (
+              {company ? (
                 <IconButton onClick={() => searchCompanyName('')}>
                   <Close />
                 </IconButton>

@@ -12,7 +12,7 @@ export default class Client {
   id: string;
 
   @Column()
-  company_name: string;
+  name: string;
 
   @Column()
   cpf_cnpj: string;

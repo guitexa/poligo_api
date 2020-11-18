@@ -12,7 +12,7 @@ describe('ListClients', () => {
 
   it('should be able to list clients', async () => {
     const clientOne = await fakeClientsRepository.create({
-      company_name: 'New Company',
+      name: 'New Company',
       cpf_cnpj: '81023545000115',
       contact_name: 'John Doe',
       email: 'johndoe@mail.com',
@@ -21,7 +21,7 @@ describe('ListClients', () => {
     });
 
     const clientTwo = await fakeClientsRepository.create({
-      company_name: 'New Big Company',
+      name: 'New Big Company',
       cpf_cnpj: '81023545000115',
       contact_name: 'Jane Doe',
       email: 'janedoe@mail.com',

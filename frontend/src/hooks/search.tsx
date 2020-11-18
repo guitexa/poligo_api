@@ -3,7 +3,7 @@ import React, { createContext, useCallback, useContext, useState } from 'react';
 interface SearchContextData {
   selectedDate: Date | null;
   selectedDeliveryDate: Date | null;
-  company_name: string;
+  company: string;
   product: string;
   seller: string;
   technical: string;
@@ -31,7 +31,7 @@ interface TotalValueState {
 const SearchContext = createContext<SearchContextData>({} as SearchContextData);
 
 export const SearchProvider: React.FC = ({ children }) => {
-  const [company_name, setCompanyName] = useState('');
+  const [company, setCompanyName] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedDeliveryDate, setSelectedDeliveryDate] = useState<Date | null>(
     null
@@ -97,7 +97,7 @@ export const SearchProvider: React.FC = ({ children }) => {
       searchDeliveryDate(null);
     }
 
-    if (company_name) {
+    if (company) {
       searchCompanyName('');
     }
 
@@ -129,7 +129,7 @@ export const SearchProvider: React.FC = ({ children }) => {
       searchStatusBilling('');
     }
   }, [
-    company_name,
+    company,
     searchCompanyName,
     searchDate,
     searchDeliveryDate,
@@ -156,7 +156,7 @@ export const SearchProvider: React.FC = ({ children }) => {
       value={{
         selectedDate,
         selectedDeliveryDate,
-        company_name,
+        company,
         product,
         seller,
         technical,

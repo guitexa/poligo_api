@@ -36,7 +36,7 @@ import { useAuth } from '../../hooks/auth';
 
 interface ClientData {
   id: string;
-  company_name: string;
+  name: string;
   cpf_cnpj: string;
   contact_name: string;
   email?: string;
@@ -265,7 +265,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
   );
 
   const {
-    company_name,
+    company,
     selectedDate,
     selectedDeliveryDate,
     seller,
@@ -283,7 +283,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
   useEffect(() => {
     if (
       user &&
-      (!company_name || company_name.length <= 3) &&
+      (!company || company.length <= 3) &&
       !selectedDate &&
       !selectedDeliveryDate &&
       !seller &&
@@ -304,7 +304,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
       });
     } else if (
       user &&
-      (company_name.length > 3 ||
+      (company.length > 3 ||
         selectedDate ||
         selectedDeliveryDate ||
         seller ||
@@ -319,7 +319,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
         .get<OrderDataType[]>('/search-orders', {
           params: {
             created_at: selectedDate,
-            company_name,
+            company,
             // selectedDeliveryDate,
             seller,
             // product,
@@ -341,7 +341,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    company_name,
+    company,
     selectedDate,
     selectedDeliveryDate,
     seller,
@@ -438,9 +438,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
               key={search.id}
             >
               <DateField>{formatToDate(parseISO(search.created_at))}</DateField>
-              <CompanyName>
-                {search.client && search.client.company_name}
-              </CompanyName>
+              <CompanyName>{search.client && search.client.name}</CompanyName>
               <Product>{productsToShow(search.id)}</Product>
               {(from === 'Comercial' || from === 'Billing') && (
                 <>
