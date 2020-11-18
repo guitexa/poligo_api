@@ -83,7 +83,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
     checkToken();
     api.get<User[]>('/users').then((response) => {
       setSellers(
-        response.data.filter((user) => user.permissions === 'Comercial')
+        response.data.filter(
+          (user) =>
+            user.permissions === 'Comercial' || user.permissions === 'Admin'
+        )
       );
       setTechnicals(
         response.data.filter((user) => user.permissions === 'TechnicalArea')

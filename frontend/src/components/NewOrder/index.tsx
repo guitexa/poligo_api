@@ -575,6 +575,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       );
 
       if (!getClientIndex) {
+        checkToken();
         api
           .post<ClientData>('/clients', {
             name: clientName.name,
@@ -597,6 +598,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
               });
           });
       } else {
+        checkToken();
         api
           .post<CreateOrderType>('/orders', {
             client_id: getClientIndex.id,
@@ -621,6 +623,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     }
   }, [
     addToast,
+    checkToken,
     clientCnpj,
     clientCpf,
     clientEmail,

@@ -53,8 +53,7 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
               </div>
             </Link>
           )}
-          {(user.permissions === 'Billing' ||
-            user.permissions === 'Admin') && (
+          {(user.permissions === 'Billing' || user.permissions === 'Admin') && (
             <Link id="billing" to="/Billing">
               <img src={IconBilling} alt="" />
               <div>

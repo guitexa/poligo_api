@@ -278,7 +278,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
   } = useSearch();
 
   const { orderOpen, overlapOrderOpen, newOrderOpen } = useOverlap();
-  const { user } = useAuth();
+  const { user, checkToken } = useAuth();
 
   useEffect(() => {
     if (
@@ -294,6 +294,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
       !technical &&
       !total_value
     ) {
+      checkToken();
       api.get<OrderDataType[]>('/orders').then((response) => {
         const sortedResponse = response.data.sort((a, b) => {
           if (a.created_at < b.created_at) return 1;
@@ -315,6 +316,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
         technical ||
         total_value.length > 1)
     ) {
+      checkToken();
       api
         .get<OrderDataType[]>('/search-orders', {
           params: {

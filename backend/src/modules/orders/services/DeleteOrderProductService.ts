@@ -16,7 +16,7 @@ export default class DeleteOrderProductService {
     );
 
     if (!order_product) {
-      throw new AppError('This order_product was not found', 404);
+      throw new AppError('This order_product_id was not found', 404);
     }
 
     return this.ordersProductsRepository.delete(order_product_id);

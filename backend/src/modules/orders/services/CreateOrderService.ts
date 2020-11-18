@@ -29,13 +29,13 @@ export default class CreateOrderService {
     const client = await this.clientsRepository.findById(client_id);
 
     if (!client) {
-      throw new AppError('This client does not exists', 404);
+      throw new AppError('This client_id was not found', 404);
     }
 
     const seller = await this.usersRepository.findById(seller_id);
 
     if (!seller) {
-      throw new AppError('This seller does not exists', 404);
+      throw new AppError('This seller_id was not found', 404);
     }
 
     return this.ordersRepository.create({

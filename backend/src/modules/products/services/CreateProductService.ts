@@ -1,5 +1,6 @@
 import { inject, injectable } from 'tsyringe';
 
+import AppError from '@shared/errors/AppError';
 import Product from '../infra/typeorm/entities/Product';
 import IProductsRepository from '../repositories/IProductsRepository';
 import ICreateProductDTO from '../dtos/ICreateProductDTO';
@@ -12,6 +13,12 @@ export default class CreateProductService {
   ) {}
 
   public async execute({ name }: ICreateProductDTO): Promise<Product> {
+    const checkIfProductExists = await this.productsRepository.findByName(name);
+
+    if (checkIfProductExists) {
+      throw new AppError('This product already exists', 401);
+    }
+
     const product = await this.productsRepository.create({
       name,
     });

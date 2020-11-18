@@ -20,7 +20,7 @@ export default class AuthenticateUserMailService {
     const user = await this.usersRepository.findByEmail(email);
 
     if (!user) {
-      throw new AppError('Email is not valid', 401);
+      throw new AppError('This email is not valid', 401);
     }
 
     return user;

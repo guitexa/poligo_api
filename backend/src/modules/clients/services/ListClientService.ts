@@ -15,7 +15,7 @@ export default class ListClientService {
     const client = await this.clientsRepository.findById(client_id);
 
     if (!client) {
-      throw new AppError('Client not found', 404);
+      throw new AppError('This client_id was not found', 404);
     }
 
     return client;

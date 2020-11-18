@@ -31,6 +31,7 @@ import DisabledButton from '../DisabledButton';
 import api from '../../services/api';
 
 import { useToast } from '../../hooks/toast';
+import { useAuth } from '../../hooks/auth';
 
 import {
   ModalContainer,
@@ -126,12 +127,14 @@ const NewProduct: React.FC<NewProductProps> = ({
   const descriptionRef = useRef<FormHandles>(null);
 
   const { addToast } = useToast();
+  const { checkToken } = useAuth();
 
   useEffect(() => {
+    checkToken();
     api
       .get<ProductData[]>('/products')
       .then((response) => setProducts(response.data));
-  }, []);
+  }, [checkToken]);
 
   const newProductMaterialTheme = createMuiTheme({
     palette: {
@@ -204,6 +207,7 @@ const NewProduct: React.FC<NewProductProps> = ({
 
   useEffect(() => {
     if (order_product_id) {
+      checkToken();
       api
         .get<OrderProductData>(`/orders-products/${order_product_id}`)
         .then((response) => {
@@ -218,12 +222,13 @@ const NewProduct: React.FC<NewProductProps> = ({
           });
         });
     }
-  }, [order_product_id]);
+  }, [checkToken, order_product_id]);
 
   const handleSubmit = useCallback(
     ({ descriptionData }: InputData) => {
       if (product && order_product_id) {
         if (selectedProduct && description && value) {
+          checkToken();
           api
             .patch<OrderProductData>(`/orders-products/${order_product_id}`, {
               product_id: selectedProduct.id,
@@ -242,6 +247,7 @@ const NewProduct: React.FC<NewProductProps> = ({
           description: 'Serviço alterado com sucesso!',
         });
       } else {
+        checkToken();
         api
           .patch<OrderDataType>(`/orders/${order_id}`, {
             product_id: selectedProduct.id,
@@ -273,6 +279,7 @@ const NewProduct: React.FC<NewProductProps> = ({
     [
       addNewOrderProduct,
       addToast,
+      checkToken,
       description,
       handleCloseWindow,
       order_id,
@@ -286,6 +293,7 @@ const NewProduct: React.FC<NewProductProps> = ({
 
   const handleAddNewProduct = useCallback(
     (newProductToAdd: string) => {
+      checkToken();
       api
         .post<CreateProduct>('/products', {
           name: newProductToAdd,
@@ -310,7 +318,7 @@ const NewProduct: React.FC<NewProductProps> = ({
         description: 'Novo serviço adicionado na lista!',
       });
     },
-    [addToast, products]
+    [addToast, checkToken, products]
   );
 
   return (

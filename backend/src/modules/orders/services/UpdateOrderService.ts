@@ -49,7 +49,7 @@ export default class UpdateOrderService {
     );
 
     if (!order) {
-      throw new AppError('This order does not exists');
+      throw new AppError('This order_id was not found');
     }
 
     let technical: User | undefined;
@@ -58,7 +58,7 @@ export default class UpdateOrderService {
       const product = await this.productsRepository.findById(product_id);
 
       if (!product) {
-        throw new AppError('Could not find this product');
+        throw new AppError('This product_id was not found');
       }
 
       await this.ordersProductsRepository.create({
@@ -112,7 +112,7 @@ export default class UpdateOrderService {
         technical = await this.usersRepository.findById(technical_id);
 
         if (!technical) {
-          throw new AppError('This technical does not exists');
+          throw new AppError('This technical_id was not found', 404);
         }
 
         order.technical_id = technical_id;
@@ -183,7 +183,7 @@ export default class UpdateOrderService {
       technical = await this.usersRepository.findById(technical_id);
 
       if (!technical) {
-        throw new AppError('This technical does not exists');
+        throw new AppError('This technical_id was not found', 404);
       }
 
       order.technical_id = technical_id;
