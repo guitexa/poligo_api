@@ -94,7 +94,7 @@ export const Content = styled.div<ContentProps>`
   }
 `;
 
-export const Service = styled.div`
+export const Product = styled.div`
   width: 100%;
 
   .MuiAutocomplete-root {

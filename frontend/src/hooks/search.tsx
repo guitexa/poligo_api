@@ -4,7 +4,7 @@ interface SearchContextData {
   selectedDate: Date | null;
   selectedDeliveryDate: Date | null;
   company_name: string;
-  service: string;
+  product: string;
   seller: string;
   technical: string;
   total_value: string;
@@ -14,7 +14,7 @@ interface SearchContextData {
   searchDate(date: Date | null): void;
   searchDeliveryDate(date: Date | null): void;
   searchCompanyName(name: string): void;
-  searchService(name: string): void;
+  searchProduct(name: string): void;
   searchSeller(name: string): void;
   searchTechnical(name: string): void;
   searchTotalValue(value: string): void;
@@ -36,7 +36,7 @@ export const SearchProvider: React.FC = ({ children }) => {
   const [selectedDeliveryDate, setSelectedDeliveryDate] = useState<Date | null>(
     null
   );
-  const [service, setService] = useState('');
+  const [product, setProduct] = useState('');
   const [seller, setSeller] = useState('');
   const [technical, setTechnical] = useState('');
   const [total_value, setTotalValue] = useState<TotalValueState>({
@@ -58,8 +58,8 @@ export const SearchProvider: React.FC = ({ children }) => {
     setCompanyName(name);
   }, []);
 
-  const searchService = useCallback((name: string): void => {
-    setService(name);
+  const searchProduct = useCallback((name: string): void => {
+    setProduct(name);
   }, []);
 
   const searchSeller = useCallback((name: string): void => {
@@ -101,8 +101,8 @@ export const SearchProvider: React.FC = ({ children }) => {
       searchCompanyName('');
     }
 
-    if (service) {
-      searchService('');
+    if (product) {
+      searchProduct('');
     }
 
     if (seller) {
@@ -134,7 +134,7 @@ export const SearchProvider: React.FC = ({ children }) => {
     searchDate,
     searchDeliveryDate,
     searchSeller,
-    searchService,
+    searchProduct,
     searchStatusBilling,
     searchStatusDelivery,
     searchStatusOrder,
@@ -143,7 +143,7 @@ export const SearchProvider: React.FC = ({ children }) => {
     selectedDate,
     selectedDeliveryDate,
     seller,
-    service,
+    product,
     status_billing,
     status_delivery,
     status_order,
@@ -157,7 +157,7 @@ export const SearchProvider: React.FC = ({ children }) => {
         selectedDate,
         selectedDeliveryDate,
         company_name,
-        service,
+        product,
         seller,
         technical,
         status_order,
@@ -167,7 +167,7 @@ export const SearchProvider: React.FC = ({ children }) => {
         searchDate,
         searchDeliveryDate,
         searchCompanyName,
-        searchService,
+        searchProduct,
         searchSeller,
         searchTechnical,
         searchTotalValue,

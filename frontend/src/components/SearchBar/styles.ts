@@ -162,7 +162,7 @@ export const CompanyName = styled.div`
   }
 `;
 
-export const Service = styled.div`
+export const Product = styled.div`
   flex: 1;
 
   .MuiFormControl-root {

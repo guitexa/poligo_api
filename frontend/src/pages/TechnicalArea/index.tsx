@@ -20,7 +20,7 @@ const TechnicalArea: React.FC = () => {
     selectedDate,
     selectedDeliveryDate,
     seller,
-    service,
+    product,
     status_billing,
     status_delivery,
     status_order,
@@ -31,10 +31,7 @@ const TechnicalArea: React.FC = () => {
 
   // This hook must be executed only once
   useEffect(() => {
-    if (
-      user.permissions !== 'TechnicalArea' &&
-      user.permissions !== 'Admin'
-    ) {
+    if (user.permissions !== 'TechnicalArea' && user.permissions !== 'Admin') {
       push('/Loading');
     }
 
@@ -47,7 +44,7 @@ const TechnicalArea: React.FC = () => {
       selectedDate ||
       selectedDeliveryDate ||
       seller ||
-      service ||
+      product ||
       status_billing ||
       status_delivery ||
       status_order ||

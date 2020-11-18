@@ -24,7 +24,7 @@ import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import { TextField } from 'unform-material-ui';
 
-import { OrderDataType, ServiceOrderData } from '../SearchResults';
+import { OrderDataType, OrderProductData } from '../SearchResults';
 import Button from '../Button';
 import DisabledButton from '../DisabledButton';
 
@@ -37,22 +37,22 @@ import {
   Header,
   Content,
   Background,
-  Service,
+  Product,
   Description,
   Value,
 } from './styles';
 
-interface NewServiceProps {
+interface NewProductProps {
   color: string;
   order_product_id?: string;
   order_id?: string;
-  setNewServiceOpen(e: boolean): void;
+  setNewProductOpen(e: boolean): void;
   setOrderProductId(e: string): void;
-  updateOrderProduct(data: ServiceOrderData): void;
-  addNewOrderProduct(data: ServiceOrderData): void;
+  updateOrderProduct(data: OrderProductData): void;
+  addNewOrderProduct(data: OrderProductData): void;
 }
 
-interface ServiceData {
+interface ProductData {
   inputValue?: string;
   id?: string;
   name: string;
@@ -102,20 +102,22 @@ function NumberFormatCustom(props: NumberFormatCustomProps): JSX.Element {
   );
 }
 
-const NewService: React.FC<NewServiceProps> = ({
+const NewProduct: React.FC<NewProductProps> = ({
   color,
   order_product_id,
   order_id,
-  setNewServiceOpen,
+  setNewProductOpen,
   setOrderProductId,
   updateOrderProduct,
   addNewOrderProduct,
 }) => {
-  const [services, setServices] = useState<ServiceData[]>([]);
-  const [product, setProduct] = useState<ServiceOrderData>(
-    {} as ServiceOrderData
+  const [products, setProducts] = useState<ProductData[]>([]);
+  const [product, setProduct] = useState<OrderProductData>(
+    {} as OrderProductData
   );
-  const [service, setService] = useState<ServiceData>({} as ServiceData);
+  const [selectedProduct, setSelectedProduct] = useState<ProductData>(
+    {} as ProductData
+  );
   const [description, setDescription] = useState('');
   const [value, setValue] = useState<ValueState>({
     formattedValue: '',
@@ -127,11 +129,11 @@ const NewService: React.FC<NewServiceProps> = ({
 
   useEffect(() => {
     api
-      .get<ServiceData[]>('/products')
-      .then((response) => setServices(response.data));
+      .get<ProductData[]>('/products')
+      .then((response) => setProducts(response.data));
   }, []);
 
-  const newServiceMaterialTheme = createMuiTheme({
+  const newProductMaterialTheme = createMuiTheme({
     palette: {
       primary: {
         main: color,
@@ -179,7 +181,7 @@ const NewService: React.FC<NewServiceProps> = ({
     },
   });
 
-  const filter = createFilterOptions<ServiceData>();
+  const filter = createFilterOptions<ProductData>();
 
   const handleChangeValue = (event: ChangeEvent<HTMLInputElement>): void => {
     setValue({
@@ -189,8 +191,8 @@ const NewService: React.FC<NewServiceProps> = ({
   };
 
   const handleCloseWindow = useCallback(() => {
-    setNewServiceOpen(false);
-    setService({
+    setNewProductOpen(false);
+    setSelectedProduct({
       name: '',
     });
     setDescription('');
@@ -198,16 +200,16 @@ const NewService: React.FC<NewServiceProps> = ({
       formattedValue: '',
     });
     setOrderProductId('');
-  }, [setNewServiceOpen, setOrderProductId]);
+  }, [setNewProductOpen, setOrderProductId]);
 
   useEffect(() => {
     if (order_product_id) {
       api
-        .get<ServiceOrderData>(`/orders-products/${order_product_id}`)
+        .get<OrderProductData>(`/orders-products/${order_product_id}`)
         .then((response) => {
           setProduct(response.data);
 
-          setService({
+          setSelectedProduct({
             name: response.data.product.name,
           });
           setDescription(response.data.product_description);
@@ -221,10 +223,10 @@ const NewService: React.FC<NewServiceProps> = ({
   const handleSubmit = useCallback(
     ({ descriptionData }: InputData) => {
       if (product && order_product_id) {
-        if (service && description && value) {
+        if (selectedProduct && description && value) {
           api
-            .patch<ServiceOrderData>(`/orders-products/${order_product_id}`, {
-              product_id: service.id,
+            .patch<OrderProductData>(`/orders-products/${order_product_id}`, {
+              product_id: selectedProduct.id,
               product_description: descriptionData,
               product_value: value.formattedValue,
             })
@@ -242,7 +244,7 @@ const NewService: React.FC<NewServiceProps> = ({
       } else {
         api
           .patch<OrderDataType>(`/orders/${order_id}`, {
-            product_id: service.id,
+            product_id: selectedProduct.id,
             product_description: descriptionData,
             product_value: value.formattedValue,
           })
@@ -276,26 +278,26 @@ const NewService: React.FC<NewServiceProps> = ({
       order_id,
       order_product_id,
       product,
-      service,
+      selectedProduct,
       updateOrderProduct,
       value,
     ]
   );
 
-  const handleAddNewService = useCallback(
-    (newServiceToAdd: string) => {
+  const handleAddNewProduct = useCallback(
+    (newProductToAdd: string) => {
       api
         .post<CreateProduct>('/products', {
-          name: newServiceToAdd,
+          name: newProductToAdd,
         })
         .then((response) => {
-          setService({
+          setSelectedProduct({
             id: response.data.id,
-            name: newServiceToAdd,
+            name: newProductToAdd,
           });
 
-          setServices([
-            ...services,
+          setProducts([
+            ...products,
             {
               name: response.data.name,
               id: response.data.id,
@@ -308,13 +310,13 @@ const NewService: React.FC<NewServiceProps> = ({
         description: 'Novo serviço adicionado na lista!',
       });
     },
-    [addToast, services]
+    [addToast, products]
   );
 
   return (
     <>
-      {order_product_id && service && value.formattedValue && (
-        <ThemeProvider theme={newServiceMaterialTheme}>
+      {order_product_id && selectedProduct && value.formattedValue && (
+        <ThemeProvider theme={newProductMaterialTheme}>
           <ModalContainer>
             <Header color={color}>
               <strong>ALTERAR SERVIÇO</strong>
@@ -324,25 +326,25 @@ const NewService: React.FC<NewServiceProps> = ({
             </Header>
             <Content color={color}>
               <Form ref={descriptionRef} onSubmit={handleSubmit}>
-                <Service>
+                <Product>
                   <Autocomplete
                     openText=""
                     clearText=""
                     clearOnBlur={false}
-                    id="input-service"
-                    value={service}
-                    onChange={(event, newService) => {
-                      if (newService && newService.inputValue) {
-                        handleAddNewService(newService.inputValue);
-                      } else if (newService) {
-                        setService(newService);
+                    id="input-selectedProduct"
+                    value={selectedProduct}
+                    onChange={(event, newProduct) => {
+                      if (newProduct && newProduct.inputValue) {
+                        handleAddNewProduct(newProduct.inputValue);
+                      } else if (newProduct) {
+                        setSelectedProduct(newProduct);
                       }
-                      if (!newService) {
-                        setService({} as ServiceData);
+                      if (!newProduct) {
+                        setSelectedProduct({} as ProductData);
                       }
                     }}
                     filterOptions={(options, params) => {
-                      const filtered = filter(options, params) as ServiceData[];
+                      const filtered = filter(options, params) as ProductData[];
 
                       if (params.inputValue !== '') {
                         filtered.push({
@@ -353,7 +355,7 @@ const NewService: React.FC<NewServiceProps> = ({
 
                       return filtered;
                     }}
-                    options={services}
+                    options={products}
                     noOptionsText=""
                     getOptionLabel={({ name, inputValue }) => {
                       if (inputValue) {
@@ -386,7 +388,7 @@ const NewService: React.FC<NewServiceProps> = ({
                       );
                     }}
                   />
-                </Service>
+                </Product>
                 <Description>
                   <TextField
                     id="multiline-flexible"
@@ -433,7 +435,7 @@ const NewService: React.FC<NewServiceProps> = ({
         </ThemeProvider>
       )}
       {order_id && !order_product_id && (
-        <ThemeProvider theme={newServiceMaterialTheme}>
+        <ThemeProvider theme={newProductMaterialTheme}>
           <ModalContainer>
             <Header color={color}>
               <strong>ADICIONAR SERVIÇO</strong>
@@ -443,25 +445,24 @@ const NewService: React.FC<NewServiceProps> = ({
             </Header>
             <Content color={color}>
               <Form ref={descriptionRef} onSubmit={handleSubmit}>
-                <Service>
+                <Product>
                   <Autocomplete
                     openText=""
                     clearText=""
                     clearOnBlur={false}
-                    id="input-service"
-                    value={service}
-                    onChange={(event, newService) => {
-                      if (newService && newService.inputValue) {
-                        handleAddNewService(newService.inputValue);
-                      } else if (newService) {
-                        setService(newService);
+                    value={selectedProduct}
+                    onChange={(event, newProduct) => {
+                      if (newProduct && newProduct.inputValue) {
+                        handleAddNewProduct(newProduct.inputValue);
+                      } else if (newProduct) {
+                        setSelectedProduct(newProduct);
                       }
-                      if (!newService) {
-                        setService({} as ServiceData);
+                      if (!newProduct) {
+                        setSelectedProduct({} as ProductData);
                       }
                     }}
                     filterOptions={(options, params) => {
-                      const filtered = filter(options, params) as ServiceData[];
+                      const filtered = filter(options, params) as ProductData[];
 
                       if (params.inputValue !== '') {
                         filtered.push({
@@ -472,7 +473,7 @@ const NewService: React.FC<NewServiceProps> = ({
 
                       return filtered;
                     }}
-                    options={services}
+                    options={products}
                     noOptionsText=""
                     getOptionLabel={({ name, inputValue }) => {
                       if (inputValue) {
@@ -505,7 +506,7 @@ const NewService: React.FC<NewServiceProps> = ({
                       );
                     }}
                   />
-                </Service>
+                </Product>
                 <Description>
                   <TextField
                     id="multiline-flexible"
@@ -545,7 +546,7 @@ const NewService: React.FC<NewServiceProps> = ({
                     </Grid>
                   </Grid>
                 </Value>
-                {service.name && value.formattedValue ? (
+                {selectedProduct.name && value.formattedValue ? (
                   <Button>Adicionar</Button>
                 ) : (
                   <DisabledButton>Adicionar</DisabledButton>
@@ -560,4 +561,4 @@ const NewService: React.FC<NewServiceProps> = ({
   );
 };
 
-export default NewService;
+export default NewProduct;

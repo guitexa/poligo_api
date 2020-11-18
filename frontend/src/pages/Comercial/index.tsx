@@ -28,7 +28,7 @@ const Comercial: React.FC = () => {
     selectedDate,
     selectedDeliveryDate,
     seller,
-    service,
+    product,
     status_billing,
     status_delivery,
     status_order,
@@ -39,10 +39,7 @@ const Comercial: React.FC = () => {
 
   // This hook must be executed only once
   useEffect(() => {
-    if (
-      user.permissions !== 'Comercial' &&
-      user.permissions !== 'Admin'
-    ) {
+    if (user.permissions !== 'Comercial' && user.permissions !== 'Admin') {
       push('/Loading');
     }
 
@@ -55,7 +52,7 @@ const Comercial: React.FC = () => {
       selectedDate ||
       selectedDeliveryDate ||
       seller ||
-      service ||
+      product ||
       status_billing ||
       status_delivery ||
       status_order ||

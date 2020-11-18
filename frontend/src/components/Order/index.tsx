@@ -49,7 +49,7 @@ import { useAuth } from '../../hooks/auth';
 import api from '../../services/api';
 
 import MaterialTooltip from '../MaterialTooltip';
-import NewService from '../NewService';
+import NewProduct from '../NewProduct';
 import ProductView from '../ProductView';
 import InputAsText from '../InputAsText';
 import InputAsTextWithMask from '../InputAsTextWithMask';
@@ -57,7 +57,7 @@ import HeaderButton from '../HeaderButton';
 
 import {
   OrderDataType,
-  ServiceOrderData,
+  OrderProductData,
   UpdateSearchResultsData,
 } from '../SearchResults';
 
@@ -70,20 +70,20 @@ import {
   OrderData,
   Status,
   SecondaryContent,
-  AddServiceButton,
+  AddProductButton,
   TitlesForm,
   DataForm,
   DeliveryData,
   BillingData,
-  ServicesOrderContent,
+  ProductsOrderContent,
   TitleRow,
-  ServiceRow,
-  TitleServiceName,
-  TitleServiceDescription,
-  TitleServiceValue,
-  ServiceName,
-  ServiceDescription,
-  ServiceValue,
+  ProductRow,
+  TitleProductName,
+  TitleProductDescription,
+  TitleProductValue,
+  ProductName,
+  ProductDescription,
+  ProductValue,
 } from './styles';
 
 interface InputData {
@@ -112,17 +112,17 @@ const Order: React.FC<OrderProps> = ({
   );
 
   const [orderProductId, setOrderProductId] = useState('');
-  const [serviceToView, setServiceToView] = useState<ServiceOrderData>(
-    {} as ServiceOrderData
+  const [productToView, setProductToView] = useState<OrderProductData>(
+    {} as OrderProductData
   );
 
   const [updateOrderProduct, setUpdateOrderProduct] = useState<
-    ServiceOrderData
-  >({} as ServiceOrderData);
+    OrderProductData
+  >({} as OrderProductData);
 
   const [addNewOrderProduct, setAddNewOrderProduct] = useState<
-    ServiceOrderData
-  >({} as ServiceOrderData);
+    OrderProductData
+  >({} as OrderProductData);
 
   const deliveryConditionsRef = useRef<FormHandles>(null);
   const requestedDeliveryDateRef = useRef<FormHandles>(null);
@@ -132,10 +132,10 @@ const Order: React.FC<OrderProps> = ({
 
   const {
     orderOpen,
-    newServiceOpen,
+    newProductOpen,
     productViewOpen,
     overlapOrderOpen,
-    overlapNewServiceOpen,
+    overlapNewProductOpen,
     overlapProductViewOpen,
   } = useOverlap();
   const { addToast } = useToast();
@@ -210,7 +210,7 @@ const Order: React.FC<OrderProps> = ({
       });
     }
 
-    setUpdateOrderProduct({} as ServiceOrderData);
+    setUpdateOrderProduct({} as OrderProductData);
   }
 
   if (addNewOrderProduct.id && orderData.orders_products) {
@@ -233,7 +233,7 @@ const Order: React.FC<OrderProps> = ({
         product_id_add: addNewOrderProduct,
       });
     }
-    setAddNewOrderProduct({} as ServiceOrderData);
+    setAddNewOrderProduct({} as OrderProductData);
   }
 
   const updateOrderStatus = useCallback(
@@ -391,7 +391,7 @@ const Order: React.FC<OrderProps> = ({
     ]
   );
 
-  const handleDeleteServiceItem = useCallback(
+  const handleDeleteProductItem = useCallback(
     (order_product_id: string) => {
       checkToken();
       api.delete(`/orders-products/${order_product_id}`);
@@ -760,13 +760,13 @@ const Order: React.FC<OrderProps> = ({
     }
 
     if (orderData.orders_products) {
-      const servicesValues = orderData.orders_products
-        .map((service) => Number(service.product_value))
-        .reduce((accumulator, serviceValue) => {
-          return accumulator + serviceValue;
+      const productsValues = orderData.orders_products
+        .map((product) => Number(product.product_value))
+        .reduce((accumulator, productValue) => {
+          return accumulator + productValue;
         }, 0);
 
-      return servicesValues ? formatValueCurrency(servicesValues) : '';
+      return productsValues ? formatValueCurrency(productsValues) : '';
     }
 
     return '';
@@ -775,23 +775,23 @@ const Order: React.FC<OrderProps> = ({
     orderData,
     updateOrderProduct,
     addNewOrderProduct,
-    handleDeleteServiceItem,
+    handleDeleteProductItem,
   ]);
 
   const handleSelectProduct = useCallback(
-    (data: ServiceOrderData) => {
+    (data: OrderProductData) => {
       if (from === 'Comercial') {
         setOrderProductId(data.id);
-        overlapNewServiceOpen(!newServiceOpen);
+        overlapNewProductOpen(!newProductOpen);
       } else {
-        setServiceToView(data);
+        setProductToView(data);
         overlapProductViewOpen(!productViewOpen);
       }
     },
     [
       from,
-      newServiceOpen,
-      overlapNewServiceOpen,
+      newProductOpen,
+      overlapNewProductOpen,
       overlapProductViewOpen,
       productViewOpen,
     ]
@@ -828,13 +828,13 @@ const Order: React.FC<OrderProps> = ({
 
   return (
     <OrderOverlap>
-      {newServiceOpen && (
+      {newProductOpen && (
         <ModalOverlap>
-          <NewService
+          <NewProduct
             color={color}
             order_product_id={orderProductId}
             order_id={order_id}
-            setNewServiceOpen={(e) => overlapNewServiceOpen(e)}
+            setNewProductOpen={(e) => overlapNewProductOpen(e)}
             setOrderProductId={(e) => setOrderProductId(e)}
             updateOrderProduct={(e) => setUpdateOrderProduct(e)}
             addNewOrderProduct={(e) => setAddNewOrderProduct(e)}
@@ -846,7 +846,7 @@ const Order: React.FC<OrderProps> = ({
           <ProductView
             color={color}
             setProductViewOpen={(e) => overlapProductViewOpen(e)}
-            productToView={serviceToView}
+            productToView={productToView}
             from={from}
           />
         </ModalOverlap>
@@ -854,7 +854,7 @@ const Order: React.FC<OrderProps> = ({
       {orderData && orderData.client && orderData.seller && (
         <>
           <HeaderButton
-            show={orderOpen && !newServiceOpen && !productViewOpen}
+            show={orderOpen && !newProductOpen && !productViewOpen}
             handleClick={(e) => handleCloseOrder(e)}
             type="button"
             icon={FaTimes}
@@ -863,7 +863,7 @@ const Order: React.FC<OrderProps> = ({
           />
           <Container>
             <ThemeProvider theme={orderMaterialTheme}>
-              <PrimaryContent isModalOpen={newServiceOpen || productViewOpen}>
+              <PrimaryContent isModalOpen={newProductOpen || productViewOpen}>
                 <CompanyData>
                   <TitlesForm>
                     <p>Razão social:</p>
@@ -1020,16 +1020,16 @@ const Order: React.FC<OrderProps> = ({
                   </DataForm>
                 </OrderData>
               </PrimaryContent>
-              <SecondaryContent isModalOpen={newServiceOpen || productViewOpen}>
+              <SecondaryContent isModalOpen={newProductOpen || productViewOpen}>
                 {((from === 'Comercial' &&
                   !orderData.status_delivery &&
                   !orderData.status_billing &&
                   !orderData.status_payment) ||
                   (from === 'Comercial' && user.permissions === 'Admin')) && (
-                  <AddServiceButton
+                  <AddProductButton
                     type="button"
                     color={color}
-                    onClick={() => overlapNewServiceOpen(!newServiceOpen)}
+                    onClick={() => overlapNewProductOpen(!newProductOpen)}
                   >
                     <MaterialTooltip
                       title="Adicionar Serviço"
@@ -1038,7 +1038,7 @@ const Order: React.FC<OrderProps> = ({
                     >
                       <FaPlus />
                     </MaterialTooltip>
-                  </AddServiceButton>
+                  </AddProductButton>
                 )}
                 <DeliveryData>
                   <TitlesForm>
@@ -1457,44 +1457,44 @@ const Order: React.FC<OrderProps> = ({
                   </DataForm>
                 </BillingData>
               </SecondaryContent>
-              <ServicesOrderContent
-                isModalOpen={newServiceOpen || productViewOpen}
+              <ProductsOrderContent
+                isModalOpen={newProductOpen || productViewOpen}
               >
                 <TitleRow>
-                  <TitleServiceName>SERVIÇO</TitleServiceName>
-                  <TitleServiceDescription>
+                  <TitleProductName>SERVIÇO</TitleProductName>
+                  <TitleProductDescription>
                     DESCRIÇÃO DO SERVIÇO
-                  </TitleServiceDescription>
+                  </TitleProductDescription>
                   {from !== 'TechnicalArea' && (
-                    <TitleServiceValue>VALOR</TitleServiceValue>
+                    <TitleProductValue>VALOR</TitleProductValue>
                   )}
                 </TitleRow>
                 {orderData.orders_products &&
                   orderData.orders_products.length > 0 &&
-                  orderData.orders_products.map((service) => (
-                    <ServiceRow color={color} key={service.id}>
-                      <ServiceName
+                  orderData.orders_products.map((product) => (
+                    <ProductRow color={color} key={product.id}>
+                      <ProductName
                         type="button"
-                        onClick={() => handleSelectProduct(service)}
+                        onClick={() => handleSelectProduct(product)}
                       >
-                        <span>{service.product.name}</span>
-                      </ServiceName>
-                      <ServiceDescription
+                        <span>{product.product.name}</span>
+                      </ProductName>
+                      <ProductDescription
                         type="button"
-                        onClick={() => handleSelectProduct(service)}
+                        onClick={() => handleSelectProduct(product)}
                       >
-                        <span>{service.product_description}</span>
-                      </ServiceDescription>
+                        <span>{product.product_description}</span>
+                      </ProductDescription>
                       {from !== 'TechnicalArea' && (
-                        <ServiceValue>
+                        <ProductValue>
                           <button
-                            className="service-value"
+                            className="product-value"
                             type="button"
-                            onClick={() => handleSelectProduct(service)}
+                            onClick={() => handleSelectProduct(product)}
                           >
                             <span>R$</span>
                             <span>
-                              {formatValue(Number(service.product_value))}
+                              {formatValue(Number(product.product_value))}
                             </span>
                           </button>
                           {((from === 'Comercial' &&
@@ -1505,9 +1505,9 @@ const Order: React.FC<OrderProps> = ({
                               user.permissions === 'Admin')) && (
                             <div>
                               <button
-                                className="edit-service"
+                                className="edit-product"
                                 type="button"
-                                onClick={() => handleSelectProduct(service)}
+                                onClick={() => handleSelectProduct(product)}
                               >
                                 <MaterialTooltip
                                   title="Alterar"
@@ -1518,10 +1518,10 @@ const Order: React.FC<OrderProps> = ({
                                 </MaterialTooltip>
                               </button>
                               <button
-                                className="delete-service"
+                                className="delete-product"
                                 type="button"
                                 onClick={() => {
-                                  handleDeleteServiceItem(service.id);
+                                  handleDeleteProductItem(product.id);
                                 }}
                               >
                                 <MaterialTooltip
@@ -1534,11 +1534,11 @@ const Order: React.FC<OrderProps> = ({
                               </button>
                             </div>
                           )}
-                        </ServiceValue>
+                        </ProductValue>
                       )}
-                    </ServiceRow>
+                    </ProductRow>
                   ))}
-              </ServicesOrderContent>
+              </ProductsOrderContent>
             </ThemeProvider>
           </Container>
         </>

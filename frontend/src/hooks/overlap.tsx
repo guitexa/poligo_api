@@ -3,11 +3,11 @@ import React, { createContext, useCallback, useContext, useState } from 'react';
 interface OverlapContextData {
   orderOpen: boolean;
   newOrderOpen: boolean;
-  newServiceOpen: boolean;
+  newProductOpen: boolean;
   productViewOpen: boolean;
   overlapOrderOpen(state: boolean): void;
   overlapNewOrderOpen(state: boolean): void;
-  overlapNewServiceOpen(state: boolean): void;
+  overlapNewProductOpen(state: boolean): void;
   overlapProductViewOpen(state: boolean): void;
 }
 
@@ -18,7 +18,7 @@ const OverlapContext = createContext<OverlapContextData>(
 export const OverlapProvider: React.FC = ({ children }) => {
   const [orderOpen, setOrderOpen] = useState(false);
   const [newOrderOpen, setNewOrderOpen] = useState(false);
-  const [newServiceOpen, setNewServiceOpen] = useState(false);
+  const [newProductOpen, setNewProductOpen] = useState(false);
   const [productViewOpen, setProductViewOpen] = useState(false);
 
   const overlapOrderOpen = useCallback(() => {
@@ -29,9 +29,9 @@ export const OverlapProvider: React.FC = ({ children }) => {
     setNewOrderOpen(!newOrderOpen);
   }, [newOrderOpen]);
 
-  const overlapNewServiceOpen = useCallback(() => {
-    setNewServiceOpen(!newServiceOpen);
-  }, [newServiceOpen]);
+  const overlapNewProductOpen = useCallback(() => {
+    setNewProductOpen(!newProductOpen);
+  }, [newProductOpen]);
 
   const overlapProductViewOpen = useCallback(() => {
     setProductViewOpen(!productViewOpen);
@@ -42,11 +42,11 @@ export const OverlapProvider: React.FC = ({ children }) => {
       value={{
         orderOpen,
         newOrderOpen,
-        newServiceOpen,
+        newProductOpen,
         productViewOpen,
         overlapOrderOpen,
         overlapNewOrderOpen,
-        overlapNewServiceOpen,
+        overlapNewProductOpen,
         overlapProductViewOpen,
       }}
     >

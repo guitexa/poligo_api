@@ -9,15 +9,15 @@ interface SecondaryContentProps {
   isModalOpen: boolean;
 }
 
-interface ServicesOrderContentProps {
+interface ProductsOrderContentProps {
   isModalOpen: boolean;
 }
 
-interface ServiceRowProps {
+interface ProductRowProps {
   color: string;
 }
 
-interface AddServiceButtonProps {
+interface AddProductButtonProps {
   color: string;
 }
 
@@ -82,7 +82,7 @@ export const SecondaryContent = styled.div<SecondaryContentProps>`
     `};
 `;
 
-export const AddServiceButton = styled.button<AddServiceButtonProps>`
+export const AddProductButton = styled.button<AddProductButtonProps>`
   width: 32px;
   height: 32px;
   background: ${({ color }) => color};
@@ -260,7 +260,7 @@ export const BillingData = styled.div`
   align-items: center;
 `;
 
-export const ServicesOrderContent = styled.div<ServicesOrderContentProps>`
+export const ProductsOrderContent = styled.div<ProductsOrderContentProps>`
   width: 100%;
   padding-bottom: 30px;
   overflow-y: auto;
@@ -284,23 +284,23 @@ export const TitleRow = styled.div`
   text-decoration: underline;
 `;
 
-export const TitleServiceName = styled.div`
+export const TitleProductName = styled.div`
   width: 20%;
   text-align: left;
 `;
 
-export const TitleServiceDescription = styled.div`
+export const TitleProductDescription = styled.div`
   flex: 1;
   text-align: left;
 `;
 
-export const TitleServiceValue = styled.div`
+export const TitleProductValue = styled.div`
   width: 15%;
   max-width: 200px;
   text-align: left;
 `;
 
-export const ServiceRow = styled.div<ServiceRowProps>`
+export const ProductRow = styled.div<ProductRowProps>`
   width: 100%;
   padding: 0 15px;
   display: flex;
@@ -321,7 +321,7 @@ export const ServiceRow = styled.div<ServiceRowProps>`
   }
 `;
 
-export const ServiceName = styled.button`
+export const ProductName = styled.button`
   width: 20%;
   font-size: 13px;
   text-align: left;
@@ -340,7 +340,7 @@ export const ServiceName = styled.button`
   }
 `;
 
-export const ServiceDescription = styled.button`
+export const ProductDescription = styled.button`
   flex: 1;
   font-size: 13px;
   text-align: left;
@@ -359,14 +359,14 @@ export const ServiceDescription = styled.button`
   }
 `;
 
-export const ServiceValue = styled.div`
+export const ProductValue = styled.div`
   width: 15%;
   max-width: 200px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  .service-value {
+  .product-value {
     width: 70%;
     font-size: 13px;
     padding: 4.5px 10px 3.5px 5px;
@@ -379,8 +379,8 @@ export const ServiceValue = styled.div`
     background: transparent;
   }
 
-  .edit-service,
-  .delete-service {
+  .edit-product,
+  .delete-product {
     font-size: 13px;
     background: transparent;
     outline: none;

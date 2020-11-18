@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import formatValueCurrency from '../../utils/formatValueCurrency';
 
-import { ServiceOrderData } from '../SearchResults';
+import { OrderProductData } from '../SearchResults';
 
 import {
   ModalContainer,
@@ -16,7 +16,7 @@ import {
 interface ProductViewProps {
   color: string;
   setProductViewOpen(e: boolean): void;
-  productToView: ServiceOrderData;
+  productToView: OrderProductData;
   from: string;
 }
 

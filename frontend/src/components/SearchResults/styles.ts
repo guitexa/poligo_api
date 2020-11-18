@@ -80,7 +80,7 @@ export const CompanyName = styled.div`
   -webkit-box-orient: vertical;
 `;
 
-export const Service = styled.div`
+export const Product = styled.div`
   flex: 1;
   text-align: left;
 

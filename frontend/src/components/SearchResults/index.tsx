@@ -27,7 +27,7 @@ import {
   RowResult,
   DateField,
   CompanyName,
-  Service,
+  Product,
   Professional,
   Value,
   Status,
@@ -48,14 +48,14 @@ interface UserData {
   name: string;
 }
 
-interface ServiceData {
+interface ProductData {
   id: string;
   name: string;
 }
 
-export interface ServiceOrderData {
+export interface OrderProductData {
   id: string;
-  product: ServiceData;
+  product: ProductData;
   product_description: string;
   product_value: string;
   created_at: string;
@@ -91,7 +91,7 @@ export interface OrderDataType {
   seller: UserData;
   technical?: UserData;
   total_value?: string;
-  orders_products?: ServiceOrderData[];
+  orders_products?: OrderProductData[];
 }
 
 export interface UpdateSearchResultsData {
@@ -102,8 +102,8 @@ export interface UpdateSearchResultsData {
   status_payment?: string | unknown;
   delivery_date?: string | undefined;
   technical?: string;
-  product_id_add?: ServiceOrderData;
-  product_id_update?: ServiceOrderData;
+  product_id_add?: OrderProductData;
+  product_id_update?: OrderProductData;
   order_product_id_delete?: string;
 }
 
@@ -214,14 +214,14 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [updateSearchResults.order_id]);
 
-  const servicesToShow = useCallback(
+  const productsToShow = useCallback(
     (order_id: string): string[] => {
       const getOrderIndex = searchResults.findIndex(
         (result) => result.id === order_id
       );
 
       if (searchResults[getOrderIndex].orders_products) {
-        const servicesToString = searchResults[getOrderIndex].orders_products
+        const productsToString = searchResults[getOrderIndex].orders_products
           ?.sort((a, b) => {
             if (a.created_at < b.created_at) return -1;
             if (a.created_at > b.created_at) return 1;
@@ -229,12 +229,12 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
           })
           .map((item) => `${item.product.name}, `);
 
-        const lastItemFormatted = servicesToString?.pop()?.slice(0, -2);
+        const lastItemFormatted = productsToString?.pop()?.slice(0, -2);
         lastItemFormatted &&
-          servicesToString &&
-          servicesToString.push(lastItemFormatted);
+          productsToString &&
+          productsToString.push(lastItemFormatted);
 
-        return servicesToString || [];
+        return productsToString || [];
       }
 
       return [];
@@ -249,13 +249,13 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
       );
 
       if (searchResults[getOrderIndex].orders_products) {
-        const servicesValues = searchResults[getOrderIndex].orders_products
-          ?.map((service) => Number(service.product_value))
-          .reduce((accumulator, serviceValue) => {
-            return accumulator + serviceValue;
+        const productsValues = searchResults[getOrderIndex].orders_products
+          ?.map((product) => Number(product.product_value))
+          .reduce((accumulator, productValue) => {
+            return accumulator + productValue;
           }, 0);
 
-        return servicesValues ? formatValue(servicesValues) : '';
+        return productsValues ? formatValue(productsValues) : '';
       }
 
       return '';
@@ -269,7 +269,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
     selectedDate,
     selectedDeliveryDate,
     seller,
-    service,
+    product,
     status_billing,
     status_delivery,
     status_order,
@@ -287,7 +287,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
       !selectedDate &&
       !selectedDeliveryDate &&
       !seller &&
-      !service &&
+      !product &&
       !status_billing &&
       !status_delivery &&
       !status_order &&
@@ -308,7 +308,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
         selectedDate ||
         selectedDeliveryDate ||
         seller ||
-        service ||
+        product ||
         status_billing ||
         status_delivery ||
         status_order ||
@@ -322,7 +322,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
             company_name,
             // selectedDeliveryDate,
             seller,
-            // service,
+            // product,
             status_billing,
             status_delivery,
             status_order,
@@ -345,7 +345,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
     selectedDate,
     selectedDeliveryDate,
     seller,
-    service,
+    product,
     status_billing,
     status_delivery,
     status_order,
@@ -441,7 +441,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
               <CompanyName>
                 {search.client && search.client.company_name}
               </CompanyName>
-              <Service>{servicesToShow(search.id)}</Service>
+              <Product>{productsToShow(search.id)}</Product>
               {(from === 'Comercial' || from === 'Billing') && (
                 <>
                   <Professional>

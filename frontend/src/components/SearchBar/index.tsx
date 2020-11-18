@@ -38,7 +38,7 @@ import {
   Container,
   Date,
   CompanyName,
-  Service,
+  Product,
   Professional,
   Value,
   Status,
@@ -58,7 +58,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
     selectedDate,
     selectedDeliveryDate,
     company_name,
-    service,
+    product,
     seller,
     technical,
     total_value,
@@ -68,7 +68,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
     searchDate,
     searchDeliveryDate,
     searchCompanyName,
-    searchService,
+    searchProduct,
     searchSeller,
     searchTechnical,
     searchTotalValue,
@@ -267,19 +267,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
             </Grid>
           </Grid>
         </CompanyName>
-        <Service>
+        <Product>
           <Grid container spacing={1} alignItems="flex-end">
             <Grid item>
               <TextField
-                id="input-with-icon-grid-service"
+                id="input-with-icon-grid-product"
                 label="Serviço"
-                value={service}
-                onChange={(e) => searchService(e.target.value)}
+                value={product}
+                onChange={(e) => searchProduct(e.target.value)}
               />
             </Grid>
             <Grid item>
-              {service ? (
-                <IconButton onClick={() => searchService('')}>
+              {product ? (
+                <IconButton onClick={() => searchProduct('')}>
                   <Close />
                 </IconButton>
               ) : (
@@ -287,7 +287,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ color, from }) => {
               )}
             </Grid>
           </Grid>
-        </Service>
+        </Product>
         {(from === 'Comercial' || from === 'Billing') && (
           <>
             <Professional>

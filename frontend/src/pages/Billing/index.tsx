@@ -20,7 +20,7 @@ const Billing: React.FC = () => {
     selectedDate,
     selectedDeliveryDate,
     seller,
-    service,
+    product,
     status_billing,
     status_delivery,
     status_order,
@@ -44,7 +44,7 @@ const Billing: React.FC = () => {
       selectedDate ||
       selectedDeliveryDate ||
       seller ||
-      service ||
+      product ||
       status_billing ||
       status_delivery ||
       status_order ||
