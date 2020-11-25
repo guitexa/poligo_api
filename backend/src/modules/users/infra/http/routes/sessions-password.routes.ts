@@ -6,6 +6,7 @@ import SessionPasswordController from '../controllers/SessionPasswordController'
 const sessionsPasswordRouter = Router();
 const sessionPasswordController = new SessionPasswordController();
 
+// Rota da segunda autenticação do user com e-mail e senha
 sessionsPasswordRouter.post(
   '/',
   celebrate({

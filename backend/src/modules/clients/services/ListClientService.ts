@@ -11,6 +11,7 @@ export default class ListClientService {
     private clientsRepository: IClientsRepository,
   ) {}
 
+  // Função para procurar um client específico pelo ID
   public async execute(client_id: string): Promise<Client | undefined> {
     const client = await this.clientsRepository.findById(client_id);
 

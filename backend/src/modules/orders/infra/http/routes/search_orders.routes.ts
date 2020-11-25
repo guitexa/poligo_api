@@ -9,16 +9,17 @@ const searchOrder = new SearchOrderController();
 
 searchOrdersRouter.use(ensureAuth);
 
+// Rota para buscar informações dentro dos orders
 searchOrdersRouter.get(
   '/',
   celebrate({
     [Segments.QUERY]: {
       created_at: Joi.string().allow(''),
-      company: Joi.string().allow(''),
+      client_name: Joi.string().allow(''),
       seller: Joi.string().allow(''),
       technical: Joi.string().allow(''),
       product: Joi.string().allow(''),
-      total_value: Joi.number().allow(''),
+      total_value: Joi.string().allow(''),
       status_order: Joi.string().allow(''),
       status_delivery: Joi.string().allow(''),
       status_billing: Joi.string().allow(''),

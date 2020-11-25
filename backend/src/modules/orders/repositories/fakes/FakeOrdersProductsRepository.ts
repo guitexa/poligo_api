@@ -20,7 +20,7 @@ export default class FakeOrdersProductsRepository
     return order;
   }
 
-  public async findOrderProductsByOrderId(
+  public async findOrdersProductsByOrderId(
     order_id: string,
   ): Promise<OrderProduct[] | undefined> {
     const order = this.ordersProductsRepository.filter(
@@ -30,7 +30,7 @@ export default class FakeOrdersProductsRepository
     return order;
   }
 
-  public async findOrderProductByOrderId(
+  public async findOrderProductById(
     order_product_id: string,
   ): Promise<OrderProduct | undefined> {
     const order = this.ordersProductsRepository.find(

@@ -1,3 +1,5 @@
+// Interface para tipar as variáveis ao criar uma order
+
 export default interface ICreateOrderDTO {
   client_id: string;
   seller_id: string;
@@ -8,4 +10,5 @@ export default interface ICreateOrderDTO {
   delivery_conditions: '';
   payment_way: '';
   due_date: '';
+  total_value: '';
 }

@@ -12,6 +12,7 @@ export default class ListUserService {
     private usersRepository: IUsersRepository,
   ) {}
 
+  // Função para procurar um usuário pelo ID
   public async execute(user_id: string): Promise<User | undefined> {
     const user = await this.usersRepository.findById(user_id);
 

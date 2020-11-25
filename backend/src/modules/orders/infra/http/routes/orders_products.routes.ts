@@ -9,6 +9,7 @@ const orderProductController = new OrderProductController();
 
 ordersProductsRouter.use(ensureAuth);
 
+// Rota para mostrar um order_product específico
 ordersProductsRouter.get(
   '/:order_product_id',
   celebrate({
@@ -18,6 +19,8 @@ ordersProductsRouter.get(
   }),
   orderProductController.show,
 );
+
+// Rota para atualizar um order_product específico
 ordersProductsRouter.patch(
   '/:order_product_id',
   celebrate({
@@ -26,12 +29,14 @@ ordersProductsRouter.patch(
     },
     [Segments.BODY]: {
       product_id: Joi.string(),
-      product_description: Joi.string(),
+      product_description: Joi.string().allow(''),
       product_value: Joi.number(),
     },
   }),
   orderProductController.update,
 );
+
+// Rota para deletar um order_product específico
 ordersProductsRouter.delete(
   '/:order_product_id',
   celebrate({

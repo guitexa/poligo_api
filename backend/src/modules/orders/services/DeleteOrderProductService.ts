@@ -10,8 +10,9 @@ export default class DeleteOrderProductService {
     private ordersProductsRepository: IOrdersProductsRepository,
   ) {}
 
+  // Função para deletar um order_product específico
   public async execute(order_product_id: string): Promise<void> {
-    const order_product = await this.ordersProductsRepository.findOrderProductByOrderId(
+    const order_product = await this.ordersProductsRepository.findOrderProductById(
       order_product_id,
     );
 

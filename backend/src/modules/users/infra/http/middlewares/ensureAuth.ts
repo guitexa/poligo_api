@@ -1,3 +1,5 @@
+// Middleware de validação do JWT
+
 import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 
@@ -23,6 +25,7 @@ export default function ensureAuth(
 
   const [, token] = authHeader.split(' ');
 
+  // Se o token existe faz a validação
   try {
     const decoded = verify(token, authConfig.jwt.secret);
 

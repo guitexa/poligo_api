@@ -25,6 +25,7 @@ export default class CreateOrderService {
     private usersRepository: IUsersRepository,
   ) {}
 
+  // Função para criar uma order
   public async execute({ client_id, seller_id }: IRequest): Promise<Order> {
     const client = await this.clientsRepository.findById(client_id);
 
@@ -48,6 +49,7 @@ export default class CreateOrderService {
       delivery_conditions: '',
       payment_way: '',
       due_date: '',
+      total_value: '',
     });
   }
 }

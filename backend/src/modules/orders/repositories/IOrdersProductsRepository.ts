@@ -2,11 +2,11 @@ import ICreateOrderProductDTO from '../dtos/ICreateOrderProductDTO';
 import OrderProduct from '../infra/typeorm/entities/OrderProduct';
 
 export default interface IOrdersProductsRepository {
-  create(orderData: ICreateOrderProductDTO): Promise<OrderProduct>;
-  findOrderProductsByOrderId(
+  create(order_product: ICreateOrderProductDTO): Promise<OrderProduct>;
+  findOrdersProductsByOrderId(
     order_id: string,
   ): Promise<OrderProduct[] | undefined>;
-  findOrderProductByOrderId(
+  findOrderProductById(
     order_product_id: string,
   ): Promise<OrderProduct | undefined>;
   save(order_product: OrderProduct): Promise<OrderProduct>;

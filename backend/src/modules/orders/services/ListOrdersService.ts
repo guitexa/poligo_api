@@ -10,6 +10,7 @@ export default class ListOrdersService {
     private ordersRepository: IOrdersRepository,
   ) {}
 
+  // Função para procurar todas as orders cadastradas
   public async execute(): Promise<Order[] | undefined> {
     return this.ordersRepository.findAll();
   }

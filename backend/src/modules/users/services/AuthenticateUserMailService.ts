@@ -16,6 +16,7 @@ export default class AuthenticateUserMailService {
     private usersRepository: IUsersRepository,
   ) {}
 
+  // Função para procurar um user pelo email
   public async execute({ email }: IRequest): Promise<User> {
     const user = await this.usersRepository.findByEmail(email);
 

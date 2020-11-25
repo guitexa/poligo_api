@@ -6,6 +6,7 @@ import SessionMailController from '../controllers/SessionMailController';
 const sessionsMailRouter = Router();
 const sessionMailController = new SessionMailController();
 
+// Rota da primeira autenticação do user apenas com e-mail
 sessionsMailRouter.post(
   '/',
   celebrate({

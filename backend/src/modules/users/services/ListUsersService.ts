@@ -11,6 +11,7 @@ export default class ListUsersService {
     private usersRepository: IUsersRepository,
   ) {}
 
+  // Função para procurar todos os usuários cadastrados
   public async execute(): Promise<User[] | undefined> {
     return this.usersRepository.findAll();
   }

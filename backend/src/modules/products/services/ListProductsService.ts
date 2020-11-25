@@ -10,6 +10,7 @@ export default class ListProductsService {
     private productsRepository: IProductsRepository,
   ) {}
 
+  // Função para procurar todos os products cadastrados
   public async execute(): Promise<Product[] | undefined> {
     return this.productsRepository.findAll();
   }

@@ -1,6 +1,8 @@
+// Interface para tipar as variáveis ao fazer uma busca nas orders
+
 export default interface ISearchOrderDTO {
   created_at?: Date;
-  company?: string;
+  client_name?: string;
   seller?: string;
   technical?: string;
   product?: string;

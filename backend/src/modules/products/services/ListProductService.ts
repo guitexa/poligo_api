@@ -11,6 +11,7 @@ export default class ListProductService {
     private productsRepository: IProductsRepository,
   ) {}
 
+  // Função para procurar um product específico
   public async execute(product_id: string): Promise<Product | undefined> {
     const product = await this.productsRepository.findById(product_id);
 

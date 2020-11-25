@@ -28,6 +28,7 @@ export default class AuthenticateUserPasswordService {
     private hashProvider: IHashProvider,
   ) {}
 
+  // Função para procurar um user pelo email e pela senha
   public async execute({ email, password }: IRequest): Promise<IResponse> {
     const user = await this.usersRepository.findByEmail(email);
 
@@ -43,6 +44,8 @@ export default class AuthenticateUserPasswordService {
     if (!checkPassword) {
       throw new AppError('Email or Password not valid', 401);
     }
+
+    // Se o email e a senha estiverem corretos será gerado um token
 
     const { expiresIn, secret } = authConfig.jwt;
 

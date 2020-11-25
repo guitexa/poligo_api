@@ -17,6 +17,7 @@ export default class CreateUserService {
     private hashProvider: IHashProvider,
   ) {}
 
+  // Função para criar um usuário
   public async execute({
     name,
     email,

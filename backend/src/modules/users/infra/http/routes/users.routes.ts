@@ -11,6 +11,7 @@ const userController = new UserController();
 
 usersRouter.use(ensureAuth);
 
+// Rota para criar um user
 usersRouter.post(
   '/',
   celebrate({
@@ -23,7 +24,11 @@ usersRouter.post(
   }),
   usersController.create,
 );
+
+// Rota para mostrar os users cadastrados
 usersRouter.get('/', usersController.show);
+
+// Rota para mostrar um user específico
 usersRouter.get(
   '/:user_id',
   celebrate({

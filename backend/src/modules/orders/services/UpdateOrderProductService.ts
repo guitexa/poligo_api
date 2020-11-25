@@ -16,13 +16,14 @@ export default class UpdateOrderProductService {
     private productsRepository: IProductsRepository,
   ) {}
 
+  // Função para atualizar um order_product específico
   public async execute({
     order_product_id,
     product_id,
     product_description,
     product_value,
   }: IUpdateOrderProductDTO): Promise<OrderProduct> {
-    const order_product = await this.ordersProductsRepository.findOrderProductByOrderId(
+    const order_product = await this.ordersProductsRepository.findOrderProductById(
       order_product_id,
     );
 
@@ -40,7 +41,7 @@ export default class UpdateOrderProductService {
       order_product.product.id = product_id;
     }
 
-    if (product_description) {
+    if (product_description || product_description === '') {
       order_product.product_description = product_description;
     }
 

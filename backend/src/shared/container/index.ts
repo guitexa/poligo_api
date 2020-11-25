@@ -1,3 +1,5 @@
+// Container para registrar as injeções de dependências dos repositórios
+
 import { container } from 'tsyringe';
 
 import '@modules/users/providers';

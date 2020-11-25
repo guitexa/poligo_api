@@ -13,20 +13,23 @@ export default class OrdersRepository implements IOrdersRepository {
     this.ormRepository = getRepository(Order);
   }
 
-  public async create(orderData: ICreateOrderDTO): Promise<Order> {
-    const order = this.ormRepository.create(orderData);
+  // Função para criar uma order
+  public async create(order: ICreateOrderDTO): Promise<Order> {
+    const newOrder = this.ormRepository.create(order);
 
-    await this.ormRepository.save(order);
+    await this.ormRepository.save(newOrder);
 
-    return order;
+    return newOrder;
   }
 
+  // Função para procurar todas as orders cadastradas
   public async findAll(): Promise<Order[] | undefined> {
     return this.ormRepository.find({
       relations: ['client', 'seller', 'technical', 'orders_products'],
     });
   }
 
+  // Função para procurar um order específica
   public async findById(order_id: string): Promise<Order | undefined> {
     const order = await this.ormRepository.findOne({
       where: {
@@ -38,6 +41,7 @@ export default class OrdersRepository implements IOrdersRepository {
     return order;
   }
 
+  // Função para procurar um order específica porém sem trazer os relacionamentos
   public async findByIdWithoutRelations(
     order_id: string,
   ): Promise<Order | undefined> {
@@ -50,6 +54,7 @@ export default class OrdersRepository implements IOrdersRepository {
     return order;
   }
 
+  // Função para atualizar um order específica
   public async save(order: Order): Promise<Order> {
     await this.ormRepository.save(order);
 
@@ -66,9 +71,10 @@ export default class OrdersRepository implements IOrdersRepository {
     return this.ormRepository.save(order);
   }
 
+  // Função para procurar informações dentro das orders existentes
   public async search({
     created_at,
-    company,
+    client_name,
     seller,
     technical,
     // product,
@@ -81,6 +87,7 @@ export default class OrdersRepository implements IOrdersRepository {
     const end_created_at = endOfDay(created_at || 0);
 
     if (technical) {
+      // Se houver technical e created_at faz essa busca
       if (isValid(created_at)) {
         return this.ormRepository.find({
           join: {
@@ -98,7 +105,7 @@ export default class OrdersRepository implements IOrdersRepository {
               created_at: Between(start_created_at, end_created_at),
             });
             qb.andWhere('client.name ILIKE :clientName', {
-              clientName: `%${company}%`,
+              clientName: `%${client_name}%`,
             });
             qb.andWhere('seller.name ILIKE :sellerName', {
               sellerName: `%${seller}%`,
@@ -122,6 +129,7 @@ export default class OrdersRepository implements IOrdersRepository {
           relations: ['client', 'seller', 'technical', 'orders_products'],
         });
       }
+      // Se houver technical e não houver created_at faz essa busca
       return this.ormRepository.find({
         join: {
           alias: 'orders',
@@ -135,7 +143,7 @@ export default class OrdersRepository implements IOrdersRepository {
         // @ts-ignore
         where: qb => {
           qb.where('client.name ILIKE :clientName', {
-            clientName: `%${company}%`,
+            clientName: `%${client_name}%`,
           });
           qb.andWhere('seller.name ILIKE :sellerName', {
             sellerName: `%${seller}%`,
@@ -159,6 +167,7 @@ export default class OrdersRepository implements IOrdersRepository {
         relations: ['client', 'seller', 'technical', 'orders_products'],
       });
     }
+    // Se não houver technical e houver created_at faz essa busca
     if (isValid(created_at)) {
       return this.ormRepository.find({
         join: {
@@ -175,7 +184,7 @@ export default class OrdersRepository implements IOrdersRepository {
             created_at: Between(start_created_at, end_created_at),
           });
           qb.andWhere('client.name ILIKE :clientName', {
-            clientName: `%${company}%`,
+            clientName: `%${client_name}%`,
           });
           qb.andWhere('seller.name ILIKE :sellerName', {
             sellerName: `%${seller}%`,
@@ -197,6 +206,7 @@ export default class OrdersRepository implements IOrdersRepository {
       });
     }
 
+    // Se não houver technical e não houver created_at faz essa busca
     return (
       this.ormRepository
         //   .createQueryBuilder('orders')
@@ -225,7 +235,7 @@ export default class OrdersRepository implements IOrdersRepository {
           // @ts-ignore
           where: qb => {
             qb.where('client.name ILIKE :clientName', {
-              clientName: `%${company}%`,
+              clientName: `%${client_name}%`,
             });
             // qb.andWhere({
             //   orders_products: oqb => {

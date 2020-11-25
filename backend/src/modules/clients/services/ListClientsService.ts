@@ -10,6 +10,7 @@ export default class ListClientsService {
     private clientsRepository: IClientsRepository,
   ) {}
 
+  // Função para procurar todos os clients existentes
   public async execute(): Promise<Client[] | undefined> {
     return this.clientsRepository.findAll();
   }

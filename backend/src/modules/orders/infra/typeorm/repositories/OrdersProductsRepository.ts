@@ -12,17 +12,19 @@ export default class OrdersProductsRepository
     this.ormRepository = getRepository(OrderProduct);
   }
 
+  // Função para criar um order_product
   public async create(
-    orderData: ICreateOrderProductDTO,
+    order_product: ICreateOrderProductDTO,
   ): Promise<OrderProduct> {
-    const order_product = this.ormRepository.create(orderData);
+    const newOrderProduct = this.ormRepository.create(order_product);
 
-    await this.ormRepository.save(order_product);
+    await this.ormRepository.save(newOrderProduct);
 
-    return order_product;
+    return newOrderProduct;
   }
 
-  public async findOrderProductsByOrderId(
+  // Função para procurar todos os orders_products de um order específico
+  public async findOrdersProductsByOrderId(
     order_id: string,
   ): Promise<OrderProduct[] | undefined> {
     return this.ormRepository.find({
@@ -32,7 +34,8 @@ export default class OrdersProductsRepository
     });
   }
 
-  public async findOrderProductByOrderId(
+  // Função para procurar um order_product específico
+  public async findOrderProductById(
     order_product_id: string,
   ): Promise<OrderProduct | undefined> {
     return this.ormRepository.findOne({
@@ -42,6 +45,7 @@ export default class OrdersProductsRepository
     });
   }
 
+  // Função para atualizar um order_product específico
   public async save(order_product: OrderProduct): Promise<OrderProduct> {
     await this.ormRepository.save(order_product);
 
@@ -58,6 +62,7 @@ export default class OrdersProductsRepository
     return this.ormRepository.save(order_product);
   }
 
+  // Função para deletar um order_product específico
   public async delete(order_product_id: string): Promise<void> {
     const order_product = await this.ormRepository.findOne({
       where: {

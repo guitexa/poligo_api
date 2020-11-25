@@ -11,8 +11,9 @@ export default class ListOrderProductService {
     private ordersProductsRepository: IOrdersProductsRepository,
   ) {}
 
+  // Função para procurar um order_product específico
   public async execute(order_product_id: string): Promise<OrderProduct> {
-    const order_product = await this.ordersProductsRepository.findOrderProductByOrderId(
+    const order_product = await this.ordersProductsRepository.findOrderProductById(
       order_product_id,
     );
 

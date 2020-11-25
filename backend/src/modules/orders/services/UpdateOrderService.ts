@@ -26,6 +26,7 @@ export default class UpdateOrderService {
     private productsRepository: IProductsRepository,
   ) {}
 
+  // Função para atualizar uma order específica e/ou criar um order_product
   public async execute({
     order_id,
     status_order,
@@ -42,7 +43,6 @@ export default class UpdateOrderService {
     product_id,
     product_description,
     product_value,
-    total_value,
   }: IUpdateOrderDTO): Promise<Order | undefined> {
     const order = await this.ordersRepository.findByIdWithoutRelations(
       order_id,
@@ -54,7 +54,12 @@ export default class UpdateOrderService {
 
     let technical: User | undefined;
 
-    if (product_id && product_description && product_value) {
+    // Se houver product a order será atualizada e será criado um order_product
+    if (product_id) {
+      if (!product_value) {
+        throw new AppError('You must provide a value');
+      }
+
       const product = await this.productsRepository.findById(product_id);
 
       if (!product) {
@@ -122,12 +127,13 @@ export default class UpdateOrderService {
         order.technical_id = technical_id;
       }
 
-      const orders = await this.ordersProductsRepository.findOrderProductsByOrderId(
+      const orders_products = await this.ordersProductsRepository.findOrdersProductsByOrderId(
         order_id,
       );
 
-      if (orders) {
-        const totalValue = orders
+      // Procura todos os orders_products e faz a soma de todos os valores
+      if (orders_products) {
+        const totalValue = orders_products
           .map(e => Number(e.product_value))
           .reduce((accumulator, serviceValue) => {
             return accumulator + serviceValue;
@@ -138,6 +144,8 @@ export default class UpdateOrderService {
 
       return this.ordersRepository.save(order);
     }
+
+    // Se não houver product apenas a order será atualizada
 
     if (status_order || status_order === '') {
       order.status_order = status_order;
@@ -191,20 +199,6 @@ export default class UpdateOrderService {
 
     if (technical_id === null) {
       order.technical_id = technical_id;
-    }
-
-    const orders = await this.ordersProductsRepository.findOrderProductsByOrderId(
-      order_id,
-    );
-
-    if (orders) {
-      const totalValue = orders
-        .map(e => Number(e.product_value))
-        .reduce((accumulator, serviceValue) => {
-          return accumulator + serviceValue;
-        }, 0);
-
-      order.total_value = String(totalValue).replace(/[/.]/gi, ',');
     }
 
     return this.ordersRepository.save(order);

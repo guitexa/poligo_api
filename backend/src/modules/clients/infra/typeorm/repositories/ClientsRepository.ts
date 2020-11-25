@@ -2,6 +2,7 @@ import { Repository, getRepository } from 'typeorm';
 
 import IClientsRepository from '@modules/clients/repositories/IClientsRepository';
 import ICreateClientDTO from '@modules/clients/dtos/ICreateClientDTO';
+import IUpdateClientDTO from '@modules/clients/dtos/IUpdateClientDTO';
 import Client from '@modules/clients/infra/typeorm/entities/Client';
 
 export default class ClientsRepository implements IClientsRepository {
@@ -11,18 +12,21 @@ export default class ClientsRepository implements IClientsRepository {
     this.ormRepository = getRepository(Client);
   }
 
-  public async create(clientData: ICreateClientDTO): Promise<Client> {
-    const client = this.ormRepository.create(clientData);
+  // Função para criar um client
+  public async create(client: ICreateClientDTO): Promise<Client> {
+    const newClient = this.ormRepository.create(client);
 
-    await this.ormRepository.save(client);
+    await this.ormRepository.save(newClient);
 
-    return client;
+    return newClient;
   }
 
+  // Função para procurar todos os clients cadastrados
   public async findAll(): Promise<Client[] | undefined> {
     return this.ormRepository.find();
   }
 
+  // Função para procurar um client específico pelo ID
   public async findById(client_id: string): Promise<Client | undefined> {
     const client = await this.ormRepository.findOne({
       where: {
@@ -31,5 +35,32 @@ export default class ClientsRepository implements IClientsRepository {
     });
 
     return client;
+  }
+
+  // Função para procurar um client específico pelo nome
+  public async findByName(client_name: string): Promise<Client | undefined> {
+    const client = await this.ormRepository.findOne({
+      where: {
+        name: client_name,
+      },
+    });
+
+    return client;
+  }
+
+  // Função para atualizar um client específico
+  public async save(client: IUpdateClientDTO): Promise<Client> {
+    await this.ormRepository.save(client);
+
+    const findClient = await this.ormRepository.findOne({
+      where: {
+        id: client.id,
+      },
+    });
+
+    if (findClient) {
+      return findClient;
+    }
+    return this.ormRepository.save(client);
   }
 }

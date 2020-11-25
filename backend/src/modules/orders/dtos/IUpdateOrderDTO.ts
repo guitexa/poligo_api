@@ -1,3 +1,5 @@
+// Interface para tipar as variáveis ao atualizar uma order
+
 export default interface IUpdateOrderDTO {
   order_id: string;
   status_order?: string;

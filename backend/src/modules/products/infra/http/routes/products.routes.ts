@@ -11,6 +11,7 @@ const productController = new ProductController();
 
 productsRouter.use(ensureAuth);
 
+// Rota para criar um product
 productsRouter.post(
   '/',
   celebrate({
@@ -20,7 +21,11 @@ productsRouter.post(
   }),
   productsController.create,
 );
+
+// Rota para mostrar os products cadastrados
 productsRouter.get('/', productsController.show);
+
+// Rota para mostrar um product específico
 productsRouter.get(
   '/:product_id',
   celebrate({

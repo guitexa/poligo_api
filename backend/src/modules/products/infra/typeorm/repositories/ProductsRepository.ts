@@ -11,6 +11,7 @@ export default class ProductsRepository implements IProductsRepository {
     this.ormRepository = getRepository(Product);
   }
 
+  // Função para criar um product
   public async create(productData: ICreateProductDTO): Promise<Product> {
     const product = this.ormRepository.create(productData);
 
@@ -19,10 +20,12 @@ export default class ProductsRepository implements IProductsRepository {
     return product;
   }
 
+  // Função para mostrar todos os products cadastrados
   public async findAll(): Promise<Product[] | undefined> {
     return this.ormRepository.find();
   }
 
+  // Função para procurar um product específico pelo ID
   public async findById(product_id: string): Promise<Product | undefined> {
     const product = await this.ormRepository.findOne({
       where: {
@@ -33,6 +36,7 @@ export default class ProductsRepository implements IProductsRepository {
     return product;
   }
 
+  // Função para procurar um product específico pelo nome
   public async findByName(product_name: string): Promise<Product | undefined> {
     const product = await this.ormRepository.findOne({
       where: {

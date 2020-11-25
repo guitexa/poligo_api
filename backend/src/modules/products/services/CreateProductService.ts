@@ -12,6 +12,7 @@ export default class CreateProductService {
     private productsRepository: IProductsRepository,
   ) {}
 
+  // Função para criar um product
   public async execute({ name }: ICreateProductDTO): Promise<Product> {
     const checkIfProductExists = await this.productsRepository.findByName(name);
 

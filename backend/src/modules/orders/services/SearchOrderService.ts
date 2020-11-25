@@ -11,6 +11,7 @@ export default class SearchOrderService {
     private ordersRepository: IOrdersRepository,
   ) {}
 
+  // Função para procurar informações dentro das orders existentes
   public async execute({
     created_at,
     ...rest
