@@ -39,6 +39,7 @@ export default class CreateOrderService {
       throw new AppError('This seller_id was not found', 404);
     }
 
+    // Além do client_id e seller_id envia outros dados para cadastrar uma string vazia no banco ao invés de NULL
     return this.ordersRepository.create({
       client_id,
       seller_id,

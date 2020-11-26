@@ -28,7 +28,12 @@ export default class UpdateClientService {
       throw new AppError('This client_id was not found', 404);
     }
 
-    if (name && name !== client.name) {
+    // Verifica se há um nome e se é diferente do atual
+    if ((name && name !== client.name) || name === '') {
+      // Verifica se o usuário não está tentando limpar o campo
+      if (name === '') {
+        throw new AppError('A name must be provided', 401);
+      }
       const checkIfClientNameExists = await this.clientsRepository.findByName(
         name,
       );
@@ -41,6 +46,7 @@ export default class UpdateClientService {
     }
 
     if (cnpj_cpf || cnpj_cpf === '') {
+      // Verifica se o usuário não está tentando limpar o campo
       if (!cnpj_cpf) {
         throw new AppError('A CNPJ or CPF must be provided', 401);
       }
@@ -48,6 +54,7 @@ export default class UpdateClientService {
     }
 
     if (contact_name || contact_name === '') {
+      // Verifica se o usuário não está tentando limpar o campo
       if (!contact_name) {
         throw new AppError('A contact name must be provided', 401);
       }
@@ -55,6 +62,7 @@ export default class UpdateClientService {
     }
 
     if (email || email === '') {
+      // Verifica se o usuário não está tentando limpar o campo
       if (!email) {
         throw new AppError('An email must be provided', 401);
       }
@@ -62,6 +70,7 @@ export default class UpdateClientService {
     }
 
     if (phone || phone === '') {
+      // Verifica se o usuário não está tentando limpar o campo sem que haja outro telefone
       if (phone === '' && !client.mobile) {
         throw new AppError(
           'At least a phone or a mobile must be provided',
@@ -73,6 +82,7 @@ export default class UpdateClientService {
     }
 
     if (mobile || mobile === '') {
+      // Verifica se o usuário não está tentando limpar o campo sem que haja outro telefone
       if (mobile === '' && !client.phone) {
         throw new AppError(
           'At least a phone or a mobile must be provided',

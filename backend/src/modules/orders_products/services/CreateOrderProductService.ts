@@ -49,6 +49,7 @@ export default class CreateOrderProductService {
       }
     }
 
+    // Verifica se não está faltando o valor e se esse valor é maior que 0
     if (!product_value || product_value <= 0) {
       throw new AppError('A product_value must be provided', 401);
     }
