@@ -19,7 +19,7 @@ describe('ListOrders', () => {
   it('should be able to list orders', async () => {
     const client = await fakeClientsRepository.create({
       name: 'New Company',
-      cpf_cnpj: '81023545000115',
+      cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
       email: 'johndoe@mail.com',
       phone: '3433885544',
@@ -43,6 +43,8 @@ describe('ListOrders', () => {
       delivery_conditions: '',
       payment_way: '',
       due_date: '',
+      total_value: '',
+      products: '',
     });
 
     const orderTwo = await fakeOrdersRepository.create({
@@ -55,6 +57,8 @@ describe('ListOrders', () => {
       delivery_conditions: '',
       payment_way: '',
       due_date: '',
+      total_value: '',
+      products: '',
     });
 
     const orders = await listOrder.execute();

@@ -1,7 +1,7 @@
 import { Repository, getRepository } from 'typeorm';
 
-import IOrdersProductsRepository from '@modules/orders/repositories/IOrdersProductsRepository';
-import ICreateOrderProductDTO from '@modules/orders/dtos/ICreateOrderProductDTO';
+import IOrdersProductsRepository from '@modules/orders_products/repositories/IOrdersProductsRepository';
+import ICreateOrderProductDTO from '@modules/orders_products/dtos/ICreateOrderProductDTO';
 import OrderProduct from '../entities/OrderProduct';
 
 export default class OrdersProductsRepository
@@ -18,13 +18,11 @@ export default class OrdersProductsRepository
   ): Promise<OrderProduct> {
     const newOrderProduct = this.ormRepository.create(order_product);
 
-    await this.ormRepository.save(newOrderProduct);
-
-    return newOrderProduct;
+    return this.ormRepository.save(newOrderProduct);
   }
 
   // Função para procurar todos os orders_products de um order específico
-  public async findOrdersProductsByOrderId(
+  public async findAllOrdersProductsByOrderId(
     order_id: string,
   ): Promise<OrderProduct[] | undefined> {
     return this.ormRepository.find({

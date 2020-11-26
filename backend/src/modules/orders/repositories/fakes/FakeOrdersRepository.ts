@@ -1,4 +1,4 @@
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 import IOrdersRepository from '@modules/orders/repositories/IOrdersRepository';
 import ICreateOrderDTO from '@modules/orders/dtos/ICreateOrderDTO';
@@ -10,7 +10,7 @@ export default class FakeOrdersRepository implements IOrdersRepository {
   public async create(orderData: ICreateOrderDTO): Promise<Order> {
     const order = new Order();
 
-    Object.assign(order, { id: uuid() }, orderData);
+    Object.assign(order, { id: v4() }, orderData);
 
     this.orderRepository.push(order);
 

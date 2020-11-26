@@ -23,7 +23,7 @@ export default class ClientController {
   public async update(req: Request, res: Response): Promise<Response> {
     const { client_id } = req.params;
 
-    const { name, cpf_cnpj, contact_name, email, phone, mobile } = req.body;
+    const { name, cnpj_cpf, contact_name, email, phone, mobile } = req.body;
 
     // Realiza injeção de dependência para utilizar o service
     const updateClient = container.resolve(UpdateClientService);
@@ -32,7 +32,7 @@ export default class ClientController {
     const client = await updateClient.execute({
       id: client_id,
       name,
-      cpf_cnpj,
+      cnpj_cpf,
       contact_name,
       email,
       phone,

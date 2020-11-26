@@ -1,3 +1,4 @@
+import AppError from '@shared/errors/AppError';
 import FakeProductsRepository from '../repositories/fakes/FakeProductsRepository';
 import CreateProductService from './CreateProductService';
 
@@ -16,5 +17,17 @@ describe('CreateProduct', () => {
     });
 
     expect(product).toHaveProperty('id');
+  });
+
+  it('should NOT be able to create an existent product', async () => {
+    const product = await createProduct.execute({
+      name: 'product-name',
+    });
+
+    await expect(
+      createProduct.execute({
+        name: product.name,
+      }),
+    ).rejects.toBeInstanceOf(AppError);
   });
 });

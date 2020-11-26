@@ -1,11 +1,33 @@
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 
-import ListOrderProductService from '@modules/orders/services/ListOrderProductService';
-import UpdateOrderProductService from '@modules/orders/services/UpdateOrderProductService';
-import DeleteOrderProductService from '@modules/orders/services/DeleteOrderProductService';
+import CreateOrderProductService from '@modules/orders_products/services/CreateOrderProductService';
+import ListOrderProductService from '@modules/orders_products/services/ListOrderProductService';
+import UpdateOrderProductService from '@modules/orders_products/services/UpdateOrderProductService';
+import DeleteOrderProductService from '@modules/orders_products/services/DeleteOrderProductService';
 
-export default class OrderProductController {
+export default class OrdersProductsController {
+  // Função para criar um order_product
+  public async create(req: Request, res: Response): Promise<Response> {
+    const { order_id } = req.params;
+
+    const { product_id, product_value, product_description } = req.body;
+
+    // Realiza injeção de dependência para utilizar o service
+    const createOrderProduct = container.resolve(CreateOrderProductService);
+
+    // Executa o service enviando os valores recebidos no params e no body
+    const order_product = await createOrderProduct.execute({
+      order_id,
+      product_id,
+      product_value,
+      product_description,
+    });
+
+    // Responde a requisição com o retorno do service
+    return res.json(order_product);
+  }
+
   // Função para mostrar um order_product específico
   public async show(req: Request, res: Response): Promise<Response> {
     const { order_product_id } = req.params;

@@ -1,6 +1,6 @@
 // Interface para tipar as variáveis ao criar um order_product
 
-import Order from '../infra/typeorm/entities/Order';
+import Order from '@modules/orders/infra/typeorm/entities/Order';
 
 export default interface ICreateOrderProductDTO {
   order: Order;

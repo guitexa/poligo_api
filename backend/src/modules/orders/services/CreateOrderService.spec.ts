@@ -1,6 +1,7 @@
+import AppError from '@shared/errors/AppError';
+
 import FakeClientsRepository from '@modules/clients/repositories/fakes/FakeClientsRepository';
 import FakeUsersRepository from '@modules/users/repositories/fakes/FakeUsersRepository';
-import AppError from '@shared/errors/AppError';
 import FakeOrdersRepository from '../repositories/fakes/FakeOrdersRepository';
 import CreateOrderService from './CreateOrderService';
 
@@ -24,7 +25,7 @@ describe('CreateOrder', () => {
   it('should be able to create a new order', async () => {
     const client = await fakeClientsRepository.create({
       name: 'New Company',
-      cpf_cnpj: '81023545000115',
+      cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
       email: 'johndoe@mail.com',
       phone: '3433885544',
@@ -65,7 +66,7 @@ describe('CreateOrder', () => {
   it('should NOT be able to create a new order for an inexistent seller', async () => {
     const client = await fakeClientsRepository.create({
       name: 'New Company',
-      cpf_cnpj: '81023545000115',
+      cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
       email: 'johndoe@mail.com',
       phone: '3433885544',

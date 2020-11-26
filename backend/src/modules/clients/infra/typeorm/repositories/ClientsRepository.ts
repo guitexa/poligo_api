@@ -2,7 +2,6 @@ import { Repository, getRepository } from 'typeorm';
 
 import IClientsRepository from '@modules/clients/repositories/IClientsRepository';
 import ICreateClientDTO from '@modules/clients/dtos/ICreateClientDTO';
-import IUpdateClientDTO from '@modules/clients/dtos/IUpdateClientDTO';
 import Client from '@modules/clients/infra/typeorm/entities/Client';
 
 export default class ClientsRepository implements IClientsRepository {
@@ -49,18 +48,7 @@ export default class ClientsRepository implements IClientsRepository {
   }
 
   // Função para atualizar um client específico
-  public async save(client: IUpdateClientDTO): Promise<Client> {
-    await this.ormRepository.save(client);
-
-    const findClient = await this.ormRepository.findOne({
-      where: {
-        id: client.id,
-      },
-    });
-
-    if (findClient) {
-      return findClient;
-    }
+  public async save(client: Client): Promise<Client> {
     return this.ormRepository.save(client);
   }
 }

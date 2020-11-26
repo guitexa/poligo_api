@@ -14,21 +14,21 @@ export default class UpdateClientService {
 
   // Função para atualizar um client existente e retornar o client atualizado
   public async execute({
-    id,
+    id: client_id,
     name,
-    cpf_cnpj,
+    cnpj_cpf,
     contact_name,
     email,
     phone,
     mobile,
   }: IUpdateClientDTO): Promise<Client> {
-    const client = await this.clientsRepository.findById(id);
+    const client = await this.clientsRepository.findById(client_id);
 
     if (!client) {
       throw new AppError('This client_id was not found', 404);
     }
 
-    if (name || name === '') {
+    if (name && name !== client.name) {
       const checkIfClientNameExists = await this.clientsRepository.findByName(
         name,
       );
@@ -40,23 +40,46 @@ export default class UpdateClientService {
       client.name = name;
     }
 
-    if (cpf_cnpj || cpf_cnpj === '') {
-      client.cpf_cnpj = cpf_cnpj;
+    if (cnpj_cpf || cnpj_cpf === '') {
+      if (!cnpj_cpf) {
+        throw new AppError('A CNPJ or CPF must be provided', 401);
+      }
+      client.cnpj_cpf = cnpj_cpf;
     }
 
     if (contact_name || contact_name === '') {
+      if (!contact_name) {
+        throw new AppError('A contact name must be provided', 401);
+      }
       client.contact_name = contact_name;
     }
 
     if (email || email === '') {
+      if (!email) {
+        throw new AppError('An email must be provided', 401);
+      }
       client.email = email;
     }
 
     if (phone || phone === '') {
+      if (phone === '' && !client.mobile) {
+        throw new AppError(
+          'At least a phone or a mobile must be provided',
+          401,
+        );
+      }
+
       client.phone = phone;
     }
 
     if (mobile || mobile === '') {
+      if (mobile === '' && !client.phone) {
+        throw new AppError(
+          'At least a phone or a mobile must be provided',
+          401,
+        );
+      }
+
       client.mobile = mobile;
     }
 

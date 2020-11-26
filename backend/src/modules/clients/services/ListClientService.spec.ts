@@ -14,7 +14,7 @@ describe('ListClient', () => {
   it('should be able to list a specific client', async () => {
     const clientOne = await fakeClientsRepository.create({
       name: 'New Company',
-      cpf_cnpj: '81023545000115',
+      cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
       email: 'johndoe@mail.com',
       phone: '3433885544',

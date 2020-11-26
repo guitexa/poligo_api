@@ -1,5 +1,4 @@
 import ICreateClientDTO from '../dtos/ICreateClientDTO';
-import IUpdateClientDTO from '../dtos/IUpdateClientDTO';
 import Client from '../infra/typeorm/entities/Client';
 
 export default interface IClientsRepository {
@@ -7,5 +6,5 @@ export default interface IClientsRepository {
   findAll(): Promise<Client[] | undefined>;
   findById(client_id: string): Promise<Client | undefined>;
   findByName(client_name: string): Promise<Client | undefined>;
-  save(client: IUpdateClientDTO): Promise<Client>;
+  save(client: Client): Promise<Client>;
 }

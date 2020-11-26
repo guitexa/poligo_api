@@ -12,7 +12,7 @@ import {
 
 import Client from '@modules/clients/infra/typeorm/entities/Client';
 import User from '@modules/users/infra/typeorm/entities/User';
-import OrderProduct from './OrderProduct';
+import OrderProduct from '@modules/orders_products/infra/typeorm/entities/OrderProduct';
 
 @Entity('orders')
 export default class Order {
@@ -43,16 +43,16 @@ export default class Order {
   status_order: string;
 
   @Column('timestamp with time zone')
-  approved_at: Date;
+  approved_at: Date | null;
 
   @Column()
   delivery_conditions: string;
 
   @Column('timestamp with time zone')
-  requested_delivery_date: Date;
+  requested_delivery_date: Date | null;
 
   @Column('timestamp with time zone')
-  delivery_date: Date;
+  delivery_date: Date | null;
 
   @Column()
   status_delivery: string;
@@ -75,10 +75,13 @@ export default class Order {
   technical: User;
 
   @Column()
-  technical_id: string;
+  technical_id: string | null;
 
   @Column()
   total_value: string;
+
+  @Column()
+  products: string;
 
   // ONE order can have MANY orders_products
   @OneToMany(() => OrderProduct, orders_products => orders_products.order, {

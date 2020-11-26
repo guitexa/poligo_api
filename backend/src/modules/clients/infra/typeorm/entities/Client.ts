@@ -15,7 +15,7 @@ export default class Client {
   name: string;
 
   @Column()
-  cpf_cnpj: string;
+  cnpj_cpf: string;
 
   @Column()
   contact_name: string;

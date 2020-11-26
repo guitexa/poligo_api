@@ -17,7 +17,7 @@ clientsRouter.post(
   celebrate({
     [Segments.BODY]: {
       name: Joi.string().required(),
-      cpf_cnpj: Joi.string().required(),
+      cnpj_cpf: Joi.string().required(),
       contact_name: Joi.string().required(),
       email: Joi.string().email().required(),
       phone: Joi.string().allow(''),
@@ -48,7 +48,7 @@ clientsRouter.patch(
     [Segments.PARAMS]: {
       client_id: Joi.string().uuid().required(),
       name: Joi.string().allow(''),
-      cpf_cnpj: Joi.string().allow(''),
+      cnpj_cpf: Joi.string().allow(''),
       contact_name: Joi.string().allow(''),
       email: Joi.string().email().allow(''),
       phone: Joi.string().allow(''),

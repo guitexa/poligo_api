@@ -16,8 +16,8 @@ import IProductsRepository from '@modules/products/repositories/IProductsReposit
 import OrdersRepository from '@modules/orders/infra/typeorm/repositories/OrdersRepository';
 import IOrdersRepository from '@modules/orders/repositories/IOrdersRepository';
 
-import OrdersProductsRepository from '@modules/orders/infra/typeorm/repositories/OrdersProductsRepository';
-import IOrdersProductsRepository from '@modules/orders/repositories/IOrdersProductsRepository';
+import OrdersProductsRepository from '@modules/orders_products/infra/typeorm/repositories/OrdersProductsRepository';
+import IOrdersProductsRepository from '@modules/orders_products/repositories/IOrdersProductsRepository';
 
 container.registerSingleton<IUsersRepository>(
   'UsersRepository',

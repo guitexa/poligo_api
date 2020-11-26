@@ -3,7 +3,7 @@ import OrderProduct from '../infra/typeorm/entities/OrderProduct';
 
 export default interface IOrdersProductsRepository {
   create(order_product: ICreateOrderProductDTO): Promise<OrderProduct>;
-  findOrdersProductsByOrderId(
+  findAllOrdersProductsByOrderId(
     order_id: string,
   ): Promise<OrderProduct[] | undefined>;
   findOrderProductById(

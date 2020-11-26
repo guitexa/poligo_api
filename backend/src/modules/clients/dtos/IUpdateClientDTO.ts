@@ -3,7 +3,7 @@
 export default interface IUpdateClientDTO {
   id: string;
   name?: string;
-  cpf_cnpj?: string;
+  cnpj_cpf?: string;
   contact_name?: string;
   email?: string;
   phone?: string;

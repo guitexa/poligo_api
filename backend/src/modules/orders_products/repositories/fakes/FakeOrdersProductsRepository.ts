@@ -1,6 +1,6 @@
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
-import ICreateOrderProductDTO from '@modules/orders/dtos/ICreateOrderProductDTO';
+import ICreateOrderProductDTO from '../../dtos/ICreateOrderProductDTO';
 import OrderProduct from '../../infra/typeorm/entities/OrderProduct';
 import IOrdersProductsRepository from '../IOrdersProductsRepository';
 
@@ -13,14 +13,23 @@ export default class FakeOrdersProductsRepository
   ): Promise<OrderProduct> {
     const order = new OrderProduct();
 
-    Object.assign(order, { id: uuid() }, orderData);
+    Object.assign(
+      order,
+      {
+        id: v4(),
+        product: {
+          name: '', // Para resolver o problema da concatenação do nome do product no CreateOrderProductService
+        },
+      },
+      orderData,
+    );
 
     this.ordersProductsRepository.push(order);
 
     return order;
   }
 
-  public async findOrdersProductsByOrderId(
+  public async findAllOrdersProductsByOrderId(
     order_id: string,
   ): Promise<OrderProduct[] | undefined> {
     const order = this.ordersProductsRepository.filter(

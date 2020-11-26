@@ -15,10 +15,11 @@ searchOrdersRouter.get(
   celebrate({
     [Segments.QUERY]: {
       created_at: Joi.string().allow(''),
+      delivery_date: Joi.string().allow(''),
+      technical: Joi.string().allow(''),
       client_name: Joi.string().allow(''),
       seller: Joi.string().allow(''),
-      technical: Joi.string().allow(''),
-      product: Joi.string().allow(''),
+      products: Joi.string().allow(''),
       total_value: Joi.string().allow(''),
       status_order: Joi.string().allow(''),
       status_delivery: Joi.string().allow(''),

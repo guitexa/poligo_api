@@ -1,4 +1,4 @@
-import { uuid } from 'uuidv4';
+import { v4 } from 'uuid';
 
 import IProductsRepository from '@modules/products/repositories/IProductsRepository';
 import ICreateProductDTO from '@modules/products/dtos/ICreateProductDTO';
@@ -10,7 +10,7 @@ export default class FakeProductsRepository implements IProductsRepository {
   public async create(productData: ICreateProductDTO): Promise<Product> {
     const product = new Product();
 
-    Object.assign(product, { id: uuid() }, productData);
+    Object.assign(product, { id: v4() }, productData);
 
     this.productRepository.push(product);
 

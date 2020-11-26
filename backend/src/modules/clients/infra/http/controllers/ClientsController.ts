@@ -7,7 +7,7 @@ import ListClientsService from '@modules/clients/services/ListClientsService';
 export default class ClientsController {
   // Função para criar um novo cliente
   public async create(req: Request, res: Response): Promise<Response> {
-    const { name, cpf_cnpj, contact_name, email, phone, mobile } = req.body;
+    const { name, cnpj_cpf, contact_name, email, phone, mobile } = req.body;
 
     // Realiza injeção de dependência para utilizar o service
     const createClient = container.resolve(CreateClientService);
@@ -15,7 +15,7 @@ export default class ClientsController {
     // Executa o service enviando os valores recebidos no body
     const client = await createClient.execute({
       name,
-      cpf_cnpj,
+      cnpj_cpf,
       contact_name,
       email,
       phone,
