@@ -1,13 +1,25 @@
-import React, { InputHTMLAttributes, useRef, useEffect } from 'react';
+import React, {
+  InputHTMLAttributes,
+  useRef,
+  useEffect,
+  CSSProperties,
+} from 'react';
 import { useField } from '@unform/core';
 
 import { Container } from './styles';
 
 interface InputAsTextProps extends InputHTMLAttributes<HTMLInputElement> {
+  // Recebe o name do component para ser registrado no useField
   name: string;
+  // Recebe opcionalmente um estilo para ser aplicado no component
+  styled?: CSSProperties;
 }
 
-const InputAsText: React.FC<InputAsTextProps> = ({ name, ...rest }) => {
+const InputAsText: React.FC<InputAsTextProps> = ({
+  name,
+  styled = {},
+  ...rest
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { error, fieldName, registerField } = useField(name);
@@ -21,7 +33,7 @@ const InputAsText: React.FC<InputAsTextProps> = ({ name, ...rest }) => {
   }, [fieldName, registerField]);
 
   return (
-    <Container isErrored={!!error}>
+    <Container isErrored={!!error} style={styled}>
       <input ref={inputRef} {...rest} />
     </Container>
   );

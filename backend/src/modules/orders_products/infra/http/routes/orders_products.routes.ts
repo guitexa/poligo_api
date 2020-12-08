@@ -44,7 +44,7 @@ ordersProductsRouter.patch(
       order_product_id: Joi.string().uuid().required(),
     },
     [Segments.BODY]: {
-      product_id: Joi.string(),
+      product_id: Joi.string().uuid(),
       product_description: Joi.string().allow(''),
       product_value: Joi.number(),
     },

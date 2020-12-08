@@ -18,7 +18,21 @@ export default class OrdersProductsRepository
   ): Promise<OrderProduct> {
     const newOrderProduct = this.ormRepository.create(order_product);
 
-    return this.ormRepository.save(newOrderProduct);
+    const order_product_created = await this.ormRepository.save(
+      newOrderProduct,
+    );
+
+    const findOrderProduct = await this.ormRepository.findOne({
+      where: {
+        id: order_product_created.id,
+      },
+      relations: ['product'],
+    });
+
+    if (findOrderProduct) {
+      return findOrderProduct;
+    }
+    return order_product_created;
   }
 
   // Função para procurar todos os orders_products de um order específico
@@ -28,6 +42,10 @@ export default class OrdersProductsRepository
     return this.ormRepository.find({
       where: {
         order_id,
+      },
+      relations: ['product'],
+      order: {
+        created_at: 'DESC',
       },
     });
   }
@@ -40,12 +58,13 @@ export default class OrdersProductsRepository
       where: {
         id: order_product_id,
       },
+      relations: ['product'],
     });
   }
 
   // Função para atualizar um order_product específico
   public async save(order_product: OrderProduct): Promise<OrderProduct> {
-    await this.ormRepository.save(order_product);
+    const order_product_updated = await this.ormRepository.save(order_product);
 
     const findOrderProduct = await this.ormRepository.findOne({
       where: {
@@ -57,7 +76,7 @@ export default class OrdersProductsRepository
     if (findOrderProduct) {
       return findOrderProduct;
     }
-    return this.ormRepository.save(order_product);
+    return order_product_updated;
   }
 
   // Função para deletar um order_product específico

@@ -30,7 +30,7 @@ const Loading: React.FC = () => {
   return (
     <Container>
       <img src={Logotipo} alt="" />
-      <p>Carregando...</p>
+      <div id="shadow" />
     </Container>
   );
 };

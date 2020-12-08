@@ -11,5 +11,4 @@ export default interface ICreateOrderDTO {
   payment_way: '';
   due_date: '';
   total_value: '';
-  products: '';
 }

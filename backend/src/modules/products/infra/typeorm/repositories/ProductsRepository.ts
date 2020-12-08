@@ -22,7 +22,11 @@ export default class ProductsRepository implements IProductsRepository {
 
   // Função para mostrar todos os products cadastrados
   public async findAll(): Promise<Product[] | undefined> {
-    return this.ormRepository.find();
+    return this.ormRepository.find({
+      order: {
+        name: 'ASC',
+      },
+    });
   }
 
   // Função para procurar um product específico pelo ID

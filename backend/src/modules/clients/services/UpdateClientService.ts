@@ -31,7 +31,7 @@ export default class UpdateClientService {
     // Verifica se há um nome e se é diferente do atual
     if ((name && name !== client.name) || name === '') {
       // Verifica se o usuário não está tentando limpar o campo
-      if (name === '') {
+      if (!name) {
         throw new AppError('A name must be provided', 401);
       }
       const checkIfClientNameExists = await this.clientsRepository.findByName(

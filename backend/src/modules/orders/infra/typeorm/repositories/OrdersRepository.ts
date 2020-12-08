@@ -1,9 +1,10 @@
-import { Repository, getRepository, Between } from 'typeorm';
+import { Repository, getRepository, Not, IsNull, Brackets } from 'typeorm';
 
 import IOrdersRepository from '@modules/orders/repositories/IOrdersRepository';
 import ICreateOrderDTO from '@modules/orders/dtos/ICreateOrderDTO';
 import ISearchOrderDTO from '@modules/orders/dtos/ISearchOrderDTO';
 import { endOfDay, isValid, startOfDay } from 'date-fns';
+import IFindAllOrderDTO from '@modules/orders/dtos/IFindAllOrderDTO';
 import Order from '../entities/Order';
 
 export default class OrdersRepository implements IOrdersRepository {
@@ -23,9 +24,39 @@ export default class OrdersRepository implements IOrdersRepository {
   }
 
   // Função para procurar todas as orders cadastradas
-  public async findAll(): Promise<Order[] | undefined> {
+  public async findAll({
+    take,
+    from,
+  }: IFindAllOrderDTO): Promise<Order[] | undefined> {
+    if (from === 'TechnicalArea') {
+      return this.ormRepository.find({
+        where: [{ approved_at: Not(IsNull()) }, { status_delivery: Not('') }],
+        relations: ['client', 'seller', 'technical', 'orders_products'],
+        order: {
+          approved_at: 'DESC',
+        },
+        take,
+        skip: 0,
+      });
+    }
+    if (from === 'Billing') {
+      return this.ormRepository.find({
+        where: [{ status_order: 'Aprovado' }, { status_billing: Not('') }],
+        relations: ['client', 'seller', 'technical', 'orders_products'],
+        order: {
+          approved_at: 'DESC',
+        },
+        take,
+        skip: 0,
+      });
+    }
     return this.ormRepository.find({
       relations: ['client', 'seller', 'technical', 'orders_products'],
+      order: {
+        created_at: 'DESC',
+      },
+      take,
+      skip: 0,
     });
   }
 
@@ -56,7 +87,7 @@ export default class OrdersRepository implements IOrdersRepository {
 
   // Função para atualizar uma order específica
   public async save(order: Order): Promise<Order> {
-    await this.ormRepository.save(order);
+    const order_updated = await this.ormRepository.save(order);
 
     const findOrder = await this.ormRepository.findOne({
       where: {
@@ -68,376 +99,167 @@ export default class OrdersRepository implements IOrdersRepository {
     if (findOrder) {
       return findOrder;
     }
-    return this.ormRepository.save(order);
+    return order_updated;
   }
 
   // Função para procurar informações dentro das orders existentes
   public async search({
+    approved_at,
     created_at,
     delivery_date,
     technical,
     client_name,
-    products,
     seller,
-    total_value,
     status_order,
     status_delivery,
     status_billing,
+    total_value,
+    products,
+    take,
+    from,
   }: ISearchOrderDTO): Promise<Order[] | undefined> {
-    const start_created_at = startOfDay(created_at || 0);
-    const end_created_at = endOfDay(created_at || 0);
+    const query = this.ormRepository
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.client', 'client')
+      .leftJoinAndSelect('orders.seller', 'seller')
+      .leftJoinAndSelect('orders.technical', 'technical')
+      .leftJoinAndSelect('orders.orders_products', 'orders_products')
+      .leftJoinAndSelect('orders_products.product', 'product');
 
-    const start_delivery_date = startOfDay(delivery_date || 0);
-    const end_delivery_date = endOfDay(delivery_date || 0);
-
-    // Se houver technical, created_at e não houver delivery_date
-    if (technical && isValid(created_at) && !isValid(delivery_date)) {
-      return this.ormRepository.find({
-        join: {
-          alias: 'orders',
-          innerJoin: {
-            client: 'orders.client',
-            seller: 'orders.seller',
-            technical: 'orders.technical',
-          },
-        },
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        where: qb => {
-          qb.where({
-            created_at: Between(start_created_at, end_created_at),
-          });
-          qb.andWhere('technical.name ILIKE :technicalName', {
-            technicalName: `%${technical}%`,
-          });
-          qb.andWhere('client.name ILIKE :clientName', {
-            clientName: `%${client_name}%`,
-          });
-          qb.andWhere('seller.name ILIKE :sellerName', {
-            sellerName: `%${seller}%`,
-          });
-          qb.andWhere('orders.products ILIKE :orderProducts', {
-            orderProducts: `%${products}%`,
-          });
-          qb.andWhere('orders.total_value ILIKE :totalValue', {
-            totalValue: `%${total_value}%`,
-          });
-          qb.andWhere('orders.status_order ILIKE :statusOrder', {
-            statusOrder: `%${status_order}%`,
-          });
-          qb.andWhere('orders.status_delivery ILIKE :statusDelivery', {
-            statusDelivery: `%${status_delivery}%`,
-          });
-          qb.andWhere('orders.status_billing ILIKE :statusBilling', {
-            statusBilling: `%${status_billing}%`,
-          });
-        },
-        relations: ['client', 'seller', 'technical', 'orders_products'],
+    if (client_name) {
+      // Função para filtrar pelo nome da empresa cliente
+      query.where('client.name ILIKE :client_name', {
+        client_name: `%${client_name}%`,
       });
     }
 
-    // Se houver technical e não houver created_at e delivery_date
-    if (technical && !isValid(created_at) && !isValid(delivery_date)) {
-      return this.ormRepository.find({
-        join: {
-          alias: 'orders',
-          innerJoin: {
-            client: 'orders.client',
-            seller: 'orders.seller',
-            technical: 'orders.technical',
-          },
-        },
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        where: qb => {
-          qb.where('technical.name ILIKE :technicalName', {
-            technicalName: `%${technical}%`,
-          });
-          qb.andWhere('client.name ILIKE :clientName', {
-            clientName: `%${client_name}%`,
-          });
-          qb.andWhere('seller.name ILIKE :sellerName', {
-            sellerName: `%${seller}%`,
-          });
-          qb.andWhere('orders.products ILIKE :orderProducts', {
-            orderProducts: `%${products}%`,
-          });
-          qb.andWhere('orders.total_value ILIKE :totalValue', {
-            totalValue: `%${total_value}%`,
-          });
-          qb.andWhere('orders.status_order ILIKE :statusOrder', {
-            statusOrder: `%${status_order}%`,
-          });
-          qb.andWhere('orders.status_delivery ILIKE :statusDelivery', {
-            statusDelivery: `%${status_delivery}%`,
-          });
-          qb.andWhere('orders.status_billing ILIKE :statusBilling', {
-            statusBilling: `%${status_billing}%`,
-          });
-        },
-        relations: ['client', 'seller', 'technical', 'orders_products'],
+    if (status_order) {
+      // Função para filtrar pelo status do pedido
+      query.andWhere('orders.status_order ILIKE :status_order', {
+        status_order: `%${status_order}%`,
       });
     }
 
-    // Se houver technical, não houver created_at e houver delivery_date
-    if (technical && !isValid(created_at) && isValid(delivery_date)) {
-      return this.ormRepository.find({
-        join: {
-          alias: 'orders',
-          innerJoin: {
-            client: 'orders.client',
-            seller: 'orders.seller',
-            technical: 'orders.technical',
-          },
-        },
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        where: qb => {
-          qb.where({
-            delivery_date: Between(start_delivery_date, end_delivery_date),
-          });
-          qb.andWhere('technical.name ILIKE :technicalName', {
-            technicalName: `%${technical}%`,
-          });
-          qb.andWhere('client.name ILIKE :clientName', {
-            clientName: `%${client_name}%`,
-          });
-          qb.andWhere('seller.name ILIKE :sellerName', {
-            sellerName: `%${seller}%`,
-          });
-          qb.andWhere('orders.products ILIKE :orderProducts', {
-            orderProducts: `%${products}%`,
-          });
-          qb.andWhere('orders.total_value ILIKE :totalValue', {
-            totalValue: `%${total_value}%`,
-          });
-          qb.andWhere('orders.status_order ILIKE :statusOrder', {
-            statusOrder: `%${status_order}%`,
-          });
-          qb.andWhere('orders.status_delivery ILIKE :statusDelivery', {
-            statusDelivery: `%${status_delivery}%`,
-          });
-          qb.andWhere('orders.status_billing ILIKE :statusBilling', {
-            statusBilling: `%${status_billing}%`,
-          });
-        },
-        relations: ['client', 'seller', 'technical', 'orders_products'],
+    if (status_delivery) {
+      // Função para filtrar pelo status da entrega
+      query.andWhere('orders.status_delivery ILIKE :status_delivery', {
+        status_delivery: `%${status_delivery}%`,
       });
     }
 
-    // Se não houver technical, houver created_at e delivery_date
-    if (!technical && isValid(created_at) && isValid(delivery_date)) {
-      return this.ormRepository.find({
-        join: {
-          alias: 'orders',
-          innerJoin: {
-            client: 'orders.client',
-            seller: 'orders.seller',
-          },
-        },
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        where: qb => {
-          qb.where({
-            created_at: Between(start_created_at, end_created_at),
-          });
-          qb.andWhere({
-            delivery_date: Between(start_delivery_date, end_delivery_date),
-          });
-          qb.andWhere('client.name ILIKE :clientName', {
-            clientName: `%${client_name}%`,
-          });
-          qb.andWhere('seller.name ILIKE :sellerName', {
-            sellerName: `%${seller}%`,
-          });
-          qb.andWhere('orders.products ILIKE :orderProducts', {
-            orderProducts: `%${products}%`,
-          });
-          qb.andWhere('orders.total_value ILIKE :totalValue', {
-            totalValue: `%${total_value}%`,
-          });
-          qb.andWhere('orders.status_order ILIKE :statusOrder', {
-            statusOrder: `%${status_order}%`,
-          });
-          qb.andWhere('orders.status_delivery ILIKE :statusDelivery', {
-            statusDelivery: `%${status_delivery}%`,
-          });
-          qb.andWhere('orders.status_billing ILIKE :statusBilling', {
-            statusBilling: `%${status_billing}%`,
-          });
-        },
-        relations: ['client', 'seller', 'technical', 'orders_products'],
+    if (status_billing) {
+      // Função para filtrar pelo status do faturamento
+      query.andWhere('orders.status_billing ILIKE :status_billing', {
+        status_billing: `%${status_billing}%`,
       });
     }
 
-    // Se não houver technical, houver created_at e não houver delivery_date
-    if (!technical && isValid(created_at) && !isValid(delivery_date)) {
-      return this.ormRepository.find({
-        join: {
-          alias: 'orders',
-          innerJoin: {
-            client: 'orders.client',
-            seller: 'orders.seller',
-          },
-        },
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        where: qb => {
-          qb.where({
-            created_at: Between(start_created_at, end_created_at),
-          });
-          qb.andWhere('client.name ILIKE :clientName', {
-            clientName: `%${client_name}%`,
-          });
-          qb.andWhere('seller.name ILIKE :sellerName', {
-            sellerName: `%${seller}%`,
-          });
-          qb.andWhere('orders.products ILIKE :orderProducts', {
-            orderProducts: `%${products}%`,
-          });
-          qb.andWhere('orders.total_value ILIKE :totalValue', {
-            totalValue: `%${total_value}%`,
-          });
-          qb.andWhere('orders.status_order ILIKE :statusOrder', {
-            statusOrder: `%${status_order}%`,
-          });
-          qb.andWhere('orders.status_delivery ILIKE :statusDelivery', {
-            statusDelivery: `%${status_delivery}%`,
-          });
-          qb.andWhere('orders.status_billing ILIKE :statusBilling', {
-            statusBilling: `%${status_billing}%`,
-          });
-        },
-        relations: ['client', 'seller', 'technical', 'orders_products'],
+    if (seller) {
+      // Função para filtrar pelo nome do vendedor
+      query.andWhere('seller.name ILIKE :seller', {
+        seller: `%${seller}%`,
       });
     }
 
-    // Se houver technical, created_at e delivery_date
-    if (!technical && !isValid(created_at) && isValid(delivery_date)) {
-      return this.ormRepository.find({
-        join: {
-          alias: 'orders',
-          innerJoin: {
-            client: 'orders.client',
-            seller: 'orders.seller',
-          },
-        },
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        where: qb => {
-          qb.where({
-            delivery_date: Between(start_delivery_date, end_delivery_date),
-          });
-          qb.andWhere('client.name ILIKE :clientName', {
-            clientName: `%${client_name}%`,
-          });
-          qb.andWhere('seller.name ILIKE :sellerName', {
-            sellerName: `%${seller}%`,
-          });
-          qb.andWhere('orders.products ILIKE :orderProducts', {
-            orderProducts: `%${products}%`,
-          });
-          qb.andWhere('orders.total_value ILIKE :totalValue', {
-            totalValue: `%${total_value}%`,
-          });
-          qb.andWhere('orders.status_order ILIKE :statusOrder', {
-            statusOrder: `%${status_order}%`,
-          });
-          qb.andWhere('orders.status_delivery ILIKE :statusDelivery', {
-            statusDelivery: `%${status_delivery}%`,
-          });
-          qb.andWhere('orders.status_billing ILIKE :statusBilling', {
-            statusBilling: `%${status_billing}%`,
-          });
-        },
-        relations: ['client', 'seller', 'technical', 'orders_products'],
+    if (total_value) {
+      // Função para filtrar pelo valor total do pedido
+      query.andWhere('orders.total_value ILIKE :total_value', {
+        total_value: `%${total_value}%`,
       });
     }
 
-    // Se houver technical, created_at e delivery_date
-    if (!technical && isValid(created_at) && isValid(delivery_date)) {
-      return this.ormRepository.find({
-        join: {
-          alias: 'orders',
-          innerJoin: {
-            client: 'orders.client',
-            seller: 'orders.seller',
-            technical: 'orders.technical',
+    if (approved_at) {
+      if (isValid(new Date(approved_at))) {
+        // Função para filtrar pela data de aprovação do pedido
+        query.andWhere(
+          'orders.approved_at BETWEEN :start_approved_at AND :end_approved_at',
+          {
+            start_approved_at: startOfDay(new Date(approved_at)),
+            end_approved_at: endOfDay(new Date(approved_at)),
           },
-        },
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        where: qb => {
-          qb.where({
-            created_at: Between(start_created_at, end_created_at),
-          });
-          qb.andWhere({
-            delivery_date: Between(start_delivery_date, end_delivery_date),
-          });
-          qb.andWhere('technical.name ILIKE :technicalName', {
-            technicalName: `%${technical}%`,
-          });
-          qb.andWhere('client.name ILIKE :clientName', {
-            clientName: `%${client_name}%`,
-          });
-          qb.andWhere('seller.name ILIKE :sellerName', {
-            sellerName: `%${seller}%`,
-          });
-          qb.andWhere('orders.products ILIKE :orderProducts', {
-            orderProducts: `%${products}%`,
-          });
-          qb.andWhere('orders.total_value ILIKE :totalValue', {
-            totalValue: `%${total_value}%`,
-          });
-          qb.andWhere('orders.status_order ILIKE :statusOrder', {
-            statusOrder: `%${status_order}%`,
-          });
-          qb.andWhere('orders.status_delivery ILIKE :statusDelivery', {
-            statusDelivery: `%${status_delivery}%`,
-          });
-          qb.andWhere('orders.status_billing ILIKE :statusBilling', {
-            statusBilling: `%${status_billing}%`,
-          });
-        },
-        relations: ['client', 'seller', 'technical', 'orders_products'],
+        );
+      }
+    }
+
+    if (created_at) {
+      if (isValid(new Date(created_at))) {
+        // Função para filtrar pela data de criação do pedido
+        query.andWhere(
+          'orders.created_at BETWEEN :start_created_at AND :end_created_at',
+          {
+            start_created_at: startOfDay(new Date(created_at)),
+            end_created_at: endOfDay(new Date(created_at)),
+          },
+        );
+      }
+    }
+
+    if (delivery_date) {
+      if (isValid(new Date(delivery_date))) {
+        // Função para filtrar pela data de entrega do pedido
+        query.andWhere(
+          'orders.delivery_date BETWEEN :start_delivery_date AND :end_delivery_date',
+          {
+            start_delivery_date: startOfDay(new Date(delivery_date)),
+            end_delivery_date: endOfDay(new Date(delivery_date)),
+          },
+        );
+      }
+    }
+
+    if (technical) {
+      // Função para filtrar pelo nome dos técnicos
+      query.andWhere('technical.name ILIKE :technical', {
+        technical: `%${technical}%`,
       });
     }
 
-    // Se não houver technical, created_at e delivery_date
-    return this.ormRepository.find({
-      join: {
-        alias: 'orders',
-        innerJoin: {
-          client: 'orders.client',
-          seller: 'orders.seller',
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      where: qb => {
-        qb.where('client.name ILIKE :clientName', {
-          clientName: `%${client_name}%`,
-        });
-        qb.andWhere('seller.name ILIKE :sellerName', {
-          sellerName: `%${seller}%`,
-        });
-        qb.andWhere('orders.products ILIKE :orderProducts', {
-          orderProducts: `%${products}%`,
-        });
-        qb.andWhere('orders.total_value ILIKE :totalValue', {
-          totalValue: `%${total_value}%`,
-        });
-        qb.andWhere('orders.status_order ILIKE :statusOrder', {
-          statusOrder: `%${status_order}%`,
-        });
-        qb.andWhere('orders.status_delivery ILIKE :statusDelivery', {
-          statusDelivery: `%${status_delivery}%`,
-        });
-        qb.andWhere('orders.status_billing ILIKE :statusBilling', {
-          statusBilling: `%${status_billing}%`,
-        });
-      },
-      relations: ['client', 'seller', 'technical', 'orders_products'],
-    });
+    if (products) {
+      // Função para filtrar pelo nome dos produtos
+      query.andWhere('product.name ILIKE :products', {
+        products: `%${products}%`,
+      });
+    }
+
+    if (from === 'TechnicalArea') {
+      // Função para filtrar por pedidos aprovados e/ou que possuem status de entrega
+      query.andWhere(
+        new Brackets(qb => {
+          qb.where(
+            "orders.approved_at IS NOT NULL OR orders.status_delivery != ''",
+          );
+        }),
+      );
+    }
+
+    if (from === 'Billing') {
+      // Função para filtrar por pedidos aprovados e/ou que possuem status de faturamento
+      query.andWhere(
+        new Brackets(qb => {
+          qb.where(
+            "orders.approved_at IS NOT NULL OR orders.status_billing != ''",
+          );
+        }),
+      );
+    }
+
+    if (from === 'Comercial') {
+      // Função para ordenar os resultados
+      query.orderBy('orders.created_at', 'DESC');
+    }
+
+    if (from === 'TechnicalArea' || from === 'Billing') {
+      // Função para ordenar os resultados
+      query.orderBy('orders.approved_at', 'DESC');
+    }
+
+    return (
+      query
+        // Função para não pular nenhum resultado
+        .skip(0)
+        // Função para limitar a quantidade de resultados
+        .take(take)
+        .getMany()
+    );
   }
 }

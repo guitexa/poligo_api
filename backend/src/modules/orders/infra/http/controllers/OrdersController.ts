@@ -25,9 +25,11 @@ export default class OrdersController {
 
   // Função para mostrar os orders cadastrados
   public async show(req: Request, res: Response): Promise<Response> {
+    const data = req.query;
+
     const listOrders = container.resolve(ListOrdersService);
 
-    const orders = await listOrders.execute();
+    const orders = await listOrders.execute(data);
 
     return res.json(classToClass(orders));
   }

@@ -46,7 +46,6 @@ describe('ListOrder', () => {
       payment_way: '',
       due_date: '',
       total_value: '',
-      products: '',
     });
 
     const order = await listOrder.execute(newOrder.id);

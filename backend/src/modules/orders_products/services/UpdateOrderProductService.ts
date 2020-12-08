@@ -53,18 +53,20 @@ export default class UpdateOrderProductService {
       order_product.product_value = product_value;
     }
 
-    // Atualiza o order_product
-    await this.ordersProductsRepository.save(order_product);
+    // Atualiza o order_product e envia o retorno atualizado pro response
+    const order_product_updated = await this.ordersProductsRepository.save(
+      order_product,
+    );
 
     // Procura a order relacionada com esse order_product
     const order = await this.ordersRepository.findByIdWithoutRelations(
-      order_product.order.id,
+      order_product.order_id,
     );
 
     if (order) {
       // Procura todos os orders_products relacionados com esta order
       const orders_products = await this.ordersProductsRepository.findAllOrdersProductsByOrderId(
-        order_product.order.id,
+        order_product.order_id,
       );
 
       // Faz a soma de todos os orders_products relacionados com esta order
@@ -77,15 +79,11 @@ export default class UpdateOrderProductService {
 
         order.total_value = String(totalValue).replace(/[/.]/gi, ',');
 
-        const products = orders_products.map(e => e.product.name);
-
-        order.products = String(products);
-
         // Atualiza o total_value da order com a soma de todos os orders_products
         await this.ordersRepository.save(order);
       }
     }
 
-    return order_product;
+    return order_product_updated;
   }
 }

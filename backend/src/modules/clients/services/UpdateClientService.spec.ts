@@ -119,6 +119,24 @@ describe('UpdateClient', () => {
     ).rejects.toBeInstanceOf(AppError);
   });
 
+  it('should NOT be able to update a client without a name', async () => {
+    const clientOne = await fakeClientsRepository.create({
+      name: 'New Company',
+      cnpj_cpf: '81023545000115',
+      contact_name: 'John Doe',
+      email: 'johndoe@mail.com',
+      phone: '3433885544',
+      mobile: '34988335566',
+    });
+
+    await expect(
+      updateClient.execute({
+        id: clientOne.id,
+        name: '',
+      }),
+    ).rejects.toBeInstanceOf(AppError);
+  });
+
   it('should NOT be able to update a client with an existent name', async () => {
     const clientOne = await fakeClientsRepository.create({
       name: 'New Company',

@@ -11,6 +11,10 @@ interface CoverProps {
   menuIsOpen: boolean;
 }
 
+interface MenuProps {
+  menuIsOpen: boolean;
+}
+
 export const Container = styled.div<ContainerProps>`
   width: 100%;
   height: 50px;
@@ -26,7 +30,7 @@ export const Container = styled.div<ContainerProps>`
   z-index: 10;
 `;
 
-export const Menu = styled.div`
+export const Menu = styled.div<MenuProps>`
   position: absolute;
   top: 0;
   left: 0;
@@ -37,13 +41,6 @@ export const Menu = styled.div`
   background-size: 40px 40px;
   cursor: pointer;
   z-index: 99999;
-
-  &:hover {
-    #sub-menu {
-      opacity: 1;
-      visibility: visible;
-    }
-  }
 
   #comercial {
     background: #004a82;
@@ -90,8 +87,8 @@ export const Menu = styled.div`
     position: absolute;
     top: 50px;
     left: 0;
-    opacity: 0;
-    visibility: hidden;
+    opacity: ${({ menuIsOpen }) => (menuIsOpen ? 1 : 0)};
+    visibility: ${({ menuIsOpen }) => (menuIsOpen ? 'visible' : 'hidden')};
     transition: 0.2s all;
     padding-top: 1px;
 
@@ -156,7 +153,7 @@ export const Title = styled.div`
   font-size: 20px;
 `;
 
-export const Cover = styled.div<CoverProps>`
+export const Cover = styled.button<CoverProps>`
   position: absolute;
   display: flex;
   top: 50px;
@@ -169,4 +166,6 @@ export const Cover = styled.div<CoverProps>`
   z-index: 9999;
   opacity: ${({ menuIsOpen }) => (menuIsOpen ? 0.7 : 0)};
   visibility: ${({ menuIsOpen }) => (menuIsOpen ? 'visible' : 'hidden')};
+  outline: none;
+  border: none;
 `;

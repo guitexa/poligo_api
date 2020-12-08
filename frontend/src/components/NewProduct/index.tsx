@@ -24,7 +24,7 @@ import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import { TextField } from 'unform-material-ui';
 
-import { OrderDataType, OrderProductData } from '../SearchResults';
+import { OrderProductData } from '../SearchResults';
 import Button from '../Button';
 import DisabledButton from '../DisabledButton';
 
@@ -42,42 +42,30 @@ import {
   Description,
   Value,
 } from './styles';
+import { useOverlap } from '../../hooks/overlap';
 
-interface NewProductProps {
-  color: string;
-  order_product_id?: string;
-  order_id?: string;
-  setNewProductOpen(e: boolean): void;
-  setOrderProductId(e: string): void;
-  updateOrderProduct(data: OrderProductData): void;
-  addNewOrderProduct(data: OrderProductData): void;
-}
-
+// Interface do product
 interface ProductData {
-  inputValue?: string;
+  inputValue?: string; // Para adicionar um novo produto
   id?: string;
   name: string;
+  description?: string;
+  value: string;
 }
 
-interface CreateProduct {
-  id: string;
-  name: string;
-}
-
+// Interface para referenciar os dados inseridos nos inputs
 interface InputData {
   descriptionData: string;
 }
 
-interface ValueState {
-  formattedValue: string;
-}
-
+// Interface da função de máscara do input Value
 interface NumberFormatCustomProps {
   inputRef: (instance: NumberFormat | null) => void;
   onChange: (event: { target: { name: string; value: string } }) => void;
   name: string;
 }
 
+// Função que cria uma máscara no input Value
 function NumberFormatCustom(props: NumberFormatCustomProps): JSX.Element {
   const { inputRef, onChange, ...other } = props;
 
@@ -103,38 +91,41 @@ function NumberFormatCustom(props: NumberFormatCustomProps): JSX.Element {
   );
 }
 
+interface NewProductProps {
+  // Recebe a cor do módulo a partir de qual módulo este component está sendo executado
+  color: string;
+  // Recebe opcionalmente o orderProduct, se receber indica atualização
+  orderProduct?: OrderProductData;
+  // Se receber o order_id para ser utilizado quando precisar criar uma nova order_product
+  order_id: string;
+  // Limpa o order_product após o fechamento deste component
+  setSelectedOrderProduct(e: string): void;
+  // Envia atualização para os components order e searchResults
+  updateOrderProduct(data: OrderProductData): void;
+  // Envia o order_product recém criado para os components order e searchResults
+  addNewOrderProduct(data: OrderProductData): void;
+}
+
 const NewProduct: React.FC<NewProductProps> = ({
   color,
-  order_product_id,
+  orderProduct,
   order_id,
-  setNewProductOpen,
-  setOrderProductId,
+  setSelectedOrderProduct,
   updateOrderProduct,
   addNewOrderProduct,
 }) => {
+  // Armazena os products cadastrados no banco de dados
   const [products, setProducts] = useState<ProductData[]>([]);
-  const [product, setProduct] = useState<OrderProductData>(
-    {} as OrderProductData
-  );
+  // Armazena o product selecionado pelo usuário
   const [selectedProduct, setSelectedProduct] = useState<ProductData>(
     {} as ProductData
   );
-  const [description, setDescription] = useState('');
-  const [value, setValue] = useState<ValueState>({
-    formattedValue: '',
-  });
-
-  const descriptionRef = useRef<FormHandles>(null);
 
   const { addToast } = useToast();
   const { checkToken } = useAuth();
+  const { overlapNewProductOpen } = useOverlap();
 
-  useEffect(() => {
-    checkToken();
-    api
-      .get<ProductData[]>('/products')
-      .then((response) => setProducts(response.data));
-  }, [checkToken]);
+  const descriptionRef = useRef<FormHandles>(null);
 
   const newProductMaterialTheme = createMuiTheme({
     palette: {
@@ -184,146 +175,253 @@ const NewProduct: React.FC<NewProductProps> = ({
     },
   });
 
+  // Realiza um filtro ao pesquisar pelo nome da empresa
   const filter = createFilterOptions<ProductData>();
 
-  const handleChangeValue = (event: ChangeEvent<HTMLInputElement>): void => {
-    setValue({
-      ...value,
-      [event.target.name]: event.target.value,
-    });
-  };
-
-  const handleCloseWindow = useCallback(() => {
-    setNewProductOpen(false);
-    setSelectedProduct({
-      name: '',
-    });
-    setDescription('');
-    setValue({
-      formattedValue: '',
-    });
-    setOrderProductId('');
-  }, [setNewProductOpen, setOrderProductId]);
-
+  // Busca na API os products cadastrados e armazena no estado products
   useEffect(() => {
-    if (order_product_id) {
+    try {
       checkToken();
-      api
-        .get<OrderProductData>(`/orders-products/${order_product_id}`)
-        .then((response) => {
-          setProduct(response.data);
-
-          setSelectedProduct({
-            name: response.data.product.name,
-          });
-          setDescription(response.data.product_description);
-          setValue({
-            formattedValue: response.data.product_value,
-          });
-        });
+      api.get<ProductData[]>('/products').then((response) => {
+        setProducts(response.data);
+      });
+    } catch (err) {
+      addToast({
+        type: 'error',
+        description: 'Ocorreu um erro na comunicação com o servidor',
+      });
     }
-  }, [checkToken, order_product_id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Se houver orderProduct indica atualização
+  useEffect(() => {
+    if (orderProduct?.product) {
+      setSelectedProduct({
+        id: orderProduct.product.id,
+        name: orderProduct.product.name,
+        description: orderProduct.product_description,
+        value: orderProduct.product_value,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderProduct]);
+
+  // Função para adicionar um novo produto
+  const handleAddNewProduct = useCallback(
+    (name: string) => {
+      // Verifica se esse produto já existe
+      const findProduct = products.find(
+        (product) => product.name.toLowerCase() === name.toLowerCase()
+      );
+
+      if (findProduct) {
+        // Se um produto foi encontrado então utiliza esse ao invés de adicionar um novo
+        setSelectedProduct({
+          ...selectedProduct,
+          id: findProduct.id,
+          name,
+        });
+      }
+      // Se não encontrou um produto vai adicionar um novo mesmo
+      else {
+        setSelectedProduct({
+          ...selectedProduct,
+          id: '', // Se um novo produto será criado limpa o existente
+          name,
+        });
+      }
+    },
+    [products, selectedProduct]
+  );
+
+  // Função para lidar com o fechamento deste component
+  const handleCloseWindow = useCallback(() => {
+    overlapNewProductOpen(false); // Fecha este component
+    setSelectedProduct({} as ProductData); // Limpa o estado
+    setSelectedOrderProduct(''); // Limpa o estado
+  }, [overlapNewProductOpen, setSelectedOrderProduct]);
+
+  // Função que cria um novo order_product ou atualiza um existente e/ou cria um novo product
   const handleSubmit = useCallback(
-    ({ descriptionData }: InputData) => {
-      if (product && order_product_id) {
-        if (selectedProduct && description && value) {
+    async ({ descriptionData }: InputData) => {
+      // Verifica se existe orderProduct para atualizar
+      if (orderProduct?.product) {
+        // Verifica se existe ID de produto selecionado ou se precisa criar um novo
+        if (selectedProduct.id) {
+          try {
+            checkToken();
+            // Faz a atualização do order_product existente utilizando um product existente
+            await api
+              .patch<OrderProductData>(`/orders-products/${orderProduct.id}`, {
+                product_id: selectedProduct.id,
+                product_description: descriptionData,
+                product_value: selectedProduct.value,
+              })
+              .then((orderProductResponse) => {
+                // Envia o response para atualizar os components order e searchResults
+                updateOrderProduct(orderProductResponse.data);
+
+                handleCloseWindow(); // Fecha este component
+
+                addToast({
+                  type: 'success',
+                  description: 'Serviço alterado com sucesso!',
+                });
+              });
+          } catch (err) {
+            addToast({
+              type: 'error',
+              description: 'Ocorreu um erro na comunicação com o servidor',
+            });
+          }
+        }
+        // Se não existe ID de product indica que é para criar um novo
+        else {
+          try {
+            checkToken();
+            // Cria um novo product
+            await api
+              .post<ProductData>('/products', {
+                name: selectedProduct.name,
+              })
+              .then((productResponse) => {
+                // Inclui no array de products o novo product adicionado
+                setProducts([
+                  ...products,
+                  {
+                    id: productResponse.data.id, // Utiliza o ID do product recém criado
+                    name: selectedProduct.name,
+                    value: selectedProduct.value || '',
+                  },
+                ]);
+
+                // Faz a atualização do order_product
+                api
+                  .patch<OrderProductData>(
+                    `/orders-products/${orderProduct.id}`,
+                    {
+                      product_id: productResponse.data.id, // Utiliza o ID do product recém criado
+                      product_description: descriptionData,
+                      product_value: selectedProduct.value,
+                    }
+                  )
+                  .then((orderProductResponse) => {
+                    // Envia o response para atualizar os components order e searchResults
+                    updateOrderProduct(orderProductResponse.data);
+
+                    handleCloseWindow(); // Fecha este component
+
+                    addToast({
+                      type: 'success',
+                      description: 'Serviço alterado com sucesso!',
+                    });
+                  });
+              });
+          } catch (err) {
+            addToast({
+              type: 'error',
+              description: 'Ocorreu um erro na comunicação com o servidor',
+            });
+          }
+        }
+      }
+      // Se não houver orderProduct indica que é para criar um novo order_product
+      // Verifica se existe ID de produto selecionado ou se precisa criar um novo
+      else if (selectedProduct.id) {
+        try {
           checkToken();
-          api
-            .patch<OrderProductData>(`/orders-products/${order_product_id}`, {
+          // Cria um novo order_product utilizando um product existente
+          await api
+            .post<OrderProductData>(`/orders-products/${order_id}`, {
               product_id: selectedProduct.id,
               product_description: descriptionData,
-              product_value: value.formattedValue,
+              product_value: selectedProduct.value,
             })
-            .then((response) => {
-              updateOrderProduct(response.data);
+            .then((orderProductResponse) => {
+              // Envia o order_product criado para atualizar a order e o searchResults
+              addNewOrderProduct(orderProductResponse.data);
             });
-        }
 
-        handleCloseWindow();
+          handleCloseWindow(); // Fecha este component
 
-        addToast({
-          type: 'success',
-          description: 'Serviço alterado com sucesso!',
-        });
-      } else {
-        checkToken();
-        api
-          .patch<OrderDataType>(`/orders/${order_id}`, {
-            product_id: selectedProduct.id,
-            product_description: descriptionData,
-            product_value: value.formattedValue,
-          })
-          .then((response) => {
-            if (response.data.orders_products) {
-              const createdOrder = response.data.orders_products.sort(
-                (a, b) => {
-                  if (a.created_at < b.created_at) return 1;
-                  if (a.created_at > b.created_at) return -1;
-                  return 0;
-                }
-              );
-
-              addNewOrderProduct(createdOrder[0]);
-            }
+          addToast({
+            type: 'success',
+            description: 'Serviço criado com sucesso!',
           });
+        } catch (err) {
+          addToast({
+            type: 'error',
+            description: 'Ocorreu um erro na comunicação com o servidor',
+          });
+        }
+      }
+      // Se não existe ID de product indica que é para criar um novo
+      else {
+        try {
+          checkToken();
+          // Cria um novo product
+          await api
+            .post<ProductData>('/products', {
+              name: selectedProduct.name,
+            })
+            .then((productResponse) => {
+              // Inclui no array de products o novo product adicionado
+              setProducts([
+                ...products,
+                {
+                  id: productResponse.data.id, // Utiliza o ID do product recém criado
+                  name: selectedProduct.name,
+                  value: selectedProduct.value || '',
+                },
+              ]);
 
-        handleCloseWindow();
+              // Cria um novo order_product
+              api
+                .post<OrderProductData>(`/orders-products/${order_id}`, {
+                  product_id: productResponse.data.id, // Utiliza o ID do product recém criado
+                  product_description: descriptionData,
+                  product_value: selectedProduct.value,
+                })
+                .then((orderProductResponse) => {
+                  // Envia o order_product criado para atualizar a order e o searchResults
+                  addNewOrderProduct(orderProductResponse.data);
+                });
 
-        addToast({
-          type: 'success',
-          description: 'Serviço criado com sucesso!',
-        });
+              handleCloseWindow(); // Fecha este component
+
+              addToast({
+                type: 'success',
+                description: 'Serviço criado com sucesso!',
+              });
+            });
+        } catch (err) {
+          addToast({
+            type: 'error',
+            description: 'Ocorreu um erro na comunicação com o servidor',
+          });
+        }
       }
     },
     [
       addNewOrderProduct,
       addToast,
       checkToken,
-      description,
       handleCloseWindow,
+      orderProduct,
       order_id,
-      order_product_id,
-      product,
-      selectedProduct,
+      products,
+      selectedProduct.id,
+      selectedProduct.name,
+      selectedProduct.value,
       updateOrderProduct,
-      value,
     ]
-  );
-
-  const handleAddNewProduct = useCallback(
-    (newProductToAdd: string) => {
-      checkToken();
-      api
-        .post<CreateProduct>('/products', {
-          name: newProductToAdd,
-        })
-        .then((response) => {
-          setSelectedProduct({
-            id: response.data.id,
-            name: newProductToAdd,
-          });
-
-          setProducts([
-            ...products,
-            {
-              name: response.data.name,
-              id: response.data.id,
-            },
-          ]);
-        });
-
-      addToast({
-        type: 'success',
-        description: 'Novo serviço adicionado na lista!',
-      });
-    },
-    [addToast, checkToken, products]
   );
 
   return (
     <>
-      {order_product_id && selectedProduct && value.formattedValue && (
+      {/* Verifica se existe orderProduct para carregar os dados */}
+      {orderProduct?.product && (
         <ThemeProvider theme={newProductMaterialTheme}>
           <ModalContainer>
             <Header color={color}>
@@ -339,16 +437,28 @@ const NewProduct: React.FC<NewProductProps> = ({
                     openText=""
                     clearText=""
                     clearOnBlur={false}
+                    handleHomeEndKeys={false}
                     id="input-selectedProduct"
                     value={selectedProduct}
                     onChange={(event, newProduct) => {
-                      if (newProduct && newProduct.inputValue) {
+                      if (newProduct?.inputValue) {
+                        // Adiciona um novo produto
                         handleAddNewProduct(newProduct.inputValue);
                       } else if (newProduct) {
-                        setSelectedProduct(newProduct);
+                        // Seleciona um existente
+                        setSelectedProduct({
+                          ...selectedProduct,
+                          id: newProduct.id,
+                          name: newProduct.name,
+                        });
                       }
                       if (!newProduct) {
-                        setSelectedProduct({} as ProductData);
+                        // Remove o ID do input
+                        setSelectedProduct({
+                          ...selectedProduct,
+                          id: '',
+                          name: '',
+                        });
                       }
                     }}
                     filterOptions={(options, params) => {
@@ -358,6 +468,7 @@ const NewProduct: React.FC<NewProductProps> = ({
                         filtered.push({
                           inputValue: params.inputValue,
                           name: `Adicionar ${params.inputValue}`,
+                          value: '',
                         });
                       }
 
@@ -403,7 +514,7 @@ const NewProduct: React.FC<NewProductProps> = ({
                     name="descriptionData"
                     placeholder="Descrição do serviço"
                     multiline
-                    defaultValue={description}
+                    defaultValue={selectedProduct.description}
                     rowsMax={5}
                   />
                 </Description>
@@ -412,21 +523,25 @@ const NewProduct: React.FC<NewProductProps> = ({
                     <Grid item>
                       <OriginalTextField
                         label="Valor"
-                        value={value.formattedValue}
-                        onChange={handleChangeValue}
-                        name="formattedValue"
-                        id="formatted-formattedValue-input"
+                        value={selectedProduct.value}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setSelectedProduct({
+                            ...selectedProduct,
+                            value: e.target.value,
+                          });
+                        }}
                         InputProps={{
                           inputComponent: NumberFormatCustom as any,
                         }}
                       />
                     </Grid>
                     <Grid item>
-                      {value.formattedValue && (
+                      {selectedProduct.value && (
                         <IconButton
                           onClick={() => {
-                            setValue({
-                              formattedValue: '',
+                            setSelectedProduct({
+                              ...selectedProduct,
+                              value: '',
                             });
                           }}
                         >
@@ -436,13 +551,18 @@ const NewProduct: React.FC<NewProductProps> = ({
                     </Grid>
                   </Grid>
                 </Value>
-                <Button>Alterar</Button>
+                {selectedProduct.name?.length > 0 && selectedProduct.value ? (
+                  <Button>Alterar</Button>
+                ) : (
+                  <DisabledButton>Alterar</DisabledButton>
+                )}
               </Form>
             </Content>
           </ModalContainer>
         </ThemeProvider>
       )}
-      {order_id && !order_product_id && (
+      {/* Se não existe orderProduct os campos estarão em branco */}
+      {order_id && !orderProduct?.product && (
         <ThemeProvider theme={newProductMaterialTheme}>
           <ModalContainer>
             <Header color={color}>
@@ -458,15 +578,27 @@ const NewProduct: React.FC<NewProductProps> = ({
                     openText=""
                     clearText=""
                     clearOnBlur={false}
+                    handleHomeEndKeys={false}
                     value={selectedProduct}
                     onChange={(event, newProduct) => {
-                      if (newProduct && newProduct.inputValue) {
+                      if (newProduct?.inputValue) {
+                        // Adiciona um novo serviço
                         handleAddNewProduct(newProduct.inputValue);
                       } else if (newProduct) {
-                        setSelectedProduct(newProduct);
+                        // Seleciona um existente
+                        setSelectedProduct({
+                          ...selectedProduct,
+                          id: newProduct.id,
+                          name: newProduct.name,
+                        });
                       }
                       if (!newProduct) {
-                        setSelectedProduct({} as ProductData);
+                        // Limpou o input
+                        setSelectedProduct({
+                          ...selectedProduct,
+                          id: '',
+                          name: '',
+                        });
                       }
                     }}
                     filterOptions={(options, params) => {
@@ -476,6 +608,7 @@ const NewProduct: React.FC<NewProductProps> = ({
                         filtered.push({
                           inputValue: params.inputValue,
                           name: `Adicionar ${params.inputValue}`,
+                          value: '',
                         });
                       }
 
@@ -521,7 +654,7 @@ const NewProduct: React.FC<NewProductProps> = ({
                     name="descriptionData"
                     placeholder="Descrição do serviço"
                     multiline
-                    defaultValue={description}
+                    defaultValue={selectedProduct.description}
                     rowsMax={5}
                   />
                 </Description>
@@ -530,21 +663,25 @@ const NewProduct: React.FC<NewProductProps> = ({
                     <Grid item>
                       <OriginalTextField
                         label="Valor"
-                        value={value.formattedValue}
-                        onChange={handleChangeValue}
-                        name="formattedValue"
-                        id="formatted-formattedValue-input"
+                        value={selectedProduct.value}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setSelectedProduct({
+                            ...selectedProduct,
+                            value: e.target.value,
+                          });
+                        }}
                         InputProps={{
                           inputComponent: NumberFormatCustom as any,
                         }}
                       />
                     </Grid>
                     <Grid item>
-                      {value.formattedValue && (
+                      {selectedProduct.value && (
                         <IconButton
                           onClick={() => {
-                            setValue({
-                              formattedValue: '',
+                            setSelectedProduct({
+                              ...selectedProduct,
+                              value: '',
                             });
                           }}
                         >
@@ -554,7 +691,7 @@ const NewProduct: React.FC<NewProductProps> = ({
                     </Grid>
                   </Grid>
                 </Value>
-                {selectedProduct.name && value.formattedValue ? (
+                {selectedProduct.name?.length > 0 && selectedProduct.value ? (
                   <Button>Adicionar</Button>
                 ) : (
                   <DisabledButton>Adicionar</DisabledButton>

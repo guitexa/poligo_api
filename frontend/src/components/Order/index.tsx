@@ -31,13 +31,18 @@ import { IoMdThumbsDown } from 'react-icons/io';
 import { HiOutlineRefresh } from 'react-icons/hi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
-import { isValid, parseISO } from 'date-fns';
+import { formatISO, isValid, parseISO } from 'date-fns';
 import {
   formatToCNPJ,
   formatToCPF,
   formatToPhone,
   formatToDate,
+  isCNPJ,
+  isCPF,
+  isPhone,
+  formatToCapitalized,
 } from 'brazilian-values';
+import isEmail from 'validator/es/lib/isEmail';
 
 import formatValue from '../../utils/formatValue';
 import formatValueCurrency from '../../utils/formatValueCurrency';
@@ -46,6 +51,7 @@ import convertDate from '../../utils/convertDate';
 import { useToast } from '../../hooks/toast';
 import { useOverlap } from '../../hooks/overlap';
 import { useAuth } from '../../hooks/auth';
+import { useSearch } from '../../hooks/search';
 import api from '../../services/api';
 
 import MaterialTooltip from '../MaterialTooltip';
@@ -55,19 +61,15 @@ import InputAsText from '../InputAsText';
 import InputAsTextWithMask from '../InputAsTextWithMask';
 import HeaderButton from '../HeaderButton';
 
-import {
-  OrderDataType,
-  OrderProductData,
-  UpdateSearchResultsData,
-} from '../SearchResults';
+import { OrderData, OrderProductData, ClientData } from '../SearchResults';
 
 import {
   OrderOverlap,
   ModalOverlap,
   Container,
   PrimaryContent,
-  CompanyData,
-  OrderData,
+  ClientContainer,
+  OrdersProductsContainer,
   Status,
   SecondaryContent,
   AddProductButton,
@@ -92,332 +94,76 @@ interface InputData {
   deliveryDateData: string;
   paymentWayData: string;
   dueDateData: string;
+  clientNameData: string;
+  clientCnpjCpfData: string;
+  clientNameContactData: string;
+  clientEmailData: string;
+  clientPhoneData: string;
+  clientMobilePhoneData: string;
 }
 
 interface OrderProps {
+  // Recebe a cor do módulo a partir de qual módulo este component está sendo executado
   color: string;
+  // Recebe o order_id para buscar na API e exibir o pedido
   order_id: string;
+  // A partir de qual módulo este component está sendo executado
   from: string;
-  updateSearchResults(data: UpdateSearchResultsData): void;
 }
 
-const Order: React.FC<OrderProps> = ({
-  color,
-  order_id,
-  from,
-  updateSearchResults,
-}) => {
-  const [orderData, setOrderData] = useState<OrderDataType>(
-    {} as OrderDataType
-  );
+const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
+  // Armazena o pedido recebido ao fazer a busca na API
+  const [orderData, setOrderData] = useState<OrderData>({} as OrderData);
 
-  const [orderProductId, setOrderProductId] = useState('');
-  const [productToView, setProductToView] = useState<OrderProductData>(
-    {} as OrderProductData
-  );
+  // Armazena o order_product selecionado para ser alterado ou visualizado
+  const [selectedOrderProduct, setSelectedOrderProduct] = useState<
+    OrderProductData
+  >({} as OrderProductData);
 
+  // Armazena o order_product atualizado para atualizar o pedido e também o searchResults
   const [updateOrderProduct, setUpdateOrderProduct] = useState<
     OrderProductData
   >({} as OrderProductData);
 
+  // Armazena o order_product criado para atualizar o pedido e o searchResults
   const [addNewOrderProduct, setAddNewOrderProduct] = useState<
     OrderProductData
   >({} as OrderProductData);
+
+  // Armazena se houve alguma atualização no pedido
+  const [orderUpdated, setOrderUpdated] = useState(false);
+
+  // Armazena se houve alguma atualização no cliente
+  const [clientUpdated, setClientUpdated] = useState(false);
+
+  // Armazena se existe algum erro em algum campo
+  const [counterErrors, setCounterErrors] = useState<string[]>([]);
 
   const deliveryConditionsRef = useRef<FormHandles>(null);
   const requestedDeliveryDateRef = useRef<FormHandles>(null);
   const deliveryDateRef = useRef<FormHandles>(null);
   const paymentWayRef = useRef<FormHandles>(null);
   const dueDateRef = useRef<FormHandles>(null);
+  const clientNameRef = useRef<FormHandles>(null);
+  const clientCnpjCpfRef = useRef<FormHandles>(null);
+  const clientNameContactRef = useRef<FormHandles>(null);
+  const clientEmailRef = useRef<FormHandles>(null);
+  const clientPhoneRef = useRef<FormHandles>(null);
+  const clientMobilePhoneRef = useRef<FormHandles>(null);
 
   const {
     orderOpen,
     newProductOpen,
     productViewOpen,
+    newOrderOpen,
     overlapOrderOpen,
     overlapNewProductOpen,
     overlapProductViewOpen,
+    overlapNewOrderOpen,
   } = useOverlap();
   const { addToast } = useToast();
   const { user, checkToken } = useAuth();
-
-  // This hook must be executed only once
-  useEffect(() => {
-    checkToken();
-    api.get<OrderDataType>(`/orders/${order_id}`).then((response) => {
-      const {
-        client,
-        seller,
-        approved_at,
-        order_number,
-        status_order,
-        created_at,
-        requested_delivery_date,
-        delivery_date,
-        orders_products,
-        total_value,
-        ...rest
-      } = response.data;
-
-      if (client) {
-        const formattedOderData: OrderDataType = {
-          ...rest,
-          approved_at: approved_at ? formatToDate(parseISO(approved_at)) : '',
-          created_at: created_at ? formatToDate(parseISO(created_at)) : '',
-          delivery_date: delivery_date
-            ? formatToDate(parseISO(delivery_date))
-            : '',
-          order_number,
-          status_order,
-          requested_delivery_date: requested_delivery_date
-            ? formatToDate(parseISO(requested_delivery_date))
-            : '',
-          client: {
-            ...client,
-            cpf_cnpj:
-              client.cpf_cnpj.length > 11
-                ? formatToCNPJ(client.cpf_cnpj)
-                : formatToCPF(client.cpf_cnpj),
-            phone: formatToPhone(client.phone),
-            mobile: client.mobile ? formatToPhone(client.mobile) : '',
-          },
-          seller,
-          total_value: formatValueCurrency(Number(total_value)),
-          orders_products: orders_products?.sort((a, b) => {
-            if (a.created_at < b.created_at) return -1;
-            if (a.created_at > b.created_at) return 1;
-            return 0;
-          }),
-        };
-
-        setOrderData(formattedOderData);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order_id]);
-
-  if (updateOrderProduct.id && orderData.orders_products) {
-    const getOrderIndex = orderData.orders_products.findIndex(
-      (result) => result.id === updateOrderProduct.id
-    );
-
-    if (getOrderIndex >= 0 && orderData.orders_products[getOrderIndex]) {
-      orderData.orders_products[getOrderIndex] = updateOrderProduct;
-
-      updateSearchResults({
-        order_id,
-        product_id_update: updateOrderProduct,
-      });
-    }
-
-    setUpdateOrderProduct({} as OrderProductData);
-  }
-
-  if (addNewOrderProduct.id && orderData.orders_products) {
-    const getOrderIndex = orderData.orders_products.findIndex(
-      (result) => result.id === addNewOrderProduct.id
-    );
-
-    if (getOrderIndex < 0 && orderData.orders_products) {
-      orderData.orders_products = [
-        ...orderData.orders_products,
-        addNewOrderProduct,
-      ].sort((a, b) => {
-        if (a.created_at < b.created_at) return -1;
-        if (a.created_at > b.created_at) return 1;
-        return 0;
-      });
-
-      updateSearchResults({
-        order_id,
-        product_id_add: addNewOrderProduct,
-      });
-    }
-    setAddNewOrderProduct({} as OrderProductData);
-  }
-
-  const updateOrderStatus = useCallback(
-    (e: ChangeEvent<{ value: unknown }>) => {
-      if (e.target.value === 'Aprovado') {
-        orderData.approved_at = formatToDate(new Date(Date.now()));
-        checkToken();
-        api.patch(`/orders/${order_id}`, {
-          status_order: e.target.value,
-          approved_at: new Date(Date.now()),
-        });
-      } else {
-        checkToken();
-        api.patch(`/orders/${order_id}`, {
-          status_order: e.target.value,
-        });
-      }
-
-      orderData.status_order = e.target.value;
-
-      updateSearchResults({
-        order_id,
-        status_order: e.target.value,
-      });
-
-      addToast({
-        type: 'success',
-        description: 'Status atualizado com sucesso!',
-      });
-    },
-    [
-      addToast,
-      checkToken,
-      orderData.approved_at,
-      orderData.status_order,
-      order_id,
-      updateSearchResults,
-    ]
-  );
-
-  const updateDeliveryStatus = useCallback(
-    (e: ChangeEvent<{ value: unknown }>) => {
-      if (!orderData.technical) {
-        checkToken();
-        api.patch(`/orders/${order_id}`, {
-          status_delivery: e.target.value,
-          technical_id: user.id,
-        });
-
-        orderData.status_delivery = e.target.value;
-
-        updateSearchResults({
-          order_id,
-          status_delivery: e.target.value,
-          technical: user.name,
-        });
-      } else if (e.target.value === '') {
-        checkToken();
-        api.patch(`/orders/${order_id}`, {
-          status_delivery: e.target.value,
-          technical_id: null,
-        });
-
-        orderData.status_delivery = '';
-        orderData.technical = undefined;
-
-        updateSearchResults({
-          order_id,
-          status_delivery: '',
-          technical: '',
-        });
-      } else {
-        checkToken();
-        api.patch(`/orders/${order_id}`, {
-          status_delivery: e.target.value,
-        });
-
-        orderData.status_delivery = e.target.value;
-
-        updateSearchResults({
-          order_id,
-          status_delivery: e.target.value,
-        });
-      }
-      addToast({
-        type: 'success',
-        description: 'Status atualizado com sucesso!',
-      });
-    },
-    [
-      addToast,
-      checkToken,
-      orderData.status_delivery,
-      orderData.technical,
-      order_id,
-      updateSearchResults,
-      user.id,
-      user.name,
-    ]
-  );
-
-  const updateBillingStatus = useCallback(
-    (e: ChangeEvent<{ value: unknown }>) => {
-      orderData.status_billing = e.target.value;
-
-      updateSearchResults({
-        order_id,
-        status_billing: e.target.value,
-      });
-
-      checkToken();
-      api.patch(`/orders/${order_id}`, {
-        status_billing: e.target.value,
-      });
-
-      addToast({
-        type: 'success',
-        description: 'Status atualizado com sucesso!',
-      });
-    },
-    [
-      addToast,
-      checkToken,
-      orderData.status_billing,
-      order_id,
-      updateSearchResults,
-    ]
-  );
-
-  const updatePaymentStatus = useCallback(
-    (e: ChangeEvent<{ value: unknown }>) => {
-      orderData.status_payment = e.target.value;
-
-      updateSearchResults({
-        order_id,
-        status_payment: e.target.value,
-      });
-
-      checkToken();
-      api.patch(`/orders/${order_id}`, {
-        status_payment: e.target.value,
-      });
-
-      addToast({
-        type: 'success',
-        description: 'Status atualizado com sucesso!',
-      });
-    },
-    [
-      addToast,
-      checkToken,
-      orderData.status_payment,
-      order_id,
-      updateSearchResults,
-    ]
-  );
-
-  const handleDeleteProductItem = useCallback(
-    (order_product_id: string) => {
-      checkToken();
-      api.delete(`/orders-products/${order_product_id}`);
-
-      orderData.orders_products = orderData.orders_products?.filter(
-        (orders_product) => orders_product.id !== order_product_id
-      );
-
-      updateSearchResults({
-        order_id,
-        order_product_id_delete: order_product_id,
-      });
-
-      addToast({
-        type: 'success',
-        description: 'Serviço excluído com sucesso!',
-      });
-    },
-    [
-      addToast,
-      checkToken,
-      orderData.orders_products,
-      order_id,
-      updateSearchResults,
-    ]
-  );
+  const { toUpdateSearchResults } = useSearch();
 
   const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -573,222 +319,1019 @@ const Order: React.FC<OrderProps> = ({
     },
   });
 
-  const submitDeliveryConditions = useCallback(
-    ({ deliveryConditionsData }: InputData) => {
-      if (orderData.delivery_conditions !== deliveryConditionsData) {
-        orderData.delivery_conditions = deliveryConditionsData;
+  // Função que busca os dados do pedido na API
+  useEffect(() => {
+    try {
+      checkToken();
+      api.get<OrderData>(`/orders/${order_id}`).then((response) => {
+        const {
+          client,
+          seller,
+          approved_at,
+          order_number,
+          status_order,
+          created_at,
+          requested_delivery_date,
+          delivery_date,
+          orders_products,
+          total_value,
+          ...rest
+        } = response.data;
 
-        checkToken();
-        api.patch(`/orders/${order_id}`, {
-          delivery_conditions: deliveryConditionsData,
-        });
+        // Verifica se existe um cliente
+        if (client) {
+          // Armazena no estado o pedido recebido e formatado
+          setOrderData({
+            ...rest,
+            approved_at,
+            formatted_approved_at: approved_at
+              ? formatToDate(parseISO(approved_at))
+              : '',
+            created_at: created_at ? formatToDate(parseISO(created_at)) : '',
+            order_number,
+            status_order,
+            requested_delivery_date,
+            formatted_requested_delivery_date: requested_delivery_date
+              ? formatToDate(parseISO(requested_delivery_date))
+              : '',
+            delivery_date,
+            formatted_delivery_date: delivery_date
+              ? formatToDate(parseISO(delivery_date))
+              : '',
+            client: {
+              ...client,
+              formatted_cnpj_cpf:
+                client.cnpj_cpf.length > 11
+                  ? formatToCNPJ(client.cnpj_cpf)
+                  : formatToCPF(client.cnpj_cpf),
+              formatted_phone: formatToPhone(client.phone),
+              formatted_mobile: client.mobile
+                ? formatToPhone(client.mobile)
+                : '',
+            },
+            seller,
+            total_value: formatValueCurrency(Number(total_value)),
+            orders_products: orders_products?.sort((a, b) => {
+              if (a.created_at < b.created_at) return -1;
+              if (a.created_at > b.created_at) return 1;
+              return 0;
+            }),
+          });
+        }
+      });
+    } catch (err) {
+      addToast({
+        type: 'error',
+        description: 'Ocorreu um erro na comunicação com o servidor',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [order_id]);
 
-        addToast({
-          type: 'success',
-          description: 'Pedido atualizado com sucesso!',
+  // Se houver updateOrderProduct significa que algum order_product foi atualizado
+  useEffect(() => {
+    if (updateOrderProduct.id && orderData.orders_products) {
+      // Localiza qual order_product foi atualizado
+      const getOrderIndex = orderData.orders_products.findIndex(
+        (result) => result.id === updateOrderProduct.id
+      );
+
+      if (getOrderIndex >= 0 && orderData.orders_products[getOrderIndex]) {
+        // Armazena o valor recebido no estado
+        orderData.orders_products[getOrderIndex] = updateOrderProduct;
+
+        // Envia atualização para o component searchResults
+        toUpdateSearchResults({
+          order_id,
+          order_product_update: updateOrderProduct,
         });
       }
+
+      // Limpa o estado
+      setUpdateOrderProduct({} as OrderProductData); // Limpa o estado
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateOrderProduct.id]);
+
+  // Se houver addNewOrderProduct significa que foi criado um novo order_product
+  useEffect(() => {
+    if (addNewOrderProduct.id && orderData.orders_products) {
+      // Armazena o valor recebido no estado
+      orderData.orders_products = [
+        ...orderData.orders_products,
+        addNewOrderProduct,
+      ];
+
+      // Envia atualização para o component searchResults
+      toUpdateSearchResults({
+        order_id,
+        order_product_add: addNewOrderProduct,
+      });
+
+      // Limpa o estado
+      setAddNewOrderProduct({} as OrderProductData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addNewOrderProduct.id]);
+
+  // Função para atualizar o status do pedido e/ou a data de aprovação
+  const updateStatusOrder = useCallback(
+    (e: ChangeEvent<{ value: unknown }>) => {
+      if (e.target.value === 'Aprovado') {
+        // Se o valor recebido for 'Aprovado' atualiza também a data de aprovação
+
+        // Armazena o valor recebido no estado
+        orderData.status_order = e.target.value;
+        orderData.approved_at = String(new Date(Date.now()));
+        orderData.formatted_approved_at = formatToDate(new Date(Date.now()));
+
+        // Envia atualização para o component searchResults
+        toUpdateSearchResults({
+          order_id,
+          status_order: e.target.value,
+        });
+
+        // Define que o banco de dados deve ser atualizado
+        setOrderUpdated(true);
+      }
+      // Se o valor recebido for diferente de 'Aprovado' atualiza apenas o status
+      else {
+        // Armazena o valor recebido no estado
+        orderData.status_order = e.target.value;
+
+        // Envia atualização para o component searchResults
+        toUpdateSearchResults({
+          order_id,
+          status_order: e.target.value,
+        });
+
+        // Define que o banco de dados deve ser atualizado
+        setOrderUpdated(true);
+      }
     },
-    [addToast, checkToken, orderData.delivery_conditions, order_id]
+    [
+      orderData.approved_at,
+      orderData.formatted_approved_at,
+      orderData.status_order,
+      order_id,
+      toUpdateSearchResults,
+    ]
   );
 
+  // Função para atualizar o status da área técnica e/ou o técnico executante
+  const updateStatusDelivery = useCallback(
+    (e: ChangeEvent<{ value: unknown }>) => {
+      if (!orderData.technical) {
+        // Se não possui técnico executante, define o usuário como técnico executante
+
+        // Armazena o valor recebido no estado
+        orderData.status_delivery = e.target.value;
+        orderData.technical = user;
+
+        // Envia atualização para o component searchResults
+        toUpdateSearchResults({
+          order_id,
+          status_delivery: e.target.value,
+          technical: user.name,
+        });
+
+        // Define que o banco de dados deve ser atualizado
+        setOrderUpdated(true);
+      }
+      // Se possui técnico executante verifica se existe valor recebido
+      else if (!e.target.value) {
+        // Se não houver valor recebido limpa o status e remove técnico executante
+
+        // Armazena o valor recebido no estado
+        orderData.status_delivery = '';
+        orderData.technical.id = null;
+
+        // Envia atualização para o component searchResults
+        toUpdateSearchResults({
+          order_id,
+          status_delivery: '',
+          technical: '',
+        });
+
+        // Define que o banco de dados deve ser atualizado
+        setOrderUpdated(true);
+      }
+      // Se houver valor recebido, altera o status e mantem o técnico executante
+      else {
+        // Armazena o valor recebido no estado
+        orderData.status_delivery = e.target.value;
+
+        // Envia atualização para o component searchResults
+        toUpdateSearchResults({
+          order_id,
+          status_delivery: e.target.value,
+        });
+
+        // Define que o banco de dados deve ser atualizado
+        setOrderUpdated(true);
+      }
+    },
+    [
+      orderData.status_delivery,
+      orderData.technical,
+      order_id,
+      toUpdateSearchResults,
+      user,
+    ]
+  );
+
+  // Função para atualizar o status do faturamento
+  const updateStatusBilling = useCallback(
+    (e: ChangeEvent<{ value: unknown }>) => {
+      // Armazena o valor recebido no estado
+      orderData.status_billing = e.target.value;
+
+      // Envia atualização para o component searchResults
+      toUpdateSearchResults({
+        order_id,
+        status_billing: e.target.value,
+      });
+
+      // Define que o banco de dados deve ser atualizado
+      setOrderUpdated(true);
+    },
+    [orderData.status_billing, order_id, toUpdateSearchResults]
+  );
+
+  // Função para atualizar o status do financeiro
+  const updateStatusPayment = useCallback(
+    (e: ChangeEvent<{ value: unknown }>) => {
+      // Armazena o valor recebido no estado
+      orderData.status_payment = e.target.value;
+
+      // Envia atualização para o component searchResults
+      toUpdateSearchResults({
+        order_id,
+        status_payment: e.target.value,
+      });
+
+      // Define que o banco de dados deve ser atualizado
+      setOrderUpdated(true);
+    },
+    [orderData.status_payment, order_id, toUpdateSearchResults]
+  );
+
+  // Função para atualizar as condições de pagamento
+  const submitDeliveryConditions = useCallback(
+    ({ deliveryConditionsData }: InputData) => {
+      // Verifica se o valor recebido é diferente do existente
+      if (orderData.delivery_conditions !== deliveryConditionsData) {
+        // Armazena o valor recebido no estado
+        orderData.delivery_conditions = deliveryConditionsData;
+
+        // Define que o banco de dados deve ser atualizado
+        setOrderUpdated(true);
+      }
+    },
+    [orderData.delivery_conditions]
+  );
+
+  // Função para executar a função submitDeliveryConditions
   const onDeliveryConditionsSubmit = useCallback(() => {
     deliveryConditionsRef.current?.submitForm();
   }, []);
 
+  // Função para atualizar a data de entrega solicitada
   const submitRequestedDeliveryDate = useCallback(
     ({ requestedDeliveryDateData }: InputData) => {
-      const year = new Date(
-        convertDate(requestedDeliveryDateData)
-      ).getFullYear();
-      const month = new Date(convertDate(requestedDeliveryDateData)).getMonth();
-      const day =
-        new Date(convertDate(requestedDeliveryDateData)).getDate() + 1;
+      // Verifica se o valor recebido é diferente do existente
+      if (
+        orderData.formatted_requested_delivery_date !==
+        requestedDeliveryDateData
+      ) {
+        // Verifica se possui valor recebido
+        if (requestedDeliveryDateData) {
+          // Converte o valor recebido para formato americano
+          const convertedRequestedDeliveryDateData = convertDate(
+            requestedDeliveryDateData
+          );
 
-      if (orderData.requested_delivery_date !== requestedDeliveryDateData) {
-        if (isValid(new Date(year, month, day))) {
+          // Separa os valores de ano, mês e dia do valor convertido
+          const year = new Date(
+            convertedRequestedDeliveryDateData
+          ).getFullYear();
+          const month = new Date(convertedRequestedDeliveryDateData).getMonth();
+          const day =
+            new Date(convertedRequestedDeliveryDateData).getDate() + 1;
+
+          // Converte a data para o formato de data do Javascript
+          const newRequestedDeliveryDateData = new Date(year, month, day);
+
+          // Converte a data para o formato de data brasileiro
+          const formattedNewRequestedDeliveryDateData = formatToDate(
+            newRequestedDeliveryDateData
+          );
+
+          // Verifica se a data recebida é válida
+          if (isValid(newRequestedDeliveryDateData)) {
+            // Armazena o valor recebido no estado
+            orderData.requested_delivery_date = formatISO(
+              newRequestedDeliveryDateData
+            );
+            orderData.formatted_requested_delivery_date = formattedNewRequestedDeliveryDateData;
+
+            // Define que o banco de dados deve ser atualizado
+            setOrderUpdated(true);
+
+            // Limpa os erros
+            requestedDeliveryDateRef.current?.setErrors({});
+            setCounterErrors((state) =>
+              state.filter((e) => e !== 'requestedDeliveryDate')
+            );
+          } else {
+            // Se é uma data inválida define um erro
+            requestedDeliveryDateRef.current?.setErrors({
+              requestedDeliveryDateData: 'Data inválida',
+            });
+
+            addToast({
+              type: 'error',
+              description: 'Data inválida',
+            });
+
+            // Define que possui erros na edição do pedido
+            if (!counterErrors.find((e) => e === 'requestedDeliveryDate')) {
+              setCounterErrors((state) => [...state, 'requestedDeliveryDate']);
+            }
+          }
+        }
+        // Se não possui valor então remove a data
+        else {
+          // Limpa o estado
+          orderData.requested_delivery_date = null;
+          orderData.formatted_requested_delivery_date = '';
+
+          // Define que o banco de dados deve ser atualizado
+          setOrderUpdated(true);
+
+          // Limpa os erros
           requestedDeliveryDateRef.current?.setErrors({});
-          orderData.requested_delivery_date = requestedDeliveryDateData;
-
-          checkToken();
-          api.patch(`/orders/${order_id}`, {
-            requested_delivery_date: new Date(year, month, day),
-          });
-
-          addToast({
-            type: 'success',
-            description: 'Pedido atualizado com sucesso!',
-          });
-        } else if (requestedDeliveryDateData) {
-          requestedDeliveryDateRef.current?.setErrors({
-            requestedDeliveryDateData: 'Data inválida',
-          });
-        } else {
-          orderData.requested_delivery_date = '';
-          requestedDeliveryDateRef.current?.setErrors({});
-
-          checkToken();
-          api.patch(`/orders/${order_id}`, {
-            requested_delivery_date: null,
-          });
-
-          addToast({
-            type: 'success',
-            description: 'Pedido atualizado com sucesso!',
-          });
+          setCounterErrors((state) =>
+            state.filter((e) => e !== 'requestedDeliveryDate')
+          );
         }
       }
+      // Verifica se o valor recebido é igual ao cadastrado e limpa possíveis erros
+      else if (
+        orderData.formatted_requested_delivery_date ===
+        requestedDeliveryDateData
+      ) {
+        // Limpa os erros
+        requestedDeliveryDateRef.current?.setErrors({});
+        setCounterErrors((state) =>
+          state.filter((e) => e !== 'requestedDeliveryDate')
+        );
+      }
     },
-    [addToast, checkToken, orderData.requested_delivery_date, order_id]
+    [addToast, counterErrors, orderData]
   );
 
+  // Função para executar a função submitRequestedDeliveryDate
   const onRequestedDeliveryDateSubmit = useCallback(() => {
     requestedDeliveryDateRef.current?.submitForm();
   }, [requestedDeliveryDateRef]);
 
+  // Função para atualizar a data de entrega
   const submitDeliveryDate = useCallback(
     ({ deliveryDateData }: InputData) => {
-      if (orderData.delivery_date !== deliveryDateData) {
-        const year = new Date(convertDate(deliveryDateData)).getFullYear();
-        const month = new Date(convertDate(deliveryDateData)).getMonth();
-        const day = new Date(convertDate(deliveryDateData)).getDate() + 1;
+      // Verifica se o valor recebido é diferente do existente
+      if (orderData.formatted_delivery_date !== deliveryDateData) {
+        // Verifica se possui valor recebido
+        if (deliveryDateData) {
+          // Converte o valor recebido para formato americano
+          const convertedDeliveryDateData = convertDate(deliveryDateData);
 
-        if (isValid(new Date(year, month, day))) {
-          deliveryDateRef.current?.setErrors({});
-          orderData.delivery_date = deliveryDateData;
+          // Separa os valores de ano, mês e dia do valor convertido
+          const year = new Date(convertedDeliveryDateData).getFullYear();
+          const month = new Date(convertedDeliveryDateData).getMonth();
+          const day = new Date(convertedDeliveryDateData).getDate() + 1;
 
-          checkToken();
-          api.patch(`/orders/${order_id}`, {
-            delivery_date: new Date(year, month, day),
-          });
+          // Converte a data para o formato de data do Javascript
+          const newDeliveryDateData = new Date(year, month, day);
 
-          updateSearchResults({
-            order_id,
-            delivery_date: deliveryDateData,
-          });
+          // Converte a data para o formato de data brasileiro
+          const formattedNewDeliveryDateData = formatToDate(
+            newDeliveryDateData
+          );
 
-          addToast({
-            type: 'success',
-            description: 'Pedido atualizado com sucesso!',
-          });
-        } else if (deliveryDateData) {
-          deliveryDateRef.current?.setErrors({
-            deliveryDateData: 'Data inválida',
-          });
-        } else {
-          orderData.delivery_date = '';
-          deliveryDateRef.current?.setErrors({});
+          // Verifica se a data recebida é válida
+          if (isValid(newDeliveryDateData)) {
+            // Armazena o valor recebido no estado
+            orderData.delivery_date = formatISO(newDeliveryDateData);
+            orderData.formatted_delivery_date = formattedNewDeliveryDateData;
 
-          checkToken();
-          api.patch(`/orders/${order_id}`, {
-            delivery_date: null,
-          });
+            // Envia atualização para o component searchResults
+            toUpdateSearchResults({
+              order_id,
+              delivery_date: deliveryDateData,
+            });
 
-          updateSearchResults({
+            // Define que o banco de dados deve ser atualizado
+            setOrderUpdated(true);
+
+            // Limpa os erros
+            deliveryDateRef.current?.setErrors({});
+            setCounterErrors((state) =>
+              state.filter((e) => e !== 'deliveryDate')
+            );
+          } else {
+            // Se é uma data inválida define um erro
+            deliveryDateRef.current?.setErrors({
+              deliveryDateData: 'Data inválida',
+            });
+
+            addToast({
+              type: 'error',
+              description: 'Data inválida',
+            });
+
+            // Define que possui erros na edição do pedido
+
+            if (!counterErrors.find((e) => e === 'deliveryDate')) {
+              setCounterErrors((state) => [...state, 'deliveryDate']);
+            }
+          }
+        }
+        // Se não possui valor então remove a data
+        else {
+          // Limpa o estado
+          orderData.delivery_date = null;
+          orderData.formatted_delivery_date = '';
+
+          // Envia atualização para o component searchResults
+          toUpdateSearchResults({
             order_id,
             delivery_date: '',
           });
 
-          addToast({
-            type: 'success',
-            description: 'Pedido atualizado com sucesso!',
-          });
+          // Define que o banco de dados deve ser atualizado
+          setOrderUpdated(true);
+
+          // Limpa os erros
+          deliveryDateRef.current?.setErrors({});
+          setCounterErrors((state) =>
+            state.filter((e) => e !== 'deliveryDate')
+          );
         }
       }
-      if (
-        orderData &&
-        !orderData.delivery_date &&
-        !!orderData.status_delivery
-      ) {
+      // Verifica se o valor recebido é igual ao cadastrado e limpa possíveis erros
+      else if (orderData.formatted_delivery_date === deliveryDateData) {
+        // Limpa os erros
+        deliveryDateRef.current?.setErrors({});
+        setCounterErrors((state) => state.filter((e) => e !== 'deliveryDate'));
+      }
+
+      // Verifica se não possui data de entrega e possui status da área técnica
+      if (!orderData?.delivery_date && !!orderData?.status_delivery) {
+        // Define um erro
         deliveryDateRef.current?.setErrors({
           deliveryDateData: 'Digite uma data',
         });
+
+        // Define que possui erros na edição do pedido
+
+        if (!counterErrors.find((e) => e === 'deliveryDate')) {
+          setCounterErrors((state) => [...state, 'deliveryDate']);
+        }
       }
     },
-    [addToast, checkToken, orderData, order_id, updateSearchResults]
+    [addToast, counterErrors, orderData, order_id, toUpdateSearchResults]
   );
 
+  // Função para executar a função submitDeliveryDate
   const onDeliveryDateSubmit = useCallback(() => {
     deliveryDateRef.current?.submitForm();
   }, []);
 
+  // Função para atualizar a forma de pagamento
   const submitPaymentWay = useCallback(
     ({ paymentWayData }: InputData) => {
+      // Verifica se o valor recebido é diferente do existente
       if (orderData.payment_way !== paymentWayData) {
+        // Armazena o valor recebido no estado
         orderData.payment_way = paymentWayData;
 
-        checkToken();
-        api.patch(`/orders/${order_id}`, {
-          payment_way: paymentWayData,
-        });
-
-        addToast({
-          type: 'success',
-          description: 'Pedido atualizado com sucesso!',
-        });
+        // Define que o banco de dados deve ser atualizado
+        setOrderUpdated(true);
       }
     },
-    [addToast, checkToken, orderData.payment_way, order_id]
+    [orderData.payment_way]
   );
 
+  // Função para executar a função submitPaymentWay
   const onPaymentWaySubmit = useCallback(() => {
     paymentWayRef.current?.submitForm();
   }, []);
 
+  // Função para atualizar o vencimento
   const submitDueDate = useCallback(
     ({ dueDateData }: InputData) => {
+      // Verifica se o valor recebido é diferente do existente
       if (orderData.due_date !== dueDateData) {
+        // Armazena o valor recebido no estado
         orderData.due_date = dueDateData;
 
-        checkToken();
-        api.patch(`/orders/${order_id}`, {
-          due_date: dueDateData,
-        });
-
-        addToast({
-          type: 'success',
-          description: 'Pedido atualizado com sucesso!',
-        });
+        // Define que o banco de dados deve ser atualizado
+        setOrderUpdated(true);
       }
     },
-    [addToast, checkToken, orderData.due_date, order_id]
+    [orderData.due_date]
   );
 
+  // Função para executar a função submitDueDate
   const onDueDateSubmit = useCallback(() => {
     dueDateRef.current?.submitForm();
   }, []);
 
+  // Função para atualizar o nome da empresa
+  const submitClientName = useCallback(
+    ({ clientNameData }: InputData) => {
+      // Verifica se o valor recebido é diferente do existente
+      if (orderData?.client.name !== clientNameData) {
+        // Verifica se o valor recebido é um nome válido
+        if (!clientNameData) {
+          // Define um erro
+          clientNameRef.current?.setErrors({
+            clientNameData: 'Favor digitar um nome válido',
+          });
+
+          // Define que possui um erro na edição do cliente
+          if (!counterErrors.find((e) => e === 'clientName')) {
+            setCounterErrors((state) => [...state, 'clientName']);
+          }
+
+          addToast({
+            type: 'error',
+            description: 'Favor digitar um nome válido',
+          });
+        }
+        // Se houver nome de cliente válido o valor será atualizado
+        else {
+          // Armazena o valor recebido no estado
+          orderData.client.name = clientNameData;
+
+          // Envia atualização para o component searchResults
+          toUpdateSearchResults({
+            order_id,
+            client_name: clientNameData,
+            client_id: orderData.client.id,
+          });
+
+          // Define que o banco de dados deve ser atualizado
+          setClientUpdated(true);
+
+          // Limpa os erros
+          clientNameRef.current?.setErrors({});
+          setCounterErrors((state) => state.filter((e) => e !== 'clientName'));
+        }
+      }
+      // Verifica se o valor recebido é igual ao cadastrado e limpa possíveis erros
+      else if (orderData?.client.name === clientNameData) {
+        // Limpa os erros
+        clientNameRef.current?.setErrors({});
+        setCounterErrors((state) => state.filter((e) => e !== 'clientName'));
+      }
+    },
+    [addToast, counterErrors, orderData, order_id, toUpdateSearchResults]
+  );
+
+  // Função para executar a função submitClientName
+  const onClientNameSubmit = useCallback(() => {
+    clientNameRef.current?.submitForm();
+  }, []);
+
+  // Função para atualizar o CNPJ/CPF da empresa
+  const submitClientCnpjCpf = useCallback(
+    ({ clientCnpjCpfData }: InputData) => {
+      // Remove os caracteres especiais do valor recebido
+      const clearClientCnpjCpfData = clientCnpjCpfData.replace(/[^\w\s]/gi, '');
+
+      // Verifica se o valor recebido é diferente do existente
+      if (orderData?.client.cnpj_cpf !== clearClientCnpjCpfData) {
+        // Verifica se o valor recebido é um CNPJ ou CPF válido
+        if (
+          !clearClientCnpjCpfData ||
+          (!isCNPJ(clearClientCnpjCpfData) && !isCPF(clearClientCnpjCpfData))
+        ) {
+          // Define um erro
+          clientCnpjCpfRef.current?.setErrors({
+            clientCnpjCpfData: 'Favor digitar um CPF ou CNPJ válido',
+          });
+
+          // Define que possui um erro na edição do cliente
+          if (!counterErrors.find((e) => e === 'clientCnpjCpf')) {
+            setCounterErrors((state) => [...state, 'clientCnpjCpf']);
+          }
+
+          addToast({
+            type: 'error',
+            description: 'Favor digitar um CPF ou CNPJ válido',
+          });
+        }
+        // Se houver CNPJ ou CPF válido os valores serão atualizados
+        else if (
+          isCNPJ(clearClientCnpjCpfData) ||
+          isCPF(clearClientCnpjCpfData)
+        ) {
+          // Armazena o valor recebido no estado
+          orderData.client.cnpj_cpf = clearClientCnpjCpfData;
+          orderData.client.formatted_cnpj_cpf =
+            clearClientCnpjCpfData.length > 11
+              ? formatToCNPJ(clearClientCnpjCpfData)
+              : formatToCPF(clearClientCnpjCpfData);
+
+          // Define que o banco de dados deve ser atualizado
+          setClientUpdated(true);
+
+          // Limpa os erros
+          clientCnpjCpfRef.current?.setErrors({});
+          setCounterErrors((state) =>
+            state.filter((e) => e !== 'clientCnpjCpf')
+          );
+        }
+      }
+      // Verifica se o valor recebido é igual ao cadastrado e limpa possíveis erros
+      else if (orderData?.client.cnpj_cpf === clearClientCnpjCpfData) {
+        // Limpa os erros
+        clientCnpjCpfRef.current?.setErrors({});
+        setCounterErrors((state) => state.filter((e) => e !== 'clientCnpjCpf'));
+      }
+    },
+    [addToast, counterErrors, orderData]
+  );
+
+  // Função para executar a função submitClientCnpjCpf
+  const onClientCnpjCpfSubmit = useCallback(() => {
+    clientCnpjCpfRef.current?.submitForm();
+  }, []);
+
+  // Função para atualizar o nome do responsável pela empresa
+  const submitClientNameContact = useCallback(
+    ({ clientNameContactData }: InputData) => {
+      // Verifica se o valor recebido é diferente do existente
+      if (orderData?.client.contact_name !== clientNameContactData) {
+        // Verifica se o valor recebido é um nome de responsável válido
+        if (!clientNameContactData) {
+          clientNameContactRef.current?.setErrors({
+            clientNameContactData: 'Favor digitar um nome válido',
+          });
+
+          // Define que possui um erro na edição do cliente
+          if (!counterErrors.find((e) => e === 'clientNameContact')) {
+            setCounterErrors((state) => [...state, 'clientNameContact']);
+          }
+
+          addToast({
+            type: 'error',
+            description: 'Favor digitar um nome válido',
+          });
+        }
+        // Se houver nome de responsável válido o valor será atualizado
+        else {
+          // Armazena o valor recebido no estado
+          orderData.client.contact_name = formatToCapitalized(
+            clientNameContactData,
+            {
+              trimTrailingWhiteSpaces: false,
+            }
+          );
+
+          // Define que o banco de dados deve ser atualizado
+          setClientUpdated(true);
+
+          // Limpa os erros
+          clientNameContactRef.current?.setErrors({});
+          setCounterErrors((state) =>
+            state.filter((e) => e !== 'clientNameContact')
+          );
+        }
+      }
+      // Verifica se o valor recebido é igual ao cadastrado e limpa possíveis erros
+      else if (orderData?.client.contact_name === clientNameContactData) {
+        // Limpa os erros
+        clientNameContactRef.current?.setErrors({});
+        setCounterErrors((state) =>
+          state.filter((e) => e !== 'clientNameContact')
+        );
+      }
+    },
+    [addToast, counterErrors, orderData]
+  );
+
+  // Função para executar a função submitClientNameContact
+  const onClientNameContactSubmit = useCallback(() => {
+    clientNameContactRef.current?.submitForm();
+  }, []);
+
+  // Função para atualizar o e-mail da empresa
+  const submitClientEmail = useCallback(
+    ({ clientEmailData }: InputData) => {
+      // Verifica se o valor recebido é diferente do existente
+      if (orderData?.client.email !== clientEmailData.toLocaleLowerCase()) {
+        // Verifica se o valor recebido é um e-mail válido
+        if (!isEmail(clientEmailData) || !clientEmailData) {
+          // Define um erro
+          clientEmailRef.current?.setErrors({
+            clientEmailData: 'Favor digitar um e-mail válido',
+          });
+
+          // Define que possui um erro na edição do cliente
+          if (!counterErrors.find((e) => e === 'clientEmail')) {
+            setCounterErrors((state) => [...state, 'clientEmail']);
+          }
+
+          addToast({
+            type: 'error',
+            description: 'Favor digitar um e-mail válido',
+          });
+        }
+        // Se houver e-mail válido o valor será atualizado
+        else {
+          // Armazena o valor recebido no estado
+          orderData.client.email = clientEmailData.toLocaleLowerCase();
+
+          // Define que o banco de dados deve ser atualizado
+          setClientUpdated(true);
+
+          // Limpa os erros
+          clientEmailRef.current?.setErrors({});
+          setCounterErrors((state) => state.filter((e) => e !== 'clientEmail'));
+        }
+      }
+      // Verifica se o valor recebido é igual ao cadastrado e limpa possíveis erros
+      else if (
+        orderData?.client.email === clientEmailData.toLocaleLowerCase()
+      ) {
+        // Limpa os erros
+        clientEmailRef.current?.setErrors({});
+        setCounterErrors((state) => state.filter((e) => e !== 'clientEmail'));
+      }
+    },
+    [addToast, counterErrors, orderData]
+  );
+  // Função para executar a função submitClientEmail
+  const onClientEmailSubmit = useCallback(() => {
+    clientEmailRef.current?.submitForm();
+  }, []);
+
+  // Função para atualizar o telefone da empresa
+  const submitClientPhone = useCallback(
+    ({ clientPhoneData }: InputData) => {
+      // Remove os caracteres especiais do valor recebido
+      const clearClientPhoneData = clientPhoneData.replace(/[^\w]/gi, '');
+
+      // Verifica se o valor recebido é diferente do existente
+      if (orderData?.client.phone !== clearClientPhoneData) {
+        // Verifica se o valor recebido é um telefone válido
+        if (clearClientPhoneData && !isPhone(clearClientPhoneData)) {
+          // Define um erro
+          clientPhoneRef.current?.setErrors({
+            clientPhoneData: 'Favor digitar um telefone válido',
+          });
+
+          // Define que possui um erro na edição do cliente
+          if (!counterErrors.find((e) => e === 'clientPhone')) {
+            setCounterErrors((state) => [...state, 'clientPhone']);
+          }
+
+          addToast({
+            type: 'error',
+            description: 'Favor digitar um telefone válido',
+          });
+        }
+        // Verifica se o celular já não está vazio
+        else if (!clearClientPhoneData && !orderData?.client.mobile) {
+          // Define um erro
+          clientPhoneRef.current?.setErrors({
+            clientPhoneData: 'Favor digitar um telefone ou celular válido',
+          });
+
+          // Define que possui um erro na edição do cliente
+          if (!counterErrors.find((e) => e === 'clientPhone')) {
+            setCounterErrors((state) => [...state, 'clientPhone']);
+          }
+
+          addToast({
+            type: 'error',
+            description: 'Favor digitar um telefone ou celular válido',
+          });
+        }
+        // Se o valor recebido for um telefone válido será atualizado
+        else if (isPhone(clearClientPhoneData)) {
+          // Armazena o valor recebido no estado
+          orderData.client.phone = clearClientPhoneData;
+          orderData.client.formatted_phone = formatToPhone(
+            clearClientPhoneData
+          );
+
+          // Define que o banco de dados deve ser atualizado
+          setClientUpdated(true);
+
+          // Limpa os erros
+          clientPhoneRef.current?.setErrors({});
+          setCounterErrors((state) => state.filter((e) => e !== 'clientPhone'));
+        }
+        // Se não houver valor recebido e houver telefone celular, será atualizado
+        else if (!clearClientPhoneData && !!orderData?.client.mobile) {
+          // Armazena o valor recebido no estado
+          orderData.client.phone = clearClientPhoneData;
+          orderData.client.formatted_phone = formatToPhone(
+            clearClientPhoneData
+          );
+
+          // Define que o banco de dados deve ser atualizado
+          setClientUpdated(true);
+
+          // Limpa os erros
+          clientPhoneRef.current?.setErrors({});
+          setCounterErrors((state) => state.filter((e) => e !== 'clientPhone'));
+        }
+      }
+      // Verifica se o valor recebido é igual ao cadastrado e limpa possíveis erros
+      else if (orderData?.client.phone === clearClientPhoneData) {
+        // Limpa os erros
+        clientPhoneRef.current?.setErrors({});
+        setCounterErrors((state) => state.filter((e) => e !== 'clientPhone'));
+      }
+    },
+    [addToast, counterErrors, orderData]
+  );
+
+  // Função para executar a função submitClientPhone
+  const onClientPhoneSubmit = useCallback(() => {
+    clientPhoneRef.current?.submitForm();
+  }, []);
+
+  // Função para atualizar o celular da empresa
+  const submitClientMobilePhone = useCallback(
+    ({ clientMobilePhoneData }: InputData) => {
+      // Remove os caracteres especiais do valor recebido
+      const clearClientMobilePhoneData = clientMobilePhoneData.replace(
+        /[^\w]/gi,
+        ''
+      );
+
+      // Verifica se o valor recebido é diferente do existente
+      if (orderData?.client.mobile !== clearClientMobilePhoneData) {
+        // Verifica se o valor recebido é um telefone válido
+        if (
+          clearClientMobilePhoneData &&
+          !isPhone(clearClientMobilePhoneData)
+        ) {
+          // Define um erro
+          clientMobilePhoneRef.current?.setErrors({
+            clientMobilePhoneData: 'Favor digitar um telefone válido',
+          });
+
+          // Define que possui um erro na edição do cliente
+          if (!counterErrors.find((e) => e === 'clientMobilePhone')) {
+            setCounterErrors((state) => [...state, 'clientMobilePhone']);
+          }
+
+          addToast({
+            type: 'error',
+            description: 'Favor digitar um telefone válido',
+          });
+        }
+        // Verifica se o telefone fixo já não está vazio
+        else if (!clearClientMobilePhoneData && !orderData?.client.phone) {
+          // Define um erro
+          clientMobilePhoneRef.current?.setErrors({
+            clientMobilePhoneData:
+              'Favor digitar um celular ou telefone válido',
+          });
+
+          // Define que possui um erro na edição do cliente
+          if (!counterErrors.find((e) => e === 'clientMobilePhone')) {
+            setCounterErrors((state) => [...state, 'clientMobilePhone']);
+          }
+
+          addToast({
+            type: 'error',
+            description: 'Favor digitar um telefone ou celular válido',
+          });
+        }
+        // Se o valor recebido for um telefone válido será atualizado
+        else if (isPhone(clearClientMobilePhoneData)) {
+          // Armazena o valor recebido no estado
+          orderData.client.mobile = clearClientMobilePhoneData;
+          orderData.client.formatted_mobile = formatToPhone(
+            clearClientMobilePhoneData
+          );
+
+          // Define que o banco de dados deve ser atualizado
+          setClientUpdated(true);
+
+          // Limpa os erros
+          clientMobilePhoneRef.current?.setErrors({});
+          setCounterErrors((state) =>
+            state.filter((e) => e !== 'clientMobilePhone')
+          );
+        }
+        // Se não houver valor recebido e houver telefone fixo, será atualizado
+        else if (!clearClientMobilePhoneData && !!orderData?.client.phone) {
+          // Armazena o valor recebido no estado
+          orderData.client.mobile = clearClientMobilePhoneData;
+          orderData.client.formatted_mobile = formatToPhone(
+            clearClientMobilePhoneData
+          );
+
+          // Define que o banco de dados deve ser atualizado
+          setClientUpdated(true);
+
+          // Limpa os erros
+          clientMobilePhoneRef.current?.setErrors({});
+          setCounterErrors((state) =>
+            state.filter((e) => e !== 'clientMobilePhone')
+          );
+        }
+      }
+      // Verifica se o valor recebido é igual ao cadastrado e limpa possíveis erros
+      else if (orderData?.client.mobile === clearClientMobilePhoneData) {
+        // Limpa os erros
+        clientMobilePhoneRef.current?.setErrors({});
+        setCounterErrors((state) =>
+          state.filter((e) => e !== 'clientMobilePhone')
+        );
+      }
+    },
+    [addToast, counterErrors, orderData]
+  );
+
+  // Função para executar a função submitClientMobilePhone
+  const onClientMobilePhoneSubmit = useCallback(() => {
+    clientMobilePhoneRef.current?.submitForm();
+  }, []);
+
+  // Função para deletar um order_product
+  const handleDeleteOrderProductItem = useCallback(
+    async (order_product_id: string) => {
+      try {
+        checkToken();
+        await api.delete(`/orders-products/${order_product_id}`);
+
+        // Atualiza o estado removendo o item deletado
+        orderData.orders_products = orderData.orders_products?.filter(
+          (orders_product) => orders_product.id !== order_product_id
+        );
+
+        // Envia atualização para o component searchResults
+        toUpdateSearchResults({
+          order_id,
+          order_product_delete: order_product_id,
+        });
+
+        addToast({
+          type: 'success',
+          description: 'Serviço excluído com sucesso!',
+        });
+      } catch (err) {
+        addToast({
+          type: 'error',
+          description: 'Ocorreu um erro na comunicação com o servidor',
+        });
+      }
+    },
+    [
+      addToast,
+      checkToken,
+      orderData.orders_products,
+      order_id,
+      toUpdateSearchResults,
+    ]
+  );
+
+  // Função para somar o valor total do pedido baseado nos orders_products
   const totalValue = useMemo((): string => {
-    if (order_id) {
-      api.patch(`/orders/${order_id}`, {});
-    }
+    const productsValues = orderData?.orders_products
+      ?.map((product) => Number(product.product_value))
+      .reduce((accumulator, productValue) => {
+        return accumulator + productValue;
+      }, 0);
 
-    if (orderData.orders_products) {
-      const productsValues = orderData.orders_products
-        .map((product) => Number(product.product_value))
-        .reduce((accumulator, productValue) => {
-          return accumulator + productValue;
-        }, 0);
-
-      return productsValues ? formatValueCurrency(productsValues) : '';
-    }
-
-    return '';
+    return productsValues ? formatValueCurrency(productsValues) : '';
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     orderData,
     updateOrderProduct,
     addNewOrderProduct,
-    handleDeleteProductItem,
+    handleDeleteOrderProductItem,
   ]);
 
+  // Função para definir estado com o order_product selecionado
   const handleSelectProduct = useCallback(
-    (data: OrderProductData) => {
+    (order_product: OrderProductData) => {
+      setSelectedOrderProduct(order_product);
+
+      // Verifica se pode editar o order_product ou apenas visualizar
       if (from === 'Comercial') {
-        setOrderProductId(data.id);
         overlapNewProductOpen(!newProductOpen);
       } else {
-        setProductToView(data);
         overlapProductViewOpen(!productViewOpen);
       }
     },
@@ -801,37 +1344,153 @@ const Order: React.FC<OrderProps> = ({
     ]
   );
 
-  const handleCloseOrder = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-      if (from === 'TechnicalArea') {
-        if (
-          (orderData &&
-            !!orderData.delivery_date &&
-            !!orderData.status_delivery) ||
-          (orderData && !orderData.delivery_date && !orderData.status_delivery)
-        ) {
-          overlapOrderOpen(!e);
-        } else if (
-          orderData &&
-          !orderData.delivery_date &&
-          !!orderData.status_delivery
-        ) {
-          submitDeliveryDate({
-            deliveryDateData: '',
-          } as InputData);
-          addToast({
-            type: 'info',
-            description: 'Favor preencher a data de entrega',
-          });
-        } else {
-          overlapOrderOpen(!e);
-        }
-      } else {
-        overlapOrderOpen(!e);
+  // Função que atualiza o pedido no banco de dados
+  const handleSubmitOrderToUpdate = useCallback(async () => {
+    try {
+      await api.patch<OrderData>(`/orders/${order_id}`, {
+        status_order: orderData?.status_order,
+        approved_at: orderData?.approved_at,
+        status_delivery: orderData?.status_delivery,
+        technical_id: orderData?.technical?.id,
+        status_billing: orderData?.status_billing,
+        status_payment: orderData?.status_payment,
+        delivery_conditions: orderData?.delivery_conditions,
+        requested_delivery_date: orderData?.requested_delivery_date,
+        delivery_date: orderData?.delivery_date,
+        payment_way: orderData?.payment_way,
+        due_date: orderData?.due_date,
+      });
+
+      setOrderUpdated(false); // Limpa do estado
+      overlapOrderOpen(!orderOpen); // Fecha o component
+    } catch (err) {
+      addToast({
+        type: 'error',
+        description: 'Ocorreu um erro na comunicação com o servidor',
+      });
+    }
+  }, [addToast, orderData, orderOpen, order_id, overlapOrderOpen]);
+
+  // Função que atualiza o pedido no banco de dados
+  const handleSubmitClientToUpdate = useCallback(async () => {
+    try {
+      await api.patch<ClientData>(`/clients/${orderData.client.id}`, {
+        name: orderData.client?.name,
+        cnpj_cpf: orderData.client?.cnpj_cpf,
+        contact_name: orderData.client?.contact_name,
+        email: orderData.client?.email,
+        phone: orderData.client?.phone,
+        mobile: orderData.client?.mobile,
+      });
+
+      setClientUpdated(false); // Limpa do estado
+      overlapOrderOpen(!orderOpen); // Fecha o component
+    } catch (err) {
+      addToast({
+        type: 'error',
+        description: 'Ocorreu um erro na comunicação com o servidor',
+      });
+    }
+  }, [addToast, orderData.client, orderOpen, overlapOrderOpen]);
+
+  // Função que faz validações ao fechar a order
+  const handleCloseOrder = useCallback(() => {
+    // Verifica o módulo que o usuário está acessando esse pedido
+    if (from === 'TechnicalArea') {
+      if (!orderData?.delivery_date && !!orderData?.status_delivery) {
+        // Se possui não data de entrega e possui status da área técnica define um erro
+        submitDeliveryDate({
+          deliveryDateData: '',
+        } as InputData);
+
+        addToast({
+          type: 'error',
+          description: 'Favor preencher a data de entrega',
+        });
+
+        return;
       }
-    },
-    [addToast, from, orderData, overlapOrderOpen, submitDeliveryDate]
-  );
+    }
+
+    if (newOrderOpen) {
+      overlapNewOrderOpen(false);
+    }
+
+    // Verifica se não existe erros nos campos
+    if (counterErrors.length === 0) {
+      try {
+        checkToken();
+        // Se houve alteração no pedido vai atualizar
+        if (orderUpdated && !clientUpdated) {
+          handleSubmitOrderToUpdate(); // Atualiza o pedido
+
+          addToast({
+            type: 'success',
+            description: 'Pedido atualizado com sucesso!',
+          });
+        }
+
+        // Se houve alteração no cliente vai atualizar
+        if (!orderUpdated && clientUpdated) {
+          handleSubmitClientToUpdate(); // Atualiza o cliente
+
+          addToast({
+            type: 'success',
+            description: 'Pedido atualizado com sucesso!',
+          });
+        }
+
+        // Se houve alteração no pedido e no cliente vai atualizar os dois
+        if (clientUpdated && orderUpdated) {
+          handleSubmitOrderToUpdate(); // Atualiza o pedido
+          handleSubmitClientToUpdate(); // Atualiza o cliente
+
+          addToast({
+            type: 'success',
+            description: 'Pedido atualizado com sucesso!',
+          });
+        }
+      } catch (err) {
+        addToast({
+          type: 'error',
+          description: 'Ocorreu um erro na comunicação com o servidor',
+        });
+      }
+
+      // Se não houve alteração vai fechar
+      if (!orderUpdated && !clientUpdated) {
+        overlapOrderOpen(!orderOpen); // Fecha o component
+      }
+    }
+    // Se houver erros avisa o usuário para corrigir
+    else {
+      addToast({
+        type: 'error',
+        description: 'Verifique as informações digitadas e tente novamente',
+      });
+    }
+  }, [
+    from,
+    newOrderOpen,
+    counterErrors.length,
+    orderData,
+    submitDeliveryDate,
+    addToast,
+    overlapNewOrderOpen,
+    orderUpdated,
+    clientUpdated,
+    checkToken,
+    handleSubmitOrderToUpdate,
+    handleSubmitClientToUpdate,
+    overlapOrderOpen,
+    orderOpen,
+  ]);
+
+  window.onbeforeunload = () => {
+    return clientUpdated || orderUpdated
+      ? 'Se você sair desta página você irá perder suas alterações.'
+      : null;
+  };
 
   return (
     <OrderOverlap>
@@ -839,10 +1498,11 @@ const Order: React.FC<OrderProps> = ({
         <ModalOverlap>
           <NewProduct
             color={color}
-            order_product_id={orderProductId}
+            orderProduct={selectedOrderProduct}
             order_id={order_id}
-            setNewProductOpen={(e) => overlapNewProductOpen(e)}
-            setOrderProductId={(e) => setOrderProductId(e)}
+            setSelectedOrderProduct={() => {
+              setSelectedOrderProduct({} as OrderProductData);
+            }}
             updateOrderProduct={(e) => setUpdateOrderProduct(e)}
             addNewOrderProduct={(e) => setAddNewOrderProduct(e)}
           />
@@ -852,17 +1512,16 @@ const Order: React.FC<OrderProps> = ({
         <ModalOverlap>
           <ProductView
             color={color}
-            setProductViewOpen={(e) => overlapProductViewOpen(e)}
-            productToView={productToView}
+            orderProduct={selectedOrderProduct}
             from={from}
           />
         </ModalOverlap>
       )}
-      {orderData && orderData.client && orderData.seller && (
+      {orderData?.client && orderData?.seller && (
         <>
           <HeaderButton
             show={orderOpen && !newProductOpen && !productViewOpen}
-            handleClick={(e) => handleCloseOrder(e)}
+            handleClick={() => handleCloseOrder()}
             type="button"
             icon={FaTimes}
             color={color}
@@ -871,10 +1530,10 @@ const Order: React.FC<OrderProps> = ({
           <Container>
             <ThemeProvider theme={orderMaterialTheme}>
               <PrimaryContent isModalOpen={newProductOpen || productViewOpen}>
-                <CompanyData>
+                <ClientContainer>
                   <TitlesForm>
                     <p>Razão social:</p>
-                    {orderData.client.cpf_cnpj.length > 14 ? (
+                    {orderData.client.cnpj_cpf.length > 11 ? (
                       <p>CNPJ:</p>
                     ) : (
                       <p>CPF:</p>
@@ -885,15 +1544,89 @@ const Order: React.FC<OrderProps> = ({
                     <p>Celular:</p>
                   </TitlesForm>
                   <DataForm>
-                    <p>{orderData.client.name}</p>
-                    <p>{orderData.client.cpf_cnpj}</p>
-                    <p>{orderData.client.contact_name}</p>
-                    <p>{orderData.client.email}</p>
-                    <p>{orderData.client.phone}</p>
-                    <p>{orderData.client.mobile}</p>
+                    {from === 'Comercial' && !orderData.status_billing ? (
+                      <>
+                        <Form ref={clientNameRef} onSubmit={submitClientName}>
+                          <InputAsText
+                            name="clientNameData"
+                            onBlur={onClientNameSubmit}
+                            defaultValue={orderData.client.name}
+                          />
+                        </Form>
+                        <Form
+                          ref={clientCnpjCpfRef}
+                          onSubmit={submitClientCnpjCpf}
+                        >
+                          {orderData.client.cnpj_cpf.length > 11 ? (
+                            <InputAsText
+                              name="clientCnpjCpfData"
+                              onBlur={onClientCnpjCpfSubmit}
+                              defaultValue={orderData.client.formatted_cnpj_cpf}
+                              styled={{ width: '10em' }}
+                            />
+                          ) : (
+                            <InputAsText
+                              name="clientCnpjCpfData"
+                              onBlur={onClientCnpjCpfSubmit}
+                              defaultValue={orderData.client.formatted_cnpj_cpf}
+                              styled={{ width: '8em' }}
+                            />
+                          )}
+                        </Form>
+                        <Form
+                          ref={clientNameContactRef}
+                          onSubmit={submitClientNameContact}
+                        >
+                          <InputAsText
+                            name="clientNameContactData"
+                            onBlur={onClientNameContactSubmit}
+                            defaultValue={orderData.client.contact_name}
+                          />
+                        </Form>
+                        <Form ref={clientEmailRef} onSubmit={submitClientEmail}>
+                          <InputAsText
+                            name="clientEmailData"
+                            onBlur={onClientEmailSubmit}
+                            defaultValue={orderData.client.email}
+                          />
+                        </Form>
+                        <Form ref={clientPhoneRef} onSubmit={submitClientPhone}>
+                          <InputAsTextWithMask
+                            name="clientPhoneData"
+                            onBlur={onClientPhoneSubmit}
+                            defaultValue={orderData.client.formatted_phone}
+                            mask="(99) 9999-9999"
+                            maskChar={null}
+                            styled={{ width: '8em' }}
+                          />
+                        </Form>
+                        <Form
+                          ref={clientMobilePhoneRef}
+                          onSubmit={submitClientMobilePhone}
+                        >
+                          <InputAsTextWithMask
+                            name="clientMobilePhoneData"
+                            onBlur={onClientMobilePhoneSubmit}
+                            defaultValue={orderData.client.formatted_mobile}
+                            mask="(99) 9 9999-9999"
+                            maskChar={null}
+                            styled={{ width: '8em' }}
+                          />
+                        </Form>
+                      </>
+                    ) : (
+                      <>
+                        <p>{orderData.client.name}</p>
+                        <p>{orderData.client.formatted_cnpj_cpf}</p>
+                        <p>{orderData.client.contact_name}</p>
+                        <p>{orderData.client.email}</p>
+                        <p>{orderData.client.formatted_phone}</p>
+                        <p>{orderData.client.formatted_mobile}</p>
+                      </>
+                    )}
                   </DataForm>
-                </CompanyData>
-                <OrderData>
+                </ClientContainer>
+                <OrdersProductsContainer>
                   <TitlesForm>
                     <p>Pedido Nº:</p>
                     <p>Vendedor:</p>
@@ -956,7 +1689,7 @@ const Order: React.FC<OrderProps> = ({
                             defaultValue=""
                             displayEmpty
                             onChange={(e: ChangeEvent<{ value: unknown }>) => {
-                              updateOrderStatus(e);
+                              updateStatusOrder(e);
                             }}
                           >
                             <MenuItem
@@ -1022,10 +1755,10 @@ const Order: React.FC<OrderProps> = ({
                     )}
                     <p>
                       {orderData.status_order === 'Aprovado' &&
-                        orderData.approved_at}
+                        orderData.formatted_approved_at}
                     </p>
                   </DataForm>
-                </OrderData>
+                </OrdersProductsContainer>
               </PrimaryContent>
               <SecondaryContent isModalOpen={newProductOpen || productViewOpen}>
                 {((from === 'Comercial' &&
@@ -1075,60 +1808,64 @@ const Order: React.FC<OrderProps> = ({
                           ref={requestedDeliveryDateRef}
                           onSubmit={submitRequestedDeliveryDate}
                         >
-                          {orderData && orderData.requested_delivery_date && (
+                          {orderData?.formatted_requested_delivery_date && (
                             <InputAsTextWithMask
                               name="requestedDeliveryDateData"
                               onBlur={onRequestedDeliveryDateSubmit}
-                              defaultValue={orderData.requested_delivery_date}
+                              defaultValue={
+                                orderData.formatted_requested_delivery_date
+                              }
                               mask="99/99/9999"
                               maskChar={null}
                               styled={{ width: '6em' }}
                             />
                           )}
-                          {orderData && !orderData.requested_delivery_date && (
+                          {!orderData?.formatted_requested_delivery_date && (
                             <InputAsTextWithMask
                               name="requestedDeliveryDateData"
                               onBlur={onRequestedDeliveryDateSubmit}
-                              defaultValue={orderData.requested_delivery_date}
+                              defaultValue={
+                                orderData.formatted_requested_delivery_date
+                              }
                               mask="99/99/9999"
                               maskChar={null}
                               styled={{ width: '6em' }}
                             />
                           )}
                         </Form>
-                        <p>{orderData && orderData.delivery_date}</p>
+                        <p>{orderData?.formatted_delivery_date}</p>
                       </>
                     )}
                     {from !== 'TechnicalArea' && !!orderData.status_delivery && (
                       <>
-                        <p>{orderData && orderData.delivery_conditions}</p>
-                        <p>{orderData && orderData.requested_delivery_date}</p>
-                        <p>{orderData && orderData.delivery_date}</p>
+                        <p>{orderData?.delivery_conditions}</p>
+                        <p>{orderData?.formatted_requested_delivery_date}</p>
+                        <p>{orderData?.formatted_delivery_date}</p>
                       </>
                     )}
                     {from === 'TechnicalArea' && (
                       <>
-                        <p>{orderData && orderData.delivery_conditions}</p>
-                        <p>{orderData && orderData.requested_delivery_date}</p>
+                        <p>{orderData?.delivery_conditions}</p>
+                        <p>{orderData?.formatted_requested_delivery_date}</p>
                         <Form
                           ref={deliveryDateRef}
                           onSubmit={submitDeliveryDate}
                         >
-                          {orderData && orderData.delivery_date && (
+                          {orderData?.formatted_delivery_date && (
                             <InputAsTextWithMask
                               name="deliveryDateData"
                               onBlur={onDeliveryDateSubmit}
-                              defaultValue={orderData.delivery_date}
+                              defaultValue={orderData.formatted_delivery_date}
                               mask="99/99/9999"
                               maskChar={null}
                               styled={{ width: '6em' }}
                             />
                           )}
-                          {orderData && !orderData.delivery_date && (
+                          {!orderData?.formatted_delivery_date && (
                             <InputAsTextWithMask
                               name="deliveryDateData"
                               onBlur={onDeliveryDateSubmit}
-                              defaultValue={orderData.delivery_date}
+                              defaultValue={orderData.formatted_delivery_date}
                               mask="99/99/9999"
                               maskChar={null}
                               styled={{ width: '6em' }}
@@ -1180,7 +1917,7 @@ const Order: React.FC<OrderProps> = ({
                             defaultValue=""
                             displayEmpty
                             onChange={(e: ChangeEvent<{ value: unknown }>) => {
-                              updateDeliveryStatus(e);
+                              updateStatusDelivery(e);
                             }}
                           >
                             {(!orderData.status_delivery ||
@@ -1277,8 +2014,8 @@ const Order: React.FC<OrderProps> = ({
                       (from !== 'TechnicalArea' &&
                         !!orderData.status_billing)) && (
                       <>
-                        <p>{orderData && orderData.payment_way}</p>
-                        <p>{orderData && orderData.due_date}</p>
+                        <p>{orderData?.payment_way}</p>
+                        <p>{orderData?.due_date}</p>
                       </>
                     )}
                     {from === 'TechnicalArea' && (
@@ -1319,7 +2056,7 @@ const Order: React.FC<OrderProps> = ({
                             defaultValue=""
                             displayEmpty
                             onChange={(e: ChangeEvent<{ value: unknown }>) => {
-                              updateBillingStatus(e);
+                              updateStatusBilling(e);
                             }}
                           >
                             {(!orderData.status_billing ||
@@ -1408,7 +2145,7 @@ const Order: React.FC<OrderProps> = ({
                             defaultValue=""
                             displayEmpty
                             onChange={(e: ChangeEvent<{ value: unknown }>) => {
-                              updatePaymentStatus(e);
+                              updateStatusPayment(e);
                             }}
                           >
                             {(!orderData.status_payment ||
@@ -1484,7 +2221,7 @@ const Order: React.FC<OrderProps> = ({
                         type="button"
                         onClick={() => handleSelectProduct(product)}
                       >
-                        <span>{product.product.name}</span>
+                        <span>{product.product && product.product.name}</span>
                       </ProductName>
                       <ProductDescription
                         type="button"
@@ -1528,7 +2265,7 @@ const Order: React.FC<OrderProps> = ({
                                 className="delete-product"
                                 type="button"
                                 onClick={() => {
-                                  handleDeleteProductItem(product.id);
+                                  handleDeleteOrderProductItem(product.id);
                                 }}
                               >
                                 <MaterialTooltip

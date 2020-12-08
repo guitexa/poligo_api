@@ -4,6 +4,14 @@ interface ContentProps {
   color: string;
 }
 
+interface LoadMoreProps {
+  color: string;
+}
+
+interface ValueProps {
+  status_order: string | unknown;
+}
+
 export const OrderOverlap = styled.div`
   z-index: 100;
 `;
@@ -39,12 +47,12 @@ export const RowResult = styled.button<ContentProps>`
   outline: none;
   border: none;
 
-  div {
-  }
-
   &:hover {
     background: ${({ color }) => color};
-    color: #fff;
+
+    div {
+      color: #fff;
+    }
 
     svg {
       color: #fff;
@@ -69,7 +77,7 @@ export const DateField = styled.div`
   justify-content: flex-start;
 `;
 
-export const CompanyName = styled.div`
+export const ClientName = styled.div`
   flex: 0.8;
   text-align: left;
 
@@ -99,12 +107,14 @@ export const Professional = styled.div`
   text-align: left;
 `;
 
-export const Value = styled.div`
+export const Value = styled.div<ValueProps>`
   width: 11%;
   max-width: 120px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  color: ${({ status_order }) =>
+    status_order !== 'Aprovado' ? '#666' : '#000'};
 `;
 
 export const Status = styled.div`
@@ -129,7 +139,7 @@ export const Status = styled.div`
   }
 
   .riDraftFill {
-    color: #888;
+    color: #999;
     width: 16px;
     height: 16px;
   }
@@ -149,5 +159,39 @@ export const Status = styled.div`
 
   .hiRefresh {
     color: #000;
+  }
+`;
+
+export const LoadMore = styled.button<LoadMoreProps>`
+  padding: 20px;
+  margin-top: 15px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: #fdfdfd;
+  outline: none;
+  border: none;
+  border-top: 1px solid ${({ color }) => color};
+  transition: 0.2s all;
+
+  &:hover {
+    background: ${({ color }) => color};
+
+    p,
+    svg {
+      color: #fff;
+    }
+  }
+
+  svg {
+    color: ${({ color }) => color};
+  }
+
+  p {
+    color: ${({ color }) => color};
+    margin: 0 10px;
   }
 `;

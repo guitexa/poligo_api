@@ -14,6 +14,7 @@ searchOrdersRouter.get(
   '/',
   celebrate({
     [Segments.QUERY]: {
+      approved_at: Joi.string().allow(''),
       created_at: Joi.string().allow(''),
       delivery_date: Joi.string().allow(''),
       technical: Joi.string().allow(''),
@@ -24,6 +25,8 @@ searchOrdersRouter.get(
       status_order: Joi.string().allow(''),
       status_delivery: Joi.string().allow(''),
       status_billing: Joi.string().allow(''),
+      take: Joi.string().required(),
+      from: Joi.string().required(),
     },
   }),
   searchOrder.show,

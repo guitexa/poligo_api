@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 interface InputProps {
   isErrored: boolean;
@@ -11,6 +11,19 @@ export const Container = styled.div<InputProps>`
   align-items: center;
   border: none;
   transition: all 0.2s;
+  position: relative;
+
+  ${({ isErrored }) =>
+    isErrored &&
+    css`
+      &:before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        bottom: 1px;
+        border-bottom: 1px solid #9d1309;
+      }
+    `};
 
   & + div {
     margin-top: 10px;

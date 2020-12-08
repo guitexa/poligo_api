@@ -13,21 +13,23 @@ import { useAuth } from '../../hooks/auth';
 import { Container, Menu, Title, Cover } from './styles';
 
 interface HeaderProps {
+  // Recebe uma string para ser utilizada como título do header
   title: string;
+  // Recebe a cor do módulo a partir de qual módulo este component está sendo executado
   color: string;
 }
 
 const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
   const { user, signOut } = useAuth();
 
+  // Armazena se o menu está aberto ou fechado
   const [menuIsOpen, setMenuIsOpen] = useState(false);
 
   return (
     <>
-      <Menu
-        onMouseEnter={() => setMenuIsOpen(!menuIsOpen)}
-        onMouseLeave={() => setMenuIsOpen(!menuIsOpen)}
-      >
+      {/* Div com logotipo que ao passar o mouse abre ou fecha o menu */}
+      <Menu menuIsOpen={menuIsOpen} onClick={() => setMenuIsOpen(!menuIsOpen)}>
+        {/* Div com os itens do menu */}
         <div id="sub-menu">
           {(user.permissions === 'Comercial' ||
             user.permissions === 'Admin') && (
@@ -81,11 +83,17 @@ const Header: React.FC<HeaderProps> = ({ title, color, children }) => {
           </button>
         </div>
       </Menu>
+      {/* Topo que abriga o menu e o título da página */}
       <Container color={color}>
         <Title>{title}</Title>
         {children}
       </Container>
-      <Cover menuIsOpen={menuIsOpen} />
+      {/* Background que escurece quando o menu está aberto */}
+      <Cover
+        menuIsOpen={menuIsOpen}
+        type="button"
+        onClick={() => setMenuIsOpen(!menuIsOpen)}
+      />
     </>
   );
 };

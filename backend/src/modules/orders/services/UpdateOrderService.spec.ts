@@ -61,7 +61,6 @@ describe('UpdateOrder', () => {
       payment_way: '',
       due_date: '',
       total_value: '',
-      products: '',
     });
   });
 

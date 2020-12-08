@@ -22,7 +22,11 @@ export default class ClientsRepository implements IClientsRepository {
 
   // Função para procurar todos os clients cadastrados
   public async findAll(): Promise<Client[] | undefined> {
-    return this.ormRepository.find();
+    return this.ormRepository.find({
+      order: {
+        name: 'ASC',
+      },
+    });
   }
 
   // Função para procurar um client específico pelo ID

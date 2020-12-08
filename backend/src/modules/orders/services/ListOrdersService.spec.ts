@@ -44,7 +44,6 @@ describe('ListOrders', () => {
       payment_way: '',
       due_date: '',
       total_value: '',
-      products: '',
     });
 
     const orderTwo = await fakeOrdersRepository.create({
@@ -58,10 +57,9 @@ describe('ListOrders', () => {
       payment_way: '',
       due_date: '',
       total_value: '',
-      products: '',
     });
 
-    const orders = await listOrder.execute();
+    const orders = await listOrder.execute({});
 
     expect(orders).toEqual(expect.arrayContaining([orderOne, orderTwo]));
   });

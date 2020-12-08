@@ -56,6 +56,10 @@ const opacityEffect = keyframes`
   }
 `;
 
+export const OrderOverlap = styled.div`
+  z-index: 100;
+`;
+
 export const NewOrderOverlap = styled.div`
   > button {
     position: absolute;
@@ -511,20 +515,4 @@ export const SubmitFormButton = styled.div`
   display: flex;
   justify-content: flex-start;
   align-items: center;
-
-  div {
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-end;
-    margin-left: 20px;
-
-    span:nth-child(1) {
-      font-size: 13px;
-    }
-
-    span:nth-child(2) {
-      margin-left: 5px;
-      font-size: 17px;
-    }
-  }
 `;

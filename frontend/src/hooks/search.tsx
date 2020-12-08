@@ -1,20 +1,25 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
 
+import { UpdateSearchResultsData } from '../components/SearchResults';
+
 interface SearchContextData {
-  selectedDate: Date | null;
-  selectedDeliveryDate: Date | null;
-  company: string;
-  product: string;
+  approved_at: Date | null;
+  created_at: Date | null;
+  delivery_date: Date | null;
+  client_name: string;
+  products: string;
   seller: string;
   technical: string;
   total_value: string;
   status_order: string;
   status_delivery: string;
   status_billing: string;
-  searchDate(date: Date | null): void;
+  updateSearchResults: UpdateSearchResultsData;
+  searchApprovedAt(date: Date | null): void;
+  searchCreatedAt(date: Date | null): void;
   searchDeliveryDate(date: Date | null): void;
-  searchCompanyName(name: string): void;
-  searchProduct(name: string): void;
+  searchClientName(name: string): void;
+  searchProducts(name: string): void;
   searchSeller(name: string): void;
   searchTechnical(name: string): void;
   searchTotalValue(value: string): void;
@@ -22,87 +27,115 @@ interface SearchContextData {
   searchStatusDelivery(type: string): void;
   searchStatusBilling(type: string): void;
   clearAllResults(): void;
-}
-
-interface TotalValueState {
-  formattedValue: string;
+  toUpdateSearchResults(data: UpdateSearchResultsData): void;
 }
 
 const SearchContext = createContext<SearchContextData>({} as SearchContextData);
 
 export const SearchProvider: React.FC = ({ children }) => {
-  const [company, setCompanyName] = useState('');
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedDeliveryDate, setSelectedDeliveryDate] = useState<Date | null>(
-    null
-  );
-  const [product, setProduct] = useState('');
+  // Armazena o valor pesquisado: data de aprovação do pedido
+  const [approved_at, setSelectedApprovedAt] = useState<Date | null>(null);
+  // Armazena o valor pesquisado: data de criação do pedido
+  const [created_at, setSelectedCreatedAt] = useState<Date | null>(null);
+  // Armazena o valor pesquisado: data de entrega do pedido
+  const [delivery_date, setSelectedDeliveryDate] = useState<Date | null>(null);
+  // Armazena o valor pesquisado: nome do cliente
+  const [client_name, setClientName] = useState('');
+  // Armazena o valor pesquisado: nome do produto
+  const [products, setProducts] = useState('');
+  // Armazena o valor pesquisado: nome do vendedor
   const [seller, setSeller] = useState('');
+  // Armazena o valor pesquisado: nome do técnico
   const [technical, setTechnical] = useState('');
-  const [total_value, setTotalValue] = useState<TotalValueState>({
-    formattedValue: '',
-  });
+  // Armazena o valor pesquisado: valor total do pedido
+  const [total_value, setTotalValue] = useState('');
+  // Armazena o valor pesquisado: status do pedido
   const [status_order, setStatusOrder] = useState('');
+  // Armazena o valor pesquisado: status da entrega
   const [status_delivery, setStatusDelivery] = useState('');
+  // Armazena o valor pesquisado: status do faturamento
   const [status_billing, setStatusBilling] = useState('');
 
-  const searchDate = useCallback((date: Date | null): void => {
-    setSelectedDate(date);
+  // Armazena as alterações enviadas para atualizar os resultados na tela de pesquisa
+  const [updateSearchResults, setUpdateSearchResults] = useState<
+    UpdateSearchResultsData
+  >({} as UpdateSearchResultsData);
+
+  // Função para alterar a pesquisa da data de aprovação do pedido
+  const searchApprovedAt = useCallback((date: Date | null): void => {
+    setSelectedApprovedAt(date);
   }, []);
 
+  // Função para alterar a pesquisa da data de criação do pedido
+  const searchCreatedAt = useCallback((date: Date | null): void => {
+    setSelectedCreatedAt(date);
+  }, []);
+
+  // Função para alterar a pesquisa da data de entrega do pedido
   const searchDeliveryDate = useCallback((date: Date | null): void => {
     setSelectedDeliveryDate(date);
   }, []);
 
-  const searchCompanyName = useCallback((name: string): void => {
-    setCompanyName(name);
+  // Função para alterar a pesquisa do nome do cliente
+  const searchClientName = useCallback((name: string): void => {
+    setClientName(name);
   }, []);
 
-  const searchProduct = useCallback((name: string): void => {
-    setProduct(name);
+  // Função para alterar a pesquisa do nome do produto
+  const searchProducts = useCallback((name: string): void => {
+    setProducts(name);
   }, []);
 
+  // Função para alterar a pesquisa do nome do vendedor
   const searchSeller = useCallback((name: string): void => {
     setSeller(name);
   }, []);
 
+  // Função para alterar a pesquisa do nome do técnico
   const searchTechnical = useCallback((name: string): void => {
     setTechnical(name);
   }, []);
 
+  // Função para alterar a pesquisa do valor total do pedido
   const searchTotalValue = useCallback((val: string): void => {
-    setTotalValue({
-      formattedValue: val,
-    });
+    setTotalValue(val);
   }, []);
 
+  // Função para alterar a pesquisa do status do pedido
   const searchStatusOrder = useCallback((type: string): void => {
     setStatusOrder(type);
   }, []);
 
+  // Função para alterar a pesquisa do status da entrega
   const searchStatusDelivery = useCallback((type: string): void => {
     setStatusDelivery(type);
   }, []);
 
+  // Função para alterar a pesquisa do status do faturamento
   const searchStatusBilling = useCallback((type: string): void => {
     setStatusBilling(type);
   }, []);
 
+  // Função para limpar os resultados pesquisados
   const clearAllResults = useCallback(() => {
-    if (selectedDate) {
-      searchDate(null);
+    if (approved_at) {
+      searchApprovedAt(null);
     }
 
-    if (selectedDeliveryDate) {
+    if (created_at) {
+      searchCreatedAt(null);
+    }
+
+    if (delivery_date) {
       searchDeliveryDate(null);
     }
 
-    if (company) {
-      searchCompanyName('');
+    if (client_name) {
+      searchClientName('');
     }
 
-    if (product) {
-      searchProduct('');
+    if (products) {
+      searchProducts('');
     }
 
     if (seller) {
@@ -129,45 +162,54 @@ export const SearchProvider: React.FC = ({ children }) => {
       searchStatusBilling('');
     }
   }, [
-    company,
-    searchCompanyName,
-    searchDate,
-    searchDeliveryDate,
-    searchSeller,
-    searchProduct,
-    searchStatusBilling,
-    searchStatusDelivery,
-    searchStatusOrder,
-    searchTechnical,
-    searchTotalValue,
-    selectedDate,
-    selectedDeliveryDate,
+    approved_at,
+    created_at,
+    delivery_date,
+    client_name,
+    products,
     seller,
-    product,
-    status_billing,
-    status_delivery,
-    status_order,
     technical,
     total_value,
+    status_order,
+    status_delivery,
+    status_billing,
+    searchApprovedAt,
+    searchCreatedAt,
+    searchDeliveryDate,
+    searchClientName,
+    searchProducts,
+    searchSeller,
+    searchTechnical,
+    searchTotalValue,
+    searchStatusOrder,
+    searchStatusDelivery,
+    searchStatusBilling,
   ]);
+
+  const toUpdateSearchResults = useCallback((data: UpdateSearchResultsData) => {
+    setUpdateSearchResults(data);
+  }, []);
 
   return (
     <SearchContext.Provider
       value={{
-        selectedDate,
-        selectedDeliveryDate,
-        company,
-        product,
+        approved_at,
+        created_at,
+        delivery_date,
+        client_name,
+        products,
         seller,
         technical,
         status_order,
         status_delivery,
         status_billing,
-        total_value: total_value.formattedValue,
-        searchDate,
+        total_value,
+        updateSearchResults,
+        searchApprovedAt,
+        searchCreatedAt,
         searchDeliveryDate,
-        searchCompanyName,
-        searchProduct,
+        searchClientName,
+        searchProducts,
         searchSeller,
         searchTechnical,
         searchTotalValue,
@@ -175,6 +217,7 @@ export const SearchProvider: React.FC = ({ children }) => {
         searchStatusDelivery,
         searchStatusBilling,
         clearAllResults,
+        toUpdateSearchResults,
       }}
     >
       {children}

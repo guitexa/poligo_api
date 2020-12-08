@@ -24,11 +24,12 @@ const Comercial: React.FC = () => {
   const { push } = useHistory();
   const { user, checkToken } = useAuth();
   const {
-    company,
-    selectedDate,
-    selectedDeliveryDate,
+    approved_at,
+    created_at,
+    delivery_date,
+    client_name,
     seller,
-    product,
+    products,
     status_billing,
     status_delivery,
     status_order,
@@ -37,22 +38,24 @@ const Comercial: React.FC = () => {
     clearAllResults,
   } = useSearch();
 
-  // This hook must be executed only once
+  // Função executada ao abrir a página
   useEffect(() => {
+    // Verifica se existe um token válido
+    checkToken();
+
+    // Verifica as permissões do usuário que está tentando acessar esta página
     if (user.permissions !== 'Comercial' && user.permissions !== 'Admin') {
       push('/Loading');
     }
 
-    if (orderOpen) {
-      overlapOrderOpen(false);
-    }
-
+    // Remove qualquer valor de pesquisa existente
     if (
-      company ||
-      selectedDate ||
-      selectedDeliveryDate ||
+      approved_at ||
+      created_at ||
+      delivery_date ||
+      client_name ||
       seller ||
-      product ||
+      products ||
       status_billing ||
       status_delivery ||
       status_order ||
@@ -62,17 +65,21 @@ const Comercial: React.FC = () => {
       clearAllResults();
     }
 
-    checkToken();
+    // Verifica se o component Order está aberto e fecha
+    if (orderOpen) {
+      overlapOrderOpen(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Define a cor tema desta página
   const color = '#004A82';
 
   return (
     <>
       {newOrderOpen && (
         <NewOrderOverlap>
-          <NewOrder color={color} />
+          <NewOrder color={color} from="Comercial" />
         </NewOrderOverlap>
       )}
       <Container>

@@ -54,15 +54,13 @@ export default class CreateOrderProductService {
       throw new AppError('A product_value must be provided', 401);
     }
 
-    // Ao criar um order_product pegamos o order_product_id para enviar esse order_product no response
-    const { id: order_product_id } = await this.ordersProductsRepository.create(
-      {
-        order,
-        product_id,
-        product_description,
-        product_value,
-      },
-    );
+    // Cria uma order_product e pega o order_product_updated para enviar no response
+    const order_product_updated = await this.ordersProductsRepository.create({
+      order,
+      product_id,
+      product_description,
+      product_value,
+    });
 
     // Procura todos os orders_products relacionados com esta order
     const orders_products = await this.ordersProductsRepository.findAllOrdersProductsByOrderId(
@@ -79,15 +77,12 @@ export default class CreateOrderProductService {
 
       order.total_value = String(totalValue).replace(/[/.]/gi, ',');
 
-      // Faz a concatenação de todos os nomes de products cadastrados
-      const products = String(orders_products.map(e => e.product.name));
-
-      order.products = products;
-
       // Atualiza o total_value da order com a soma de todos os orders_products
       await this.ordersRepository.save(order);
     }
 
-    return this.ordersProductsRepository.findOrderProductById(order_product_id);
+    return this.ordersProductsRepository.findOrderProductById(
+      order_product_updated.id,
+    );
   }
 }

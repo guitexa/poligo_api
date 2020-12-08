@@ -7,7 +7,9 @@ import { TransitionProps } from '@material-ui/core/transitions';
 import { useToast } from '../../hooks/toast';
 
 interface ToastContent {
+  // Controla se o component é exibido ou não
   open: boolean;
+  // Determina o conteúdo do toast
   toastContent: {
     type: 'success' | 'info' | 'warning' | 'error';
     description: string;

@@ -3,17 +3,25 @@ import { Autocomplete, createFilterOptions } from '@material-ui/lab';
 import {
   ThemeProvider,
   createMuiTheme,
-  TextField as OriginalTextField,
+  TextField as OriginalTextField, // Nome alterado pois foi utilizado o TextField do unform-material-ui também
 } from '@material-ui/core';
+import { TextField } from 'unform-material-ui';
+import { Form } from '@unform/web';
+import { FormHandles } from '@unform/core';
 import match from 'autosuggest-highlight/match';
 import parse from 'autosuggest-highlight/parse';
 import { FaTimes } from 'react-icons/fa';
 import { FiArrowRight, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { isCNPJ, isCPF, isPhone, formatToCapitalized } from 'brazilian-values';
+import {
+  isCNPJ,
+  isCPF,
+  isPhone,
+  formatToCapitalized,
+  formatToCNPJ,
+  formatToCPF,
+  formatToPhone,
+} from 'brazilian-values';
 import isEmail from 'validator/es/lib/isEmail';
-import { Form } from '@unform/web';
-import { FormHandles } from '@unform/core';
-import { TextField } from 'unform-material-ui';
 import InputMask, { Props as InputProps } from 'react-input-mask';
 
 import { useToast } from '../../hooks/toast';
@@ -28,6 +36,7 @@ import DisabledButton from '../DisabledButton';
 import api from '../../services/api';
 
 import {
+  OrderOverlap,
   NewOrderOverlap,
   Container,
   Content,
@@ -50,23 +59,26 @@ import {
   SubmitFormButton,
 } from './styles';
 
+// Interface do client
 interface ClientData {
   id?: string;
-  inputValue?: string;
+  inputValue?: string; // Para adicionar uma empresa nova
   name: string;
-  cpf_cnpj: string;
+  cnpj_cpf: string;
   contact_name: string;
   email?: string;
-  phone: string;
+  phone?: string;
   mobile?: string;
 }
 
-interface CreateOrderType {
+// Interface do que é retornado após criar uma order
+interface CreateOrderResponse {
   id: string;
   client_id: string;
   seller_id: string;
 }
 
+// Interface para referenciar os dados inseridos nos inputs
 interface InputData {
   clientCnpjData: string;
   clientCpfData: string;
@@ -77,21 +89,33 @@ interface InputData {
 }
 
 interface NewOrderProps {
+  // Recebe a cor do módulo a partir de qual módulo este component está sendo executado
   color: string;
+  // A partir de qual módulo este component está sendo executado
+  from: string;
 }
 
-const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
-  const [orderOpen, setOrderOpen] = useState(false);
+const NewOrder: React.FC<NewOrderProps> = ({ color, from }) => {
+  // Armazena o order_id quando uma nova order é criada
   const [orderId, setOrderId] = useState<string | undefined>('');
+  // Armazena os clientes cadastrados no banco de dados
   const [clients, setClients] = useState<ClientData[]>([]);
+  // Armazena o nome da empresa
   const [clientName, setClientName] = useState<ClientData>({} as ClientData);
+  // Armazena o CNPJ da empresa
   const [clientCnpj, setClientCnpj] = useState('');
+  // Armazena o CPF da empresa
   const [clientCpf, setClientCpf] = useState('');
+  // Armazena o nome do responsável pela empresa
   const [clientNameContact, setClientNameContact] = useState('');
+  // Armazena o email da empresa
   const [clientEmail, setClientEmail] = useState<string>('');
+  // Armazena o telefone fixo da empresa
   const [clientPhone, setClientPhone] = useState<string>('');
+  // Armazena o telefone celular do responsável pela empresa
   const [clientMobilePhone, setClientMobilePhone] = useState('');
 
+  // Armazena se o component está aberto ou não
   const [clientNameOpen, setClientNameOpen] = useState(true);
   const [clientCnpjOpen, setClientCnpjOpen] = useState(false);
   const [clientCpfOpen, setClientCpfOpen] = useState(false);
@@ -100,13 +124,21 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   const [clientPhoneOpen, setClientPhoneOpen] = useState(false);
   const [clientMobilePhoneOpen, setClientMobilePhoneOpen] = useState(false);
   const [confirmDataOpen, setConfirmDataOpen] = useState(false);
+  const [showCreateOrderButton, setShowCreateOrderButton] = useState(false);
 
+  // Armazena as respostas para servir como contador
   const [counterAnswers, setCounterAnswers] = useState<string[]>([]);
+  // Armazena se o component <ConfirmData> já foi aberto alguma vez
   const [confirmDataHasOpened, setConfirmDataHasOpened] = useState(false);
 
   const { addToast } = useToast();
   const { user, checkToken } = useAuth();
-  const { newOrderOpen, overlapNewOrderOpen } = useOverlap();
+  const {
+    newOrderOpen,
+    overlapNewOrderOpen,
+    overlapOrderOpen,
+    orderOpen,
+  } = useOverlap();
 
   const clientCnpjRef = useRef<FormHandles>(null);
   const clientCpfRef = useRef<FormHandles>(null);
@@ -149,33 +181,69 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     },
   });
 
+  // Realiza um filtro ao pesquisar pelo nome da empresa
   const filter = createFilterOptions<ClientData>();
 
+  // Busca na API os clientes cadastrados e armazena no estado clients
   useEffect(() => {
-    checkToken();
-    api.get<ClientData[]>('/clients').then((response) => {
-      setClients(response.data);
-    });
-  }, [checkToken]);
+    try {
+      checkToken();
+      api.get<ClientData[]>('/clients').then((response) => {
+        setClients(response.data);
+      });
+    } catch (err) {
+      addToast({
+        type: 'error',
+        description: 'Ocorreu um erro na comunicação com o servidor',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  // Função para atrasar a exibição do botão de criar pedido
+  // O objetivo é fazer com que o usuário realmente confirme os dados antes
+  // eslint-disable-next-line consistent-return
+  useEffect(() => {
+    if (confirmDataOpen) {
+      const timer = setTimeout(() => {
+        setShowCreateOrderButton(true);
+      }, 3000);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [confirmDataOpen]);
+
+  // Função que fecha todos os components e abre a tela de confirmação de dados
   const handleShowData = useCallback(() => {
     setClientNameOpen(false);
     setClientCnpjOpen(false);
     setClientCpfOpen(false);
     setClientNameContactOpen(false);
     setClientEmailOpen(false);
-    setClientMobilePhoneOpen(false);
     setClientPhoneOpen(false);
-    setConfirmDataOpen(true);
+    setClientMobilePhoneOpen(false);
+    setConfirmDataOpen(true); // Tela de confirmação de dados
   }, []);
 
+  // Função para lidar com o nome da empresa
   const handleSubmitClientName = useCallback(() => {
+    // Verifica se existe o valor recebido pela função
     if (clientName.name) {
-      setClientNameOpen(!clientNameOpen); // Close question opened
-      setClientCnpjOpen(!clientCnpjOpen); // Open next question
+      setClientNameOpen(!clientNameOpen); // Fecha o component que está aberto
+
+      // Verifica se já existe CPF digitado
+      if (clientCpf && counterAnswers.includes('clientCpf')) {
+        // Se existe um CPF já preenchido então abre o CPF
+        setClientCpfOpen(!clientCpfOpen); // Abre o próximo component
+      } else {
+        // Se existe não um CPF preenchido abre o próximo que é o CNPJ
+        setClientCnpjOpen(!clientCnpjOpen); // Abre o próximo component
+      }
 
       if (!counterAnswers.find((e) => e === 'clientName')) {
-        setCounterAnswers((state) => [...state, 'clientName']); // Set as answered
+        // Se essa questão já não tiver sido respondida ainda, armazena no estado que agora ela está respondida
+        setCounterAnswers((state) => [...state, 'clientName']);
       }
     }
 
@@ -188,6 +256,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       (counterAnswers.includes('clientPhone') ||
         counterAnswers.includes('clientMobilePhone'))
     ) {
+      // Se o confirmData já foi aberto e o restante já foi respondido, abre a tela de confirmação
       handleShowData();
     }
   }, [
@@ -195,22 +264,28 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     confirmDataHasOpened,
     counterAnswers,
     clientNameOpen,
+    clientCpf,
+    clientCpfOpen,
     clientCnpjOpen,
     handleShowData,
   ]);
 
+  // Função para lidar com o CNPJ da empresa
   const handleSubmitClientCnpj = useCallback(
     ({ clientCnpjData }: InputData) => {
+      // Verifica se existe o valor recebido pela função
       if (clientCnpjData) {
+        // Verifica se o CNPJ é válido
         if (isCNPJ(clientCnpjData)) {
-          clientCnpjRef.current?.setErrors({});
-          setClientCnpjOpen(!clientCnpjOpen); // Close question opened
-          setClientNameContactOpen(!clientNameContactOpen); // Open next question
+          clientCnpjRef.current?.setErrors({}); // Remove os erros do campo
+          setClientCnpjOpen(!clientCnpjOpen); // Fecha o component que está aberto
+          setClientNameContactOpen(!clientNameContactOpen); // Abre o próximo component
 
-          setClientCnpj(clientCnpjData);
+          setClientCnpj(clientCnpjData); // Armazena o valor recebido no estado
 
           if (!counterAnswers.find((e) => e === 'clientCnpj')) {
-            setCounterAnswers((state) => [...state, 'clientCnpj']); // Set as answered
+            // Se essa questão já não tiver sido respondida ainda, armazena no estado que agora ela está respondida
+            setCounterAnswers((state) => [...state, 'clientCnpj']);
           }
 
           if (
@@ -221,18 +296,23 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
             (counterAnswers.includes('clientPhone') ||
               counterAnswers.includes('clientMobilePhone'))
           ) {
+            // Se o confirmData já foi aberto e o restante já foi respondido, abre a tela de confirmação
             handleShowData();
           }
         } else {
+          // Se o CNPJ não é válido, então define um erro para o campo
           clientCnpjRef.current?.setErrors({
             clientCnpjData: 'CNPJ inválido',
           });
         }
-      } else {
-        setClientCnpjOpen(!clientCnpjOpen); // Close question opened
-        setClientCpfOpen(!clientCpfOpen); // Close question opened
+      }
+      // Se o usuário não informar um CNPJ ele será questionado para inserir um CPF
+      else {
+        setClientCnpjOpen(!clientCnpjOpen); // Fecha o component que está aberto
+        setClientCpfOpen(!clientCpfOpen); // Fecha o component que está aberto
 
-        setClientCnpj('');
+        setClientCnpj(''); // Limpa o estado
+        // Remove esse item na contagem de respostas
         setCounterAnswers((state) => state.filter((e) => e !== 'clientCnpj'));
       }
     },
@@ -246,18 +326,22 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     ]
   );
 
+  // Função para lidar com o CPF da empresa
   const handleSubmitClientCpf = useCallback(
     ({ clientCpfData }: InputData) => {
+      // Verifica se existe o valor recebido pela função
       if (clientCpfData) {
+        // Verifica se o CPF é válido
         if (isCPF(clientCpfData)) {
-          clientCpfRef.current?.setErrors({});
-          setClientCpfOpen(!clientCpfOpen); // Close question opened
-          setClientNameContactOpen(!clientNameContactOpen); // Open next question
+          clientCpfRef.current?.setErrors({}); // Remove os erros do campo
+          setClientCpfOpen(!clientCpfOpen); // Fecha o component que está aberto
+          setClientNameContactOpen(!clientNameContactOpen); // Abre o próximo component
 
-          setClientCpf(clientCpfData);
+          setClientCpf(clientCpfData); // Armazena o valor recebido no estado
 
           if (!counterAnswers.find((e) => e === 'clientCpf')) {
-            setCounterAnswers((state) => [...state, 'clientCpf']); // Set as answered
+            // Se essa questão já não tiver sido respondida ainda, armazena no estado que agora ela está respondida
+            setCounterAnswers((state) => [...state, 'clientCpf']);
           }
 
           if (
@@ -268,18 +352,25 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
             (counterAnswers.includes('clientPhone') ||
               counterAnswers.includes('clientMobilePhone'))
           ) {
+            // Se o confirmData já foi aberto e o restante já foi respondido, abre a tela de confirmação
             handleShowData();
           }
-        } else {
+        }
+        // Se o CPF não é válido, então define um erro para o campo
+        else {
           clientCpfRef.current?.setErrors({
             clientCpfData: 'CPF inválido',
           });
         }
-      } else {
+      }
+      // Se o usuário não informar um CPF, então define um erro para o campo
+      // Ou ele informa um CPF ou volta e informa um CNPJ
+      else {
         clientCpfRef.current?.setErrors({
-          clientCpfData: 'Favor preencher um CPF, ou CNPJ',
+          clientCpfData: 'Favor preencher um CPF. Ou volte e informe um CNPJ.',
         });
-        setClientCpf('');
+        setClientCpf(''); // Limpa o estado
+        // Remove esse item na contagem de respostas
         setCounterAnswers((state) => state.filter((e) => e !== 'clientCpf'));
       }
     },
@@ -292,21 +383,26 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     ]
   );
 
+  // Função para lidar com o nome do responsável pela empresa
   const handleSubmitClientNameContact = useCallback(
     ({ clientNameContactData }: InputData) => {
+      // Verifica se existe o valor recebido pela função
       if (clientNameContactData) {
-        clientNameContactRef.current?.setErrors({});
-        setClientNameContactOpen(!clientNameContactOpen); // Close question opened
-        setClientEmailOpen(!clientEmailOpen); // Open next question
+        clientNameContactRef.current?.setErrors({}); // Remove os erros do campo
+        setClientNameContactOpen(!clientNameContactOpen); // Fecha o component que está aberto
+        setClientEmailOpen(!clientEmailOpen); // Abre o próximo component
 
+        // Armazena o valor recebido no estado
         setClientNameContact(
+          // Formata o valor recebido ao armazenar no estado
           formatToCapitalized(clientNameContactData, {
             trimTrailingWhiteSpaces: false,
           })
         );
 
         if (!counterAnswers.find((e) => e === 'clientNameContact')) {
-          setCounterAnswers((state) => [...state, 'clientNameContact']); // Set as answered
+          // Se essa questão já não tiver sido respondida ainda, armazena no estado que agora ela está respondida
+          setCounterAnswers((state) => [...state, 'clientNameContact']);
         }
 
         if (
@@ -318,9 +414,12 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           (counterAnswers.includes('clientPhone') ||
             counterAnswers.includes('clientMobilePhone'))
         ) {
+          // Se o confirmData já foi aberto e o restante já foi respondido, abre a tela de confirmação
           handleShowData();
         }
-      } else {
+      }
+      // Se o usuário não informar um nome de responsável, então define um erro para o campo
+      else {
         clientNameContactRef.current?.setErrors({
           clientNameContactData: 'Favor preencher um nome',
         });
@@ -335,18 +434,22 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     ]
   );
 
+  // Função para lidar com o email da empresa
   const handleSubmitClientEmail = useCallback(
     ({ clientEmailData }: InputData) => {
+      // Verifica se existe o valor recebido pela função
       if (clientEmailData) {
-        if (isEmail(clientEmailData)) {
-          clientEmailRef.current?.setErrors({});
-          setClientEmailOpen(!clientEmailOpen); // Close question opened
-          setClientPhoneOpen(!clientPhoneOpen); // Open next question
+        // Verifica se o email é válido
+        if (isEmail(clientEmailData.toLocaleLowerCase())) {
+          clientEmailRef.current?.setErrors({}); // Remove os erros do campo
+          setClientEmailOpen(!clientEmailOpen); // Fecha o component que está aberto
+          setClientPhoneOpen(!clientPhoneOpen); // Abre o próximo component
 
-          setClientEmail(clientEmailData);
+          setClientEmail(clientEmailData.toLocaleLowerCase()); // Armazena o valor recebido no estado
 
           if (!counterAnswers.find((e) => e === 'clientEmail')) {
-            setCounterAnswers((state) => [...state, 'clientEmail']); // Set as answered
+            // Se essa questão já não tiver sido respondida ainda, armazena no estado que agora ela está respondida
+            setCounterAnswers((state) => [...state, 'clientEmail']);
           }
 
           if (
@@ -358,14 +461,19 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
             (counterAnswers.includes('clientPhone') ||
               counterAnswers.includes('clientMobilePhone'))
           ) {
+            // Se o confirmData já foi aberto e o restante já foi respondido, abre a tela de confirmação
             handleShowData();
           }
-        } else {
+        }
+        // Se o email não é válido, então define um erro para o campo
+        else {
           clientEmailRef.current?.setErrors({
             clientEmailData: 'Favor preencher um e-mail válido',
           });
         }
-      } else {
+      }
+      // Se o usuário não informar um email, então define um erro para o campo
+      else {
         clientEmailRef.current?.setErrors({
           clientEmailData: 'Favor preencher um e-mail',
         });
@@ -380,18 +488,23 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     ]
   );
 
+  // Função para lidar com o telefone fixo da empresa
   const handleSubmitClientPhone = useCallback(
     ({ clientPhoneData }: InputData) => {
+      // Verifica se existe o length do valor recebido pela função é > 1
+      // Essa validação é necessária devido ao parentese que existe no primeiro caractere da máscara
       if (clientPhoneData.length > 1) {
         if (isPhone(clientPhoneData)) {
-          clientPhoneRef.current?.setErrors({});
-          setClientPhoneOpen(!clientPhoneOpen); // Close question opened
-          setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Open next question
+          // Verifica se o telefone é válido
+          clientPhoneRef.current?.setErrors({}); // Remove os erros do campo
+          setClientPhoneOpen(!clientPhoneOpen); // Fecha o component que está aberto
+          setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Abre o próximo component
 
-          setClientPhone(clientPhoneData);
+          setClientPhone(clientPhoneData); // Armazena o valor recebido no estado
 
           if (!counterAnswers.find((e) => e === 'clientPhone')) {
-            setCounterAnswers((state) => [...state, 'clientPhone']); // Set as answered
+            // Se essa questão já não tiver sido respondida ainda, armazena no estado que agora ela está respondida
+            setCounterAnswers((state) => [...state, 'clientPhone']);
           }
 
           if (
@@ -402,16 +515,27 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
             counterAnswers.includes('clientNameContact') &&
             counterAnswers.includes('clientEmail')
           ) {
+            // Se o confirmData já foi aberto e o restante já foi respondido, abre a tela de confirmação
             handleShowData();
           }
-        } else {
+        }
+        // Se o telefone não é válido, então define um erro para o campo
+        else {
           clientPhoneRef.current?.setErrors({
             clientPhoneData: 'Favor preencher um telefone fixo válido',
           });
         }
-      } else if (clientMobilePhone) {
-        setClientPhone('');
+      }
+      // Se o usuário não informar um telefone fixo, verifica se ele já informou um telefone celular
+      else if (clientMobilePhone) {
+        // Se um telefone celular já foi informado pode continuar
+        setClientPhone(''); // Limpa o estado
+        // Remove esse item na contagem de respostas
         setCounterAnswers((state) => state.filter((e) => e !== 'clientPhone'));
+
+        clientPhoneRef.current?.setErrors({}); // Remove os erros do campo
+        setClientPhoneOpen(!clientPhoneOpen); // Fecha o component que está aberto
+        setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Abre o próximo component
 
         if (
           confirmDataHasOpened &&
@@ -421,13 +545,17 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           counterAnswers.includes('clientNameContact') &&
           counterAnswers.includes('clientEmail')
         ) {
+          // Se o confirmData já foi aberto e o restante já foi respondido, abre a tela de confirmação
           handleShowData();
         }
-      } else {
-        setClientPhoneOpen(!clientPhoneOpen); // Close question opened
-        setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Open next question
+      }
+      // Se não possui telefone fixo nem celular, o usuário será questionado para inserir um telefone celular
+      else {
+        setClientPhoneOpen(!clientPhoneOpen); // Fecha o component que está aberto
+        setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Abre o próximo component
 
-        setClientPhone('');
+        setClientPhone(''); // Limpa o estado
+        // Remove esse item na contagem de respostas
         setCounterAnswers((state) => state.filter((e) => e !== 'clientPhone'));
       }
     },
@@ -441,20 +569,25 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     ]
   );
 
+  // Função para lidar com o telefone celular do responsável pela empresa
   const handleSubmitClientMobilePhone = useCallback(
     ({ clientMobilePhoneData }: InputData) => {
+      // Verifica se existe o length do valor recebido pela função é > 1
+      // Essa validação é necessária devido ao parentese que existe no primeiro caractere da máscara
       if (clientMobilePhoneData.length > 1) {
         if (isPhone(clientMobilePhoneData)) {
-          clientMobilePhoneRef.current?.setErrors({});
-          setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Close question opened
-          setConfirmDataOpen(!confirmDataOpen); // Open next question
+          // Verifica se o telefone é válido
+          clientMobilePhoneRef.current?.setErrors({}); // Remove os erros do campo
+          setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Fecha o component que está aberto
+          setConfirmDataOpen(!confirmDataOpen); // Abre o próximo component
 
-          setConfirmDataHasOpened(true);
+          setConfirmDataHasOpened(true); // Define que o component confirmData foi aberto uma vez
 
-          setClientMobilePhone(clientMobilePhoneData);
+          setClientMobilePhone(clientMobilePhoneData); // Armazena o valor recebido no estado
 
           if (!counterAnswers.find((e) => e === 'clientMobilePhone')) {
-            setCounterAnswers((state) => [...state, 'clientMobilePhone']); // Set as answered
+            // Se essa questão já não tiver sido respondida ainda, armazena no estado que agora ela está respondida
+            setCounterAnswers((state) => [...state, 'clientMobilePhone']);
           }
 
           if (
@@ -465,18 +598,31 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
             counterAnswers.includes('clientNameContact') &&
             counterAnswers.includes('clientEmail')
           ) {
+            // Se o confirmData já foi aberto e o restante já foi respondido, abre a tela de confirmação
             handleShowData();
           }
-        } else {
+        }
+        // Se o telefone não é válido, então define um erro para o campo
+        else {
           clientMobilePhoneRef.current?.setErrors({
             clientMobilePhoneData: 'Favor preencher um telefone celular válido',
           });
         }
-      } else if (clientPhone) {
-        setClientMobilePhone('');
+      }
+      // Se o usuário não informar um telefone celular, verifica se ele já informou um telefone fixo
+      else if (clientPhone) {
+        // Se um telefone fixo já foi informado pode continuar
+        setClientMobilePhone(''); // Limpa o estado
+        // Remove esse item na contagem de respostas
         setCounterAnswers((state) =>
           state.filter((e) => e !== 'clientMobilePhone')
         );
+
+        clientMobilePhoneRef.current?.setErrors({}); // Remove os erros do campo
+        setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Fecha o component que está aberto
+        setConfirmDataOpen(!confirmDataOpen); // Abre o próximo component
+
+        setConfirmDataHasOpened(true); // Define que o component confirmData foi aberto uma vez
 
         if (
           confirmDataHasOpened &&
@@ -486,22 +632,22 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
           counterAnswers.includes('clientNameContact') &&
           counterAnswers.includes('clientEmail')
         ) {
+          // Se o confirmData já foi aberto e o restante já foi respondido, abre a tela de confirmação
           handleShowData();
-        } else {
-          clientMobilePhoneRef.current?.setErrors({});
-          setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Close question opened
-          setConfirmDataOpen(!confirmDataOpen); // Open next question
-
-          setConfirmDataHasOpened(true);
         }
-      } else {
-        setClientMobilePhone('');
+      }
+      // Se não possui telefone fixo nem celular, então define um erro para o campo
+      // Ou ele informa um telefone celular ou volta e informa um telefone fixo
+      else {
+        clientMobilePhoneRef.current?.setErrors({
+          clientMobilePhoneData:
+            'Favor preencher um telefone celular. Ou volte e informe um telefone fixo.',
+        });
+        setClientMobilePhone(''); // Limpa o estado
+        // Remove esse item na contagem de respostas
         setCounterAnswers((state) =>
           state.filter((e) => e !== 'clientMobilePhone')
         );
-        clientMobilePhoneRef.current?.setErrors({
-          clientMobilePhoneData: 'Favor preencher um telefone celular, ou fixo',
-        });
       }
     },
     [
@@ -514,53 +660,82 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     ]
   );
 
+  // Função que preenche o formulário quando seleciona uma empresa existente
   const handleFinishForm = useCallback(
-    (newClientName: ClientData) => {
-      setClientName(newClientName);
+    (selectedClientName: ClientData) => {
+      // Limpa todo preenchimento existente
+      setClientName({} as ClientData);
+      setClientCnpj('');
+      setClientCpf('');
+      setClientNameContact('');
+      setClientEmail('');
+      setClientPhone('');
+      setClientMobilePhone('');
+      setCounterAnswers([]);
 
-      setCounterAnswers((state) => [...state, 'clientName']); // Set as answered
+      setClientName(selectedClientName); // Armazena o valor recebido no estado
 
-      const existentClient = clients.find(
-        (client) => client.name === newClientName.name
+      // Armazena no estado que agora está questão está respondida
+      setCounterAnswers((state) => [...state, 'clientName']);
+
+      // Procura este client no array de clients cadastrados
+      const findClient = clients.find(
+        (client) => client.name === selectedClientName.name
       );
 
-      if (existentClient) {
-        if (existentClient.cpf_cnpj.length > 11) {
-          setClientCnpj(existentClient.cpf_cnpj);
-          setCounterAnswers((state) => [...state, 'clientCnpj']); // Set as answered
+      if (findClient) {
+        // Se o client existir, então procura o restante das informações
+        // Verifica que se o client possui CNPJ ou CPF
+        if (findClient.cnpj_cpf.length > 11) {
+          setClientCnpj(formatToCNPJ(findClient.cnpj_cpf)); // Armazena o valor encontrado
+          // Armazena no estado que agora está questão está respondida
+          setCounterAnswers((state) => [...state, 'clientCnpj']);
         } else {
-          setClientCpf(existentClient.cpf_cnpj);
-          setCounterAnswers((state) => [...state, 'clientCpf']); // Set as answered
+          setClientCpf(formatToCPF(findClient.cnpj_cpf)); // Armazena o valor encontrado
+          // Armazena no estado que agora está questão está respondida
+          setCounterAnswers((state) => [...state, 'clientCpf']);
         }
 
-        if (existentClient.contact_name) {
-          setClientNameContact(existentClient.contact_name);
-          setCounterAnswers((state) => [...state, 'clientNameContact']); // Set as answered
+        // Verifica se o client possui nome de responsável
+        if (findClient.contact_name) {
+          setClientNameContact(findClient.contact_name); // Armazena o valor encontrado
+          // Armazena no estado que agora está questão está respondida
+          setCounterAnswers((state) => [...state, 'clientNameContact']);
         }
 
-        if (existentClient.email) {
-          setClientEmail(existentClient.email);
-          setCounterAnswers((state) => [...state, 'clientEmail']); // Set as answered
+        // Verifica se o client possui email
+        if (findClient.email) {
+          setClientEmail(findClient.email); // Armazena o valor encontrado
+          // Armazena no estado que agora está questão está respondida
+          setCounterAnswers((state) => [...state, 'clientEmail']);
         }
 
-        if (existentClient.phone) {
-          setClientPhone(existentClient.phone);
-          setCounterAnswers((state) => [...state, 'clientPhone']); // Set as answered
+        // Verifica se o client possui telefone fixo
+        if (findClient.phone) {
+          setClientPhone(formatToPhone(findClient.phone)); // Armazena o valor encontrado
+          // Armazena no estado que agora está questão está respondida
+          setCounterAnswers((state) => [...state, 'clientPhone']);
         }
 
-        if (existentClient.mobile) {
-          setClientMobilePhone(existentClient.mobile);
-          setCounterAnswers((state) => [...state, 'clientMobilePhone']); // Set as answered
+        // Verifica se o client possui telefone celular
+        if (findClient.mobile) {
+          setClientMobilePhone(formatToPhone(findClient.mobile)); // Armazena o valor encontrado
+          // Armazena no estado que agora está questão está respondida
+          setCounterAnswers((state) => [...state, 'clientMobilePhone']);
         }
 
-        handleShowData();
+        handleShowData(); // Abre a tela de confirmação
+
+        setConfirmDataHasOpened(true); // Define que o component confirmData foi aberto uma vez
       }
     },
     [clients, handleShowData]
   );
 
-  const handleSubmitForm = useCallback(() => {
+  // Função que envia o formulário para ser cadastrado na API
+  const handleSubmitForm = useCallback(async () => {
     try {
+      // Remove os caracteres especiais das variáveis para salvar no banco
       const formattedClientCnpj = clientCnpj.replace(/[^\w\s]/gi, '');
       const formattedClientCpf = clientCpf.replace(/[^\w\s]/gi, '');
       const formattedClientPhone = clientPhone.replace(/[^\w]/gi, '');
@@ -569,61 +744,66 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
         ''
       );
 
-      const getClientIndex = clients.find(
-        (client) =>
-          client.cpf_cnpj === (formattedClientCnpj || formattedClientCpf)
+      // Verifica no array de clients cadastrados se existe um client com o mesmo nome
+      const findClient = clients.find(
+        (client) => client.name === clientName.name
       );
 
-      if (!getClientIndex) {
-        checkToken();
-        api
-          .post<ClientData>('/clients', {
-            name: clientName.name,
-            cpf_cnpj:
-              (clientCnpj && formattedClientCnpj) ||
-              (clientCpf && formattedClientCpf),
-            contact_name: clientNameContact,
-            email: clientEmail,
-            phone: formattedClientPhone,
-            mobile: formattedClientMobilePhone,
-          })
-          .then((client_response) => {
-            api
-              .post<CreateOrderType>('/orders', {
-                client_id: client_response.data.id,
-                seller_id: user.id,
-              })
-              .then((order_response) => {
-                setOrderId(order_response.data.id);
-              });
-          });
+      if (!findClient) {
+        // Se o client não existe ele será cadastrado
+        const client = await api.post<ClientData>('/clients', {
+          name: clientName.name,
+          cnpj_cpf:
+            (clientCnpj && formattedClientCnpj) ||
+            (clientCpf && formattedClientCpf),
+          contact_name: clientNameContact,
+          email: clientEmail,
+          phone: formattedClientPhone,
+          mobile: formattedClientMobilePhone,
+        });
+
+        // Após o cadastro do novo client, cria uma nova order
+        const order = await api.post<CreateOrderResponse>('/orders', {
+          client_id: client.data.id,
+          seller_id: user.id,
+        });
+
+        setOrderId(order.data.id); // Armazena a order_id recém criada
       } else {
-        checkToken();
-        api
-          .post<CreateOrderType>('/orders', {
-            client_id: getClientIndex.id,
-            seller_id: user.id,
-          })
-          .then((order_response) => {
-            setOrderId(order_response.data.id);
-          });
+        // Se o client existe ele será atualizado
+        await api.patch<ClientData>(`/clients/${findClient.id}`, {
+          cnpj_cpf:
+            (clientCnpj && formattedClientCnpj) ||
+            (clientCpf && formattedClientCpf),
+          contact_name: clientNameContact,
+          email: clientEmail,
+          phone: formattedClientPhone,
+          mobile: formattedClientMobilePhone,
+        });
+
+        // Após atualizar o cadastro do client, cria uma nova order
+        const order = await api.post<CreateOrderResponse>('/orders', {
+          client_id: findClient.id,
+          seller_id: user.id,
+        });
+
+        setOrderId(order.data.id); // Armazena a order_id recém criada
       }
 
       addToast({
         type: 'success',
         description: 'Pedido criado com sucesso!',
       });
-      setConfirmDataOpen(false);
-      setOrderOpen(true);
+      setConfirmDataOpen(false); // Fecha o component de confirmação
+      overlapOrderOpen(true); // Abre a order criada
     } catch (err) {
       addToast({
         type: 'error',
-        description: 'Erro inesperado ao criar o pedido',
+        description: 'Ocorreu um erro ao criar o pedido',
       });
     }
   }, [
     addToast,
-    checkToken,
     clientCnpj,
     clientCpf,
     clientEmail,
@@ -632,9 +812,11 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     clientNameContact,
     clientPhone,
     clients,
+    overlapOrderOpen,
     user.id,
   ]);
 
+  // Função para transitar entre as questões
   const handleChangeToPreviousQuestion = useCallback(() => {
     if (
       clientNameOpen &&
@@ -644,44 +826,44 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       clientEmail &&
       (clientPhone || clientMobilePhone)
     ) {
-      setClientNameOpen(!clientNameOpen);
-      setConfirmDataOpen(!confirmDataOpen);
+      setClientNameOpen(!clientNameOpen); // Fecha o component que está aberto
+      setConfirmDataOpen(!confirmDataOpen); // Abre o component anterior
     }
     if (clientCnpjOpen) {
-      setClientCnpjOpen(!clientCnpjOpen);
-      setClientNameOpen(!clientNameOpen);
+      setClientCnpjOpen(!clientCnpjOpen); // Fecha o component que está aberto
+      setClientNameOpen(!clientNameOpen); // Abre o component anterior
     }
     if (clientCpfOpen && !clientCpf) {
-      setClientCpfOpen(!clientCpfOpen);
-      setClientCnpjOpen(!clientCnpjOpen);
+      setClientCpfOpen(!clientCpfOpen); // Fecha o component que está aberto
+      setClientCnpjOpen(!clientCnpjOpen); // Abre o component anterior
     }
     if (clientCpfOpen && clientCpf) {
-      setClientCpfOpen(!clientCpfOpen);
-      setClientNameOpen(!clientNameOpen);
+      setClientCpfOpen(!clientCpfOpen); // Fecha o component que está aberto
+      setClientNameOpen(!clientNameOpen); // Abre o component anterior
     }
     if (clientNameContactOpen && clientCnpj) {
-      setClientNameContactOpen(!clientNameContactOpen);
-      setClientCnpjOpen(!clientCnpjOpen);
+      setClientNameContactOpen(!clientNameContactOpen); // Fecha o component que está aberto
+      setClientCnpjOpen(!clientCnpjOpen); // Abre o component anterior
     }
     if (clientNameContactOpen && clientCpf) {
-      setClientNameContactOpen(!clientNameContactOpen);
-      setClientCpfOpen(!clientCpfOpen);
+      setClientNameContactOpen(!clientNameContactOpen); // Fecha o component que está aberto
+      setClientCpfOpen(!clientCpfOpen); // Abre o component anterior
     }
     if (clientEmailOpen) {
-      setClientEmailOpen(!clientEmailOpen);
-      setClientNameContactOpen(!clientNameContactOpen);
+      setClientEmailOpen(!clientEmailOpen); // Fecha o component que está aberto
+      setClientNameContactOpen(!clientNameContactOpen); // Abre o component anterior
     }
     if (clientPhoneOpen) {
-      setClientPhoneOpen(!clientPhoneOpen);
-      setClientEmailOpen(!clientEmailOpen);
+      setClientPhoneOpen(!clientPhoneOpen); // Fecha o component que está aberto
+      setClientEmailOpen(!clientEmailOpen); // Abre o component anterior
     }
     if (clientMobilePhoneOpen) {
-      setClientMobilePhoneOpen(!clientMobilePhoneOpen);
-      setClientPhoneOpen(!clientPhoneOpen);
+      setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Fecha o component que está aberto
+      setClientPhoneOpen(!clientPhoneOpen); // Abre o component anterior
     }
     if (confirmDataOpen) {
-      setConfirmDataOpen(!confirmDataOpen);
-      setClientMobilePhoneOpen(!clientMobilePhoneOpen);
+      setConfirmDataOpen(!confirmDataOpen); // Fecha o component que está aberto
+      setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Abre o component anterior
     }
   }, [
     clientNameOpen,
@@ -701,46 +883,47 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     confirmDataOpen,
   ]);
 
+  // Função para transitar entre as questões
   const handleChangeToNextQuestion = useCallback(() => {
     if (clientNameOpen && clientName.name && clientCnpj) {
-      setClientNameOpen(!clientNameOpen);
-      setClientCnpjOpen(!clientCnpjOpen);
+      setClientNameOpen(!clientNameOpen); // Fecha o component que está aberto
+      setClientCnpjOpen(!clientCnpjOpen); // Abre o próximo component
     }
     if (clientNameOpen && clientName.name && clientCpf) {
-      setClientNameOpen(!clientNameOpen);
-      setClientCpfOpen(!clientCpfOpen);
+      setClientNameOpen(!clientNameOpen); // Fecha o component que está aberto
+      setClientCpfOpen(!clientCpfOpen); // Abre o próximo component
     }
     if (clientCnpjOpen && !clientCnpj) {
-      setClientCnpjOpen(!clientCnpjOpen);
-      setClientCpfOpen(!clientCpfOpen);
+      setClientCnpjOpen(!clientCnpjOpen); // Fecha o component que está aberto
+      setClientCpfOpen(!clientCpfOpen); // Abre o próximo component
     }
     if (clientCnpjOpen && clientCnpj) {
-      setClientCnpjOpen(!clientCnpjOpen);
-      setClientNameContactOpen(!clientNameContactOpen);
+      setClientCnpjOpen(!clientCnpjOpen); // Fecha o component que está aberto
+      setClientNameContactOpen(!clientNameContactOpen); // Abre o próximo component
     }
     if (clientCpfOpen && clientCpf) {
-      setClientCpfOpen(!clientCpfOpen);
-      setClientNameContactOpen(!clientNameContactOpen);
+      setClientCpfOpen(!clientCpfOpen); // Fecha o component que está aberto
+      setClientNameContactOpen(!clientNameContactOpen); // Abre o próximo component
     }
     if (clientNameContactOpen && clientNameContact) {
-      setClientNameContactOpen(!clientNameContactOpen);
-      setClientEmailOpen(!clientEmailOpen);
+      setClientNameContactOpen(!clientNameContactOpen); // Fecha o component que está aberto
+      setClientEmailOpen(!clientEmailOpen); // Abre o próximo component
     }
     if (clientEmailOpen && clientEmail) {
-      setClientEmailOpen(!clientEmailOpen);
-      setClientPhoneOpen(!clientPhoneOpen);
+      setClientEmailOpen(!clientEmailOpen); // Fecha o component que está aberto
+      setClientPhoneOpen(!clientPhoneOpen); // Abre o próximo component
     }
     if (clientPhoneOpen) {
-      setClientPhoneOpen(!clientPhoneOpen);
-      setClientMobilePhoneOpen(!clientMobilePhoneOpen);
+      setClientPhoneOpen(!clientPhoneOpen); // Fecha o component que está aberto
+      setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Abre o próximo component
     }
     if (clientMobilePhoneOpen && (clientMobilePhone || clientPhoneOpen)) {
-      setClientMobilePhoneOpen(!clientMobilePhoneOpen);
-      setConfirmDataOpen(!confirmDataOpen);
+      setClientMobilePhoneOpen(!clientMobilePhoneOpen); // Fecha o component que está aberto
+      setConfirmDataOpen(!confirmDataOpen); // Abre o próximo component
     }
-    if (confirmDataOpen && clientName.name) {
-      setConfirmDataOpen(!confirmDataOpen);
-      setClientNameOpen(!clientNameOpen);
+    if (confirmDataOpen) {
+      setConfirmDataOpen(!confirmDataOpen); // Fecha o component que está aberto
+      setClientNameOpen(!clientNameOpen); // Abre o próximo component
     }
   }, [
     clientNameOpen,
@@ -759,15 +942,8 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     confirmDataOpen,
   ]);
 
-  // This function clear answer when field is empty
-  useEffect(() => {
-    if (!clientName.name) {
-      setCounterAnswers((state) => state.filter((e) => e !== 'clientName'));
-    }
-  }, [clientName]);
-
-  // Monitor keyboard events
-  const eventKeyPress = useCallback(
+  // Função para monitorar os eventos do teclado
+  document.onkeydown = useCallback(
     (event: KeyboardEvent): void => {
       if (event.key === 'PageUp') {
         handleChangeToPreviousQuestion();
@@ -775,26 +951,23 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
       if (event.key === 'PageDown') {
         handleChangeToNextQuestion();
       }
-    },
-    [handleChangeToPreviousQuestion, handleChangeToNextQuestion]
-  );
-  document.onkeydown = eventKeyPress;
-
-  const eventEnterPress = useCallback(
-    (event: KeyboardEvent): void => {
-      if (event.key === 'Enter' && confirmDataOpen) {
-        handleSubmitForm();
+      if (event.key === 'Enter' && confirmDataOpen && showCreateOrderButton) {
+        addToast({
+          type: 'info',
+          description: 'Para confirmar clique no botão criar pedido',
+        });
       }
     },
-    [confirmDataOpen, handleSubmitForm]
+    [
+      addToast,
+      confirmDataOpen,
+      handleChangeToNextQuestion,
+      handleChangeToPreviousQuestion,
+      showCreateOrderButton,
+    ]
   );
 
-  if (confirmDataOpen) {
-    setTimeout(() => {
-      document.onkeydown = eventEnterPress;
-    }, 10);
-  }
-
+  // Função para criar máscara no input
   const InputWithCNPJMask = useCallback((props: InputProps): JSX.Element => {
     return (
       <InputMask
@@ -806,6 +979,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     );
   }, []);
 
+  // Função para criar máscara no input
   const InputWithCPFMask = useCallback((props: InputProps): JSX.Element => {
     return (
       <InputMask
@@ -817,6 +991,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     );
   }, []);
 
+  // Função para criar máscara no input
   const InputWithPhoneMask = useCallback((props: InputProps): JSX.Element => {
     return (
       <InputMask
@@ -828,6 +1003,7 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
     );
   }, []);
 
+  // Função para criar máscara no input
   const InputWithMobilePhoneMask = useCallback(
     (props: InputProps): JSX.Element => {
       return (
@@ -843,115 +1019,165 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
   );
 
   return (
-    <NewOrderOverlap>
+    <>
       {orderOpen && orderId && (
-        <Order
-          color={color}
-          order_id={orderId}
-          from="Comercial"
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
-          updateSearchResults={() => {}}
-        />
+        <OrderOverlap>
+          <Order color={color} order_id={orderId} from={from} />
+        </OrderOverlap>
       )}
-      <HeaderButton
-        show={newOrderOpen}
-        handleClick={(e) => overlapNewOrderOpen(!e)}
-        type="button"
-        icon={FaTimes}
-        color={color}
-      />
-      <ThemeProvider theme={newOrderMaterialTheme}>
-        <Container>
-          <Content color={color}>
-            {clientNameOpen && clients && (
-              <form
-                onSubmit={(e) => e.preventDefault()}
-                className="individual-form"
-              >
-                <WhatIsClientName clientNameOpen={clientNameOpen}>
-                  <AskTitle>
-                    <div>
-                      <span>1</span>
-                      <FiArrowRight />
-                    </div>
-                    <div>
-                      Qual a <strong>razão social</strong> do cliente?
-                    </div>
-                  </AskTitle>
-                  <Autocomplete
-                    openText=""
-                    clearText=""
-                    clearOnBlur={false}
-                    value={clientName}
-                    onChange={(event, newClientName) => {
-                      if (newClientName && newClientName.inputValue) {
-                        setClientName({
-                          ...clientName,
-                          name: newClientName.inputValue,
-                        });
-                      } else if (newClientName) {
-                        handleFinishForm(newClientName);
-                      }
-                      if (!newClientName) {
-                        setClientName({} as ClientData);
-                      }
-                    }}
-                    filterOptions={(options, params) => {
-                      const filtered = filter(options, params) as ClientData[];
+      <NewOrderOverlap>
+        <HeaderButton
+          show={newOrderOpen && !orderOpen}
+          handleClick={(e) => overlapNewOrderOpen(!e)}
+          type="button"
+          icon={FaTimes}
+          color={color}
+        />
+        <ThemeProvider theme={newOrderMaterialTheme}>
+          <Container>
+            <Content color={color}>
+              {clientNameOpen && clients && (
+                <form
+                  onSubmit={(e) => e.preventDefault()}
+                  className="individual-form"
+                >
+                  <WhatIsClientName clientNameOpen={clientNameOpen}>
+                    <AskTitle>
+                      <div>
+                        <span>1</span>
+                        <FiArrowRight />
+                      </div>
+                      <div>
+                        Qual a <strong>razão social</strong> do cliente?
+                      </div>
+                    </AskTitle>
+                    <Autocomplete
+                      openText=""
+                      clearText=""
+                      clearOnBlur={false}
+                      handleHomeEndKeys={false}
+                      value={clientName}
+                      onChange={(event, newClientName) => {
+                        if (newClientName?.inputValue) {
+                          // Adiciona uma empresa nova
+                          setClientName({
+                            ...newClientName,
+                            name: newClientName.inputValue,
+                          });
+                        } else if (newClientName) {
+                          // Seleciona um existente e encerra o formulário
+                          handleFinishForm(newClientName);
+                        }
+                        if (!newClientName) {
+                          // Limpou o input
+                          setClientName({} as ClientData);
+                          setCounterAnswers((state) =>
+                            state.filter((e) => e !== 'clientName')
+                          );
+                        }
+                      }}
+                      filterOptions={(options, params) => {
+                        const filtered = filter(
+                          options,
+                          params
+                        ) as ClientData[];
 
-                      if (params.inputValue !== '') {
-                        filtered.push({
-                          inputValue: params.inputValue,
-                          name: `Adicionar ${params.inputValue}`,
-                          cpf_cnpj: '',
-                          contact_name: '',
-                          phone: '',
-                        });
-                      }
+                        if (params.inputValue !== '') {
+                          filtered.push({
+                            inputValue: params.inputValue,
+                            name: `Adicionar ${params.inputValue}`,
+                            cnpj_cpf: '',
+                            contact_name: '',
+                            phone: '',
+                          });
+                        }
 
-                      return filtered;
-                    }}
-                    options={clients}
-                    noOptionsText=""
-                    getOptionLabel={({ name, inputValue }) => {
-                      if (inputValue) {
-                        return inputValue;
-                      }
-                      return name;
-                    }}
-                    renderInput={(params) => (
-                      <OriginalTextField
-                        name="clientName"
-                        autoFocus
-                        autoComplete="off"
-                        placeholder="Escreva ou selecione uma opção"
-                        helperText=" "
-                        {...params}
-                      />
-                    )}
-                    renderOption={({ name }, { inputValue }) => {
-                      const matches = match(name, inputValue);
-                      const parts = parse(name, matches);
+                        return filtered;
+                      }}
+                      options={clients}
+                      noOptionsText=""
+                      getOptionLabel={({ name, inputValue }) => {
+                        if (inputValue) {
+                          return inputValue;
+                        }
+                        return name;
+                      }}
+                      renderInput={(params) => (
+                        <OriginalTextField
+                          name="clientName"
+                          autoFocus
+                          autoComplete="off"
+                          placeholder="Escreva ou selecione uma opção"
+                          helperText=" "
+                          {...params}
+                        />
+                      )}
+                      renderOption={({ name }, { inputValue }) => {
+                        const matches = match(name, inputValue);
+                        const parts = parse(name, matches);
 
-                      return (
+                        return (
+                          <div>
+                            {parts.map(({ highlight, text }) => (
+                              <span
+                                key={text}
+                                style={{ fontWeight: highlight ? 700 : 400 }}
+                              >
+                                {text}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      }}
+                    />
+                    {clientName.name ? (
+                      <SubmitQuestionButton>
+                        <Button onClick={handleSubmitClientName}>
+                          Continuar
+                        </Button>
                         <div>
-                          {parts.map(({ highlight, text }) => (
-                            <span
-                              key={text}
-                              style={{ fontWeight: highlight ? 700 : 400 }}
-                            >
-                              {text}
-                            </span>
-                          ))}
+                          <span>
+                            pressione <strong>ENTER</strong>
+                          </span>
+                          <span>↵</span>
                         </div>
-                      );
-                    }}
-                  />
-                  {clientName.name ? (
+                      </SubmitQuestionButton>
+                    ) : (
+                      <DisabledButton>Continuar</DisabledButton>
+                    )}
+                  </WhatIsClientName>
+                </form>
+              )}
+              {clientCnpjOpen && (
+                <Form
+                  ref={clientCnpjRef}
+                  className="individual-form"
+                  onSubmit={handleSubmitClientCnpj}
+                >
+                  <WhatIsClientCnpj clientCnpjOpen={clientCnpjOpen}>
+                    <AskTitle>
+                      <div>
+                        <span>2</span>
+                        <FiArrowRight />
+                      </div>
+                      <div>
+                        Qual o <strong>CNPJ</strong> do cliente?
+                      </div>
+                    </AskTitle>
+                    <TextField
+                      id="clientCnpj-input"
+                      name="clientCnpjData"
+                      autoFocus
+                      autoComplete="off"
+                      placeholder="Digite aqui"
+                      defaultValue={clientCnpj}
+                      InputProps={{
+                        inputComponent: InputWithCNPJMask as any,
+                      }}
+                      helperText=" "
+                    />
                     <SubmitQuestionButton>
-                      <Button onClick={handleSubmitClientName}>
-                        Continuar
-                      </Button>
+                      <Button>Continuar</Button>
                       <div>
                         <span>
                           pressione <strong>ENTER</strong>
@@ -959,301 +1185,257 @@ const NewOrder: React.FC<NewOrderProps> = ({ color }) => {
                         <span>↵</span>
                       </div>
                     </SubmitQuestionButton>
+                  </WhatIsClientCnpj>
+                </Form>
+              )}
+              {clientCpfOpen && (
+                <Form
+                  ref={clientCpfRef}
+                  className="individual-form"
+                  onSubmit={handleSubmitClientCpf}
+                >
+                  <WhatIsClientCpf clientCpfOpen={clientCpfOpen}>
+                    <AskTitle>
+                      <div>
+                        <span>2</span>
+                        <FiArrowRight />
+                      </div>
+                      <div>
+                        Qual o <strong>CPF</strong> do cliente?
+                      </div>
+                    </AskTitle>
+                    <TextField
+                      id="clientCpf-input"
+                      name="clientCpfData"
+                      autoFocus
+                      autoComplete="off"
+                      placeholder="Digite aqui"
+                      defaultValue={clientCpf}
+                      InputProps={{
+                        inputComponent: InputWithCPFMask as any,
+                      }}
+                      helperText=" "
+                    />
+                    <SubmitQuestionButton>
+                      <Button>Continuar</Button>
+                      <div>
+                        <span>
+                          pressione <strong>ENTER</strong>
+                        </span>
+                        <span>↵</span>
+                      </div>
+                    </SubmitQuestionButton>
+                  </WhatIsClientCpf>
+                </Form>
+              )}
+              {clientNameContactOpen && (
+                <Form
+                  ref={clientNameContactRef}
+                  onSubmit={handleSubmitClientNameContact}
+                  className="individual-form"
+                >
+                  <WhatIsClientNameContact
+                    clientNameContactOpen={clientNameContactOpen}
+                  >
+                    <AskTitle>
+                      <div>
+                        <span>3</span>
+                        <FiArrowRight />
+                      </div>
+                      <div>
+                        Qual o <strong>nome</strong> do responsável?
+                      </div>
+                    </AskTitle>
+                    <TextField
+                      id="clientNameContact-input"
+                      name="clientNameContactData"
+                      autoFocus
+                      autoComplete="off"
+                      placeholder="Digite aqui"
+                      defaultValue={clientNameContact}
+                      helperText=" "
+                    />
+                    <SubmitQuestionButton>
+                      <Button>Continuar</Button>
+                      <div>
+                        <span>
+                          pressione <strong>ENTER</strong>
+                        </span>
+                        <span>↵</span>
+                      </div>
+                    </SubmitQuestionButton>
+                  </WhatIsClientNameContact>
+                </Form>
+              )}
+              {clientEmailOpen && (
+                <Form
+                  ref={clientEmailRef}
+                  onSubmit={handleSubmitClientEmail}
+                  className="individual-form"
+                >
+                  <WhatIsClientEmail clientEmailOpen={clientEmailOpen}>
+                    <AskTitle>
+                      <div>
+                        <span>4</span>
+                        <FiArrowRight />
+                      </div>
+                      <div>
+                        Qual o <strong>e-mail</strong> do cliente?
+                      </div>
+                    </AskTitle>
+                    <TextField
+                      id="clientEmail-input"
+                      name="clientEmailData"
+                      autoFocus
+                      autoComplete="off"
+                      placeholder="Digite aqui"
+                      defaultValue={clientEmail}
+                      helperText=" "
+                    />
+                    <SubmitQuestionButton>
+                      <Button>Continuar</Button>
+                      <div>
+                        <span>
+                          pressione <strong>ENTER</strong>
+                        </span>
+                        <span>↵</span>
+                      </div>
+                    </SubmitQuestionButton>
+                  </WhatIsClientEmail>
+                </Form>
+              )}
+              {clientPhoneOpen && (
+                <Form
+                  ref={clientPhoneRef}
+                  onSubmit={handleSubmitClientPhone}
+                  className="individual-form"
+                >
+                  <WhatIsClientPhone clientPhoneOpen={clientPhoneOpen}>
+                    <AskTitle>
+                      <div>
+                        <span>5</span>
+                        <FiArrowRight />
+                      </div>
+                      <div>
+                        Qual o <strong>telefone fixo</strong> do cliente?
+                      </div>
+                    </AskTitle>
+                    <TextField
+                      id="clientPhone-input"
+                      name="clientPhoneData"
+                      autoFocus
+                      autoComplete="off"
+                      placeholder="Digite aqui"
+                      defaultValue={clientPhone}
+                      InputProps={{
+                        inputComponent: InputWithPhoneMask as any,
+                      }}
+                      helperText=" "
+                    />
+                    <SubmitQuestionButton>
+                      <Button>Continuar</Button>
+                      <div>
+                        <span>
+                          pressione <strong>ENTER</strong>
+                        </span>
+                        <span>↵</span>
+                      </div>
+                    </SubmitQuestionButton>
+                  </WhatIsClientPhone>
+                </Form>
+              )}
+              {clientMobilePhoneOpen && (
+                <Form
+                  ref={clientMobilePhoneRef}
+                  onSubmit={handleSubmitClientMobilePhone}
+                  className="individual-form"
+                >
+                  <WhatIsClientMobilePhone
+                    clientMobilePhoneOpen={clientMobilePhoneOpen}
+                  >
+                    <AskTitle>
+                      <div>
+                        <span>6</span>
+                        <FiArrowRight />
+                      </div>
+                      <div>
+                        Qual o <strong>telefone celular</strong> do responsável?
+                      </div>
+                    </AskTitle>
+                    <TextField
+                      id="clientMobilePhone-input"
+                      name="clientMobilePhoneData"
+                      autoFocus
+                      autoComplete="off"
+                      placeholder="Digite aqui"
+                      defaultValue={clientMobilePhone}
+                      InputProps={{
+                        inputComponent: InputWithMobilePhoneMask as any,
+                      }}
+                      helperText=" "
+                    />
+                    <SubmitQuestionButton>
+                      <Button>Continuar</Button>
+                      <div>
+                        <span>
+                          pressione <strong>ENTER</strong>
+                        </span>
+                        <span>↵</span>
+                      </div>
+                    </SubmitQuestionButton>
+                  </WhatIsClientMobilePhone>
+                </Form>
+              )}
+            </Content>
+            <Footer>
+              <Progress color={color} counterAnswers={counterAnswers.length}>
+                <span>{counterAnswers.length} de 6 respondidas</span>
+                <div className="progress-bar" />
+                <div className="bg-progress-bar" />
+              </Progress>
+              <ButtonsControl color={color}>
+                <button type="button" onClick={handleChangeToPreviousQuestion}>
+                  <FiChevronUp />
+                </button>
+                <button type="button" onClick={handleChangeToNextQuestion}>
+                  <FiChevronDown />
+                </button>
+              </ButtonsControl>
+            </Footer>
+            {confirmDataOpen && (
+              <ConfirmData confirmDataOpen={confirmDataOpen} color={color}>
+                <QuestionData>
+                  <QuestionsContainer>
+                    <p>Razão Social: </p>
+                    {clientCnpj && <p>CNPJ: </p>}
+                    {clientCpf && <p>CPF: </p>}
+                    <p>Nome do responsável: </p>
+                    <p>E-mail do responsável: </p>
+                    {clientPhone && <p>Telefone da empresa: </p>}
+                    {clientMobilePhone && <p>Telefone do responsável: </p>}
+                  </QuestionsContainer>
+                  <AnswersContainer>
+                    <p>{clientName.name}</p>
+                    <p>{clientCnpj || clientCpf}</p>
+                    <p>{clientNameContact}</p>
+                    <p>{clientEmail}</p>
+                    {clientPhone && <p>{clientPhone}</p>}
+                    {clientMobilePhone && <p>{clientMobilePhone}</p>}
+                  </AnswersContainer>
+                </QuestionData>
+                <SubmitFormButton>
+                  {showCreateOrderButton ? (
+                    <Button onClick={handleSubmitForm}>Criar pedido</Button>
                   ) : (
-                    <DisabledButton>Continuar</DisabledButton>
+                    <DisabledButton>Criar pedido</DisabledButton>
                   )}
-                </WhatIsClientName>
-              </form>
+                </SubmitFormButton>
+              </ConfirmData>
             )}
-            {clientCnpjOpen && (
-              <Form
-                ref={clientCnpjRef}
-                className="individual-form"
-                onSubmit={handleSubmitClientCnpj}
-              >
-                <WhatIsClientCnpj clientCnpjOpen={clientCnpjOpen}>
-                  <AskTitle>
-                    <div>
-                      <span>2</span>
-                      <FiArrowRight />
-                    </div>
-                    <div>
-                      Qual o <strong>CNPJ</strong> do cliente?
-                    </div>
-                  </AskTitle>
-                  <TextField
-                    id="clientCnpj-input"
-                    name="clientCnpjData"
-                    autoFocus
-                    autoComplete="off"
-                    placeholder="Digite aqui"
-                    defaultValue={clientCnpj}
-                    InputProps={{
-                      inputComponent: InputWithCNPJMask as any,
-                    }}
-                    helperText=" "
-                  />
-                  <SubmitQuestionButton>
-                    <Button>Continuar</Button>
-                    <div>
-                      <span>
-                        pressione <strong>ENTER</strong>
-                      </span>
-                      <span>↵</span>
-                    </div>
-                  </SubmitQuestionButton>
-                </WhatIsClientCnpj>
-              </Form>
-            )}
-            {clientCpfOpen && (
-              <Form
-                ref={clientCpfRef}
-                className="individual-form"
-                onSubmit={handleSubmitClientCpf}
-              >
-                <WhatIsClientCpf clientCpfOpen={clientCpfOpen}>
-                  <AskTitle>
-                    <div>
-                      <span>2</span>
-                      <FiArrowRight />
-                    </div>
-                    <div>
-                      Qual o <strong>CPF</strong> do cliente?
-                    </div>
-                  </AskTitle>
-                  <TextField
-                    id="clientCpf-input"
-                    name="clientCpfData"
-                    autoFocus
-                    autoComplete="off"
-                    placeholder="Digite aqui"
-                    defaultValue={clientCpf}
-                    InputProps={{
-                      inputComponent: InputWithCPFMask as any,
-                    }}
-                    helperText=" "
-                  />
-                  <SubmitQuestionButton>
-                    <Button>Continuar</Button>
-                    <div>
-                      <span>
-                        pressione <strong>ENTER</strong>
-                      </span>
-                      <span>↵</span>
-                    </div>
-                  </SubmitQuestionButton>
-                </WhatIsClientCpf>
-              </Form>
-            )}
-            {clientNameContactOpen && (
-              <Form
-                ref={clientNameContactRef}
-                onSubmit={handleSubmitClientNameContact}
-                className="individual-form"
-              >
-                <WhatIsClientNameContact
-                  clientNameContactOpen={clientNameContactOpen}
-                >
-                  <AskTitle>
-                    <div>
-                      <span>3</span>
-                      <FiArrowRight />
-                    </div>
-                    <div>
-                      Qual o <strong>nome</strong> do responsável?
-                    </div>
-                  </AskTitle>
-                  <TextField
-                    id="clientNameContact-input"
-                    name="clientNameContactData"
-                    autoFocus
-                    autoComplete="off"
-                    placeholder="Digite aqui"
-                    defaultValue={clientNameContact}
-                    helperText=" "
-                  />
-                  <SubmitQuestionButton>
-                    <Button>Continuar</Button>
-                    <div>
-                      <span>
-                        pressione <strong>ENTER</strong>
-                      </span>
-                      <span>↵</span>
-                    </div>
-                  </SubmitQuestionButton>
-                </WhatIsClientNameContact>
-              </Form>
-            )}
-            {clientEmailOpen && (
-              <Form
-                ref={clientEmailRef}
-                onSubmit={handleSubmitClientEmail}
-                className="individual-form"
-              >
-                <WhatIsClientEmail clientEmailOpen={clientEmailOpen}>
-                  <AskTitle>
-                    <div>
-                      <span>4</span>
-                      <FiArrowRight />
-                    </div>
-                    <div>
-                      Qual o <strong>e-mail</strong> do cliente?
-                    </div>
-                  </AskTitle>
-                  <TextField
-                    id="clientEmail-input"
-                    name="clientEmailData"
-                    autoFocus
-                    autoComplete="off"
-                    placeholder="Digite aqui"
-                    defaultValue={clientEmail}
-                    helperText=" "
-                  />
-                  <SubmitQuestionButton>
-                    <Button>Continuar</Button>
-                    <div>
-                      <span>
-                        pressione <strong>ENTER</strong>
-                      </span>
-                      <span>↵</span>
-                    </div>
-                  </SubmitQuestionButton>
-                </WhatIsClientEmail>
-              </Form>
-            )}
-            {clientPhoneOpen && (
-              <Form
-                ref={clientPhoneRef}
-                onSubmit={handleSubmitClientPhone}
-                className="individual-form"
-              >
-                <WhatIsClientPhone clientPhoneOpen={clientPhoneOpen}>
-                  <AskTitle>
-                    <div>
-                      <span>5</span>
-                      <FiArrowRight />
-                    </div>
-                    <div>
-                      Qual o <strong>telefone fixo</strong> do cliente?
-                    </div>
-                  </AskTitle>
-                  <TextField
-                    id="clientPhone-input"
-                    name="clientPhoneData"
-                    autoFocus
-                    autoComplete="off"
-                    placeholder="Digite aqui"
-                    defaultValue={clientPhone}
-                    InputProps={{
-                      inputComponent: InputWithPhoneMask as any,
-                    }}
-                    helperText=" "
-                  />
-                  <SubmitQuestionButton>
-                    <Button>Continuar</Button>
-                    <div>
-                      <span>
-                        pressione <strong>ENTER</strong>
-                      </span>
-                      <span>↵</span>
-                    </div>
-                  </SubmitQuestionButton>
-                </WhatIsClientPhone>
-              </Form>
-            )}
-            {clientMobilePhoneOpen && (
-              <Form
-                ref={clientMobilePhoneRef}
-                onSubmit={handleSubmitClientMobilePhone}
-                className="individual-form"
-              >
-                <WhatIsClientMobilePhone
-                  clientMobilePhoneOpen={clientMobilePhoneOpen}
-                >
-                  <AskTitle>
-                    <div>
-                      <span>6</span>
-                      <FiArrowRight />
-                    </div>
-                    <div>
-                      Qual o <strong>telefone celular</strong> do responsável?
-                    </div>
-                  </AskTitle>
-                  <TextField
-                    id="clientMobilePhone-input"
-                    name="clientMobilePhoneData"
-                    autoFocus
-                    autoComplete="off"
-                    placeholder="Digite aqui"
-                    defaultValue={clientMobilePhone}
-                    InputProps={{
-                      inputComponent: InputWithMobilePhoneMask as any,
-                    }}
-                    helperText=" "
-                  />
-                  <SubmitQuestionButton>
-                    <Button>Continuar</Button>
-                    <div>
-                      <span>
-                        pressione <strong>ENTER</strong>
-                      </span>
-                      <span>↵</span>
-                    </div>
-                  </SubmitQuestionButton>
-                </WhatIsClientMobilePhone>
-              </Form>
-            )}
-          </Content>
-          <Footer>
-            <Progress color={color} counterAnswers={counterAnswers.length}>
-              <span>{counterAnswers.length} de 6 respondidas</span>
-              <div className="progress-bar" />
-              <div className="bg-progress-bar" />
-            </Progress>
-            <ButtonsControl color={color}>
-              <button type="button" onClick={handleChangeToPreviousQuestion}>
-                <FiChevronUp />
-              </button>
-              <button type="button" onClick={handleChangeToNextQuestion}>
-                <FiChevronDown />
-              </button>
-            </ButtonsControl>
-          </Footer>
-          {confirmDataOpen && (
-            <ConfirmData confirmDataOpen={confirmDataOpen} color={color}>
-              <QuestionData>
-                <QuestionsContainer>
-                  <p>Razão Social: </p>
-                  {clientCnpj && <p>CNPJ: </p>}
-                  {clientCpf && <p>CPF: </p>}
-                  <p>Nome do responsável: </p>
-                  <p>E-mail do responsável: </p>
-                  {clientPhone && <p>Telefone da empresa: </p>}
-                  {clientMobilePhone && <p>Telefone do responsável: </p>}
-                </QuestionsContainer>
-                <AnswersContainer>
-                  <p>{clientName.name}</p>
-                  <p>{clientCnpj || clientCpf}</p>
-                  <p>{clientNameContact}</p>
-                  <p>{clientEmail}</p>
-                  {clientPhone && <p>{clientPhone}</p>}
-                  {clientMobilePhone && <p>{clientMobilePhone}</p>}
-                </AnswersContainer>
-              </QuestionData>
-              <SubmitFormButton>
-                <Button onClick={handleSubmitForm}>Criar pedido</Button>
-                <div>
-                  <span>
-                    pressione <strong>ENTER</strong>
-                  </span>
-                  <span>↵</span>
-                </div>
-              </SubmitFormButton>
-            </ConfirmData>
-          )}
-        </Container>
-      </ThemeProvider>
-    </NewOrderOverlap>
+          </Container>
+        </ThemeProvider>
+      </NewOrderOverlap>
+    </>
   );
 };
 

@@ -91,11 +91,6 @@ export default class CreateOrders1602646984307 implements MigrationInterface {
             isNullable: true,
           },
           {
-            name: 'products',
-            type: 'varchar',
-            isNullable: true,
-          },
-          {
             name: 'created_at',
             type: 'timestamp',
             default: 'now()',

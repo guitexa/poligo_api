@@ -7,9 +7,8 @@ import authConfig from '@config/auth';
 import AppError from '@shared/errors/AppError';
 
 interface TokenPayLoad {
-  iat: number;
-  exp: number;
-  sub: string;
+  exp: number; // Data de expiração
+  sub: string; // ID do usuário
 }
 
 export default function ensureAuth(

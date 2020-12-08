@@ -92,7 +92,7 @@ export const Date = styled.div<DateProps>`
   }
 `;
 
-export const CompanyName = styled.div`
+export const ClientName = styled.div`
   flex: 0.8;
 
   .MuiFormControl-root {

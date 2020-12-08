@@ -160,7 +160,7 @@ export const DataForm = styled.div`
     }
 
     .riDraftFill {
-      color: #888;
+      color: #999;
     }
 
     .faTimes {
@@ -180,7 +180,7 @@ export const DataForm = styled.div`
   }
 `;
 
-export const CompanyData = styled.div`
+export const ClientContainer = styled.div`
   width: 50%;
   padding: 15px;
   border-bottom: 1px solid #999;
@@ -190,7 +190,7 @@ export const CompanyData = styled.div`
   align-items: center;
 `;
 
-export const OrderData = styled.div`
+export const OrdersProductsContainer = styled.div`
   width: 50%;
   padding: 15px;
   border-bottom: 1px solid #999;
@@ -200,7 +200,6 @@ export const OrderData = styled.div`
 `;
 
 export const Status = styled.div`
-  width: 100%;
   padding: 2px 0 3px 0;
 
   .MuiListItem-root.Mui-selected,
@@ -345,6 +344,7 @@ export const ProductDescription = styled.button`
   font-size: 13px;
   text-align: left;
   padding: 4.5px 25px 3.5px 5px;
+  min-height: 23px;
   cursor: pointer;
   border: none;
   outline: none;

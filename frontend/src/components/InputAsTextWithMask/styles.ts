@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 interface InputProps {
   isErrored: boolean;
@@ -9,9 +9,22 @@ export const Container = styled.div<InputProps>`
   background-color: #fff;
   display: flex;
   align-items: center;
-  border-bottom: ${({ isErrored }) =>
-    isErrored ? '1px solid #9D1309' : '1px solid transparent'};
+  border: none;
+  box-sizing: border-box;
   transition: all 0.2s;
+  position: relative;
+
+  ${({ isErrored }) =>
+    isErrored &&
+    css`
+      &:before {
+        content: '';
+        position: absolute;
+        width: 100%;
+        bottom: 1px;
+        border-bottom: 1px solid #9d1309;
+      }
+    `};
 
   & + div {
     margin-top: 10px;

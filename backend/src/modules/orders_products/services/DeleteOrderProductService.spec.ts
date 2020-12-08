@@ -67,7 +67,6 @@ describe('DeleteOrderProduct', () => {
       payment_way: '',
       due_date: '',
       total_value: '',
-      products: '',
     });
 
     order_product = await fakeOrdersProductsRepository.create({
