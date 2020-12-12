@@ -9,8 +9,6 @@ const usersRouter = Router();
 const usersController = new UsersController();
 const userController = new UserController();
 
-usersRouter.use(ensureAuth);
-
 // Rota para criar um user
 usersRouter.post(
   '/',
@@ -22,6 +20,7 @@ usersRouter.post(
       permissions: Joi.string().required(),
     },
   }),
+  // ensureAuth,
   usersController.create,
 );
 
