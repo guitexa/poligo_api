@@ -56,7 +56,7 @@ docker run --name poligo_postgres -e POSTGRES_PASSWORD=poligo -p 5574:5432 -d po
 # On DBeaver create a new PostgreSQL database with the following data
 host: localhost
 port: 5574
-database: postgres
+database: poligo
 username: postgres
 password: poligo
 ```

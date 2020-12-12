@@ -1,3 +1,5 @@
+// Classe para lidar com erros de rotas
+
 export default class AppError {
   public readonly message: string;
 

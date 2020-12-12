@@ -1,0 +1,94 @@
+import { Repository, getRepository } from 'typeorm';
+
+import IOrdersProductsRepository from '@modules/orders_products/repositories/IOrdersProductsRepository';
+import ICreateOrderProductDTO from '@modules/orders_products/dtos/ICreateOrderProductDTO';
+import OrderProduct from '../entities/OrderProduct';
+
+export default class OrdersProductsRepository
+  implements IOrdersProductsRepository {
+  private ormRepository: Repository<OrderProduct>;
+
+  constructor() {
+    this.ormRepository = getRepository(OrderProduct);
+  }
+
+  // Função para criar um order_product
+  public async create(
+    order_product: ICreateOrderProductDTO,
+  ): Promise<OrderProduct> {
+    const newOrderProduct = this.ormRepository.create(order_product);
+
+    const order_product_created = await this.ormRepository.save(
+      newOrderProduct,
+    );
+
+    const findOrderProduct = await this.ormRepository.findOne({
+      where: {
+        id: order_product_created.id,
+      },
+      relations: ['product'],
+    });
+
+    if (findOrderProduct) {
+      return findOrderProduct;
+    }
+    return order_product_created;
+  }
+
+  // Função para procurar todos os orders_products de um order específico
+  public async findAllOrdersProductsByOrderId(
+    order_id: string,
+  ): Promise<OrderProduct[] | undefined> {
+    return this.ormRepository.find({
+      where: {
+        order_id,
+      },
+      relations: ['product'],
+      order: {
+        created_at: 'DESC',
+      },
+    });
+  }
+
+  // Função para procurar um order_product específico
+  public async findOrderProductById(
+    order_product_id: string,
+  ): Promise<OrderProduct | undefined> {
+    return this.ormRepository.findOne({
+      where: {
+        id: order_product_id,
+      },
+      relations: ['product'],
+    });
+  }
+
+  // Função para atualizar um order_product específico
+  public async save(order_product: OrderProduct): Promise<OrderProduct> {
+    const order_product_updated = await this.ormRepository.save(order_product);
+
+    const findOrderProduct = await this.ormRepository.findOne({
+      where: {
+        id: order_product.id,
+      },
+      relations: ['product'],
+    });
+
+    if (findOrderProduct) {
+      return findOrderProduct;
+    }
+    return order_product_updated;
+  }
+
+  // Função para deletar um order_product específico
+  public async delete(order_product_id: string): Promise<void> {
+    const order_product = await this.ormRepository.findOne({
+      where: {
+        id: order_product_id,
+      },
+    });
+
+    if (order_product) {
+      await this.ormRepository.remove(order_product);
+    }
+  }
+}

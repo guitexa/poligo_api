@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { FiLock, FiArrowLeft } from 'react-icons/fi';
 import { FormHandles } from '@unform/core';
@@ -13,7 +13,6 @@ import Logo from '../../assets/logo.svg';
 
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import DisabledButton from '../../components/DisabledButton';
 
 import { Container, Content } from './styles';
 
@@ -22,12 +21,10 @@ interface SignInFormData {
 }
 
 const SignInPassword: React.FC = () => {
-  const [inputValue, setInputValue] = useState('');
-
   const formRef = useRef<FormHandles>(null);
 
   const { addToast } = useToast();
-  const { user, signIn, signOut } = useAuth();
+  const { user, signInPassword, signOut } = useAuth();
 
   const handleSubmit = useCallback(
     async (data: SignInFormData) => {
@@ -42,7 +39,7 @@ const SignInPassword: React.FC = () => {
           abortEarly: false,
         });
 
-        await signIn({
+        await signInPassword({
           email: user.email,
           password: data.password,
         });
@@ -66,7 +63,7 @@ const SignInPassword: React.FC = () => {
         });
       }
     },
-    [signIn, user, addToast]
+    [signInPassword, user.email, addToast]
   );
 
   return (
@@ -82,15 +79,9 @@ const SignInPassword: React.FC = () => {
               autoFocus
               type="password"
               placeholder="Digite sua senha"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
             />
             <a href="/">Esqueceu sua senha?</a>
-            {inputValue ? (
-              <Button>Entrar</Button>
-            ) : (
-              <DisabledButton>Entrar</DisabledButton>
-            )}
+            <Button>Entrar</Button>
           </Form>
         </div>
         <Link to="/" onClick={signOut}>

@@ -7,7 +7,9 @@ import { TransitionProps } from '@material-ui/core/transitions';
 import { useToast } from '../../hooks/toast';
 
 interface ToastContent {
+  // Controla se o component é exibido ou não
   open: boolean;
+  // Determina o conteúdo do toast
   toastContent: {
     type: 'success' | 'info' | 'warning' | 'error';
     description: string;
@@ -19,7 +21,7 @@ const Alert = forwardRef((props: AlertProps, ref) => (
 ));
 
 function SlideTransition(props: TransitionProps): JSX.Element {
-  return <Slide {...props} direction="left" />;
+  return <Slide {...props} direction="down" />;
 }
 
 const MaterialToast: React.FC<ToastContent> = ({ open, toastContent }) => {
@@ -28,13 +30,14 @@ const MaterialToast: React.FC<ToastContent> = ({ open, toastContent }) => {
   return (
     <>
       <Snackbar
+        style={{ zIndex: 99999 }}
         anchorOrigin={{
           vertical: 'top',
-          horizontal: 'right',
+          horizontal: 'center',
         }}
         open={open}
-        autoHideDuration={2500}
-        onClose={handleClose}
+        autoHideDuration={2000}
+        onClose={() => setTimeout(handleClose, 2000)}
         TransitionComponent={SlideTransition}
       >
         <Alert severity={toastContent.type}>{toastContent.description}</Alert>

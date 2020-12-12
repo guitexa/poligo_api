@@ -1,6 +1,7 @@
-import cors from 'cors';
-import 'reflect-metadata';
-import 'dotenv/config';
+import cors from 'cors'; // Controla o acesso de servidores externos
+import 'reflect-metadata'; // Converte os decorators do TypeORM em SQL queries
+import 'dotenv/config'; // Permite utilizar arquivos de configurações de ambiente
+import { errors } from 'celebrate'; // Mostra os erros de validação do celebrate na resposta da requisição
 
 import express, { Request, Response, NextFunction } from 'express';
 import 'express-async-errors';
@@ -11,13 +12,16 @@ import routes from './routes';
 import '@shared/infra/typeorm';
 import '@shared/container';
 
-const port = 4875;
+const port = 4875; // A API está rodando nesta porta
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(cors()); // Controla o acesso de servidores externos
+app.use(express.json()); // Permite utilizar JSON nas requisições
 app.use(routes);
 
+app.use(errors()); // Mostra os erros de validação do celebrate na resposta da requisição
+
+// Middleware para lidar com os erros da aplicação
 app.use((err: Error, req: Request, res: Response, _: NextFunction) => {
   if (err instanceof AppError) {
     return res
@@ -34,5 +38,5 @@ app.use((err: Error, req: Request, res: Response, _: NextFunction) => {
 });
 
 app.listen(port, () => {
-  console.log(`SERVER ON http://localhost:${port}`);
+  console.log(`SERVER ON ${process.env.APP_API_URL}`);
 });

@@ -1,6 +1,10 @@
 import styled, { keyframes } from 'styled-components';
 
+import Background from '../../assets/bg.png';
+
 export const Container = styled.div`
+  background: url(${Background}) no-repeat center center fixed;
+  background-size: cover;
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -54,9 +58,9 @@ export const Content = styled.div`
       flex: 1;
 
       a {
-        margin-top: 3px;
+        margin: 3px 0 25px 0;
         color: #00000090;
-        font-size: 14px;
+        font-size: 13px;
         text-decoration: none;
         align-self: flex-start;
         transition: all 0.2s;

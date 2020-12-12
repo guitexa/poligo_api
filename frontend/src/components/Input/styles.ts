@@ -34,10 +34,11 @@ export const Container = styled.div<InputProps>`
     color: #222;
     background-color: transparent;
     flex: 1;
-    padding: 10px 0;
+    padding: 10px 0 9px 0;
     border: none;
 
     &::placeholder {
+      font-size: 1rem;
       color: #333;
     }
   }
@@ -47,7 +48,7 @@ export const Tooltip = styled(MaterialTooltip)`
   height: 20px;
 
   svg {
-    color: #c53030;
+    color: #9d1309;
     margin: 0 12px 0 10px;
   }
 `;

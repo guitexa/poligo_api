@@ -2,10 +2,10 @@
   "name": "default",
   "type": "postgres",
   "host": "192.168.99.100",
-  "port": 5574,
+  "port": 4875,
+  "database": "poligo",
   "username": "postgres",
   "password": "poligo",
-  "database": "poligo",
   "entities": ["./dist/modules/**/infra/typeorm/entities/*.js"],
   "migrations": ["./dist/shared/infra/typeorm/migrations/*.js"],
   "cli": {

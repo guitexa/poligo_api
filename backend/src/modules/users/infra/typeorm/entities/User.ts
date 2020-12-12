@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 @Entity('users')
 export default class User {
@@ -17,8 +18,12 @@ export default class User {
   @Column()
   email: string;
 
+  @Exclude()
   @Column()
   password: string;
+
+  @Column()
+  permissions: string;
 
   @CreateDateColumn()
   created_at: Date;
