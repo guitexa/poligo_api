@@ -57,9 +57,10 @@ export const SearchProvider: React.FC = ({ children }) => {
   const [status_billing, setStatusBilling] = useState('');
 
   // Armazena as alterações enviadas para atualizar os resultados na tela de pesquisa
-  const [updateSearchResults, setUpdateSearchResults] = useState<
-    UpdateSearchResultsData
-  >({} as UpdateSearchResultsData);
+  const [
+    updateSearchResults,
+    setUpdateSearchResults,
+  ] = useState<UpdateSearchResultsData>({} as UpdateSearchResultsData);
 
   // Função para alterar a pesquisa da data de aprovação do pedido
   const searchApprovedAt = useCallback((date: Date | null): void => {

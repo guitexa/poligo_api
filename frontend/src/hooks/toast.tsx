@@ -2,16 +2,16 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 
 import MaterialToast from '../components/MaterialToast';
 
-export interface ToastContextData {
-  addToast(content: ToastContent): void;
-  handleClose(): void;
-}
-
 export interface ToastContent {
   // Recebe o tipo de toast para definir a cor e o ícone
   type: 'success' | 'info' | 'warning' | 'error';
   // Recebe a descrição em texto que será exibida
   description: string;
+}
+
+export interface ToastContextData {
+  addToast(content: ToastContent): void;
+  handleClose(): void;
 }
 
 const ToastContext = createContext<ToastContextData>({} as ToastContextData);

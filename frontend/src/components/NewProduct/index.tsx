@@ -524,7 +524,7 @@ const NewProduct: React.FC<NewProductProps> = ({
                       <OriginalTextField
                         label="Valor"
                         value={selectedProduct.value}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
                           setSelectedProduct({
                             ...selectedProduct,
                             value: e.target.value,
@@ -664,7 +664,7 @@ const NewProduct: React.FC<NewProductProps> = ({
                       <OriginalTextField
                         label="Valor"
                         value={selectedProduct.value}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                        onChange={(e: ChangeEvent<HTMLInputElement>) => {
                           setSelectedProduct({
                             ...selectedProduct,
                             value: e.target.value,

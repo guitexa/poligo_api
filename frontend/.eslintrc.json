@@ -30,6 +30,8 @@
     "react/jsx-uses-react": "error",
     "react/jsx-uses-vars": "error",
     "no-unused-expressions": "off",
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": ["error"],
     "react/jsx-one-expression-per-line": "off",
     "react/jsx-props-no-spreading": "off",
     "react/prop-types": "off",

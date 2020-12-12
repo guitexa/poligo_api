@@ -116,19 +116,22 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
   const [orderData, setOrderData] = useState<OrderData>({} as OrderData);
 
   // Armazena o order_product selecionado para ser alterado ou visualizado
-  const [selectedOrderProduct, setSelectedOrderProduct] = useState<
-    OrderProductData
-  >({} as OrderProductData);
+  const [
+    selectedOrderProduct,
+    setSelectedOrderProduct,
+  ] = useState<OrderProductData>({} as OrderProductData);
 
   // Armazena o order_product atualizado para atualizar o pedido e também o searchResults
-  const [updateOrderProduct, setUpdateOrderProduct] = useState<
-    OrderProductData
-  >({} as OrderProductData);
+  const [
+    updateOrderProduct,
+    setUpdateOrderProduct,
+  ] = useState<OrderProductData>({} as OrderProductData);
 
   // Armazena o order_product criado para atualizar o pedido e o searchResults
-  const [addNewOrderProduct, setAddNewOrderProduct] = useState<
-    OrderProductData
-  >({} as OrderProductData);
+  const [
+    addNewOrderProduct,
+    setAddNewOrderProduct,
+  ] = useState<OrderProductData>({} as OrderProductData);
 
   // Armazena se houve alguma atualização no pedido
   const [orderUpdated, setOrderUpdated] = useState(false);
@@ -469,13 +472,7 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
         setOrderUpdated(true);
       }
     },
-    [
-      orderData.approved_at,
-      orderData.formatted_approved_at,
-      orderData.status_order,
-      order_id,
-      toUpdateSearchResults,
-    ]
+    [orderData, order_id, toUpdateSearchResults]
   );
 
   // Função para atualizar o status da área técnica e/ou o técnico executante
@@ -531,13 +528,7 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
         setOrderUpdated(true);
       }
     },
-    [
-      orderData.status_delivery,
-      orderData.technical,
-      order_id,
-      toUpdateSearchResults,
-      user,
-    ]
+    [orderData, order_id, toUpdateSearchResults, user]
   );
 
   // Função para atualizar o status do faturamento
@@ -555,7 +546,7 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
       // Define que o banco de dados deve ser atualizado
       setOrderUpdated(true);
     },
-    [orderData.status_billing, order_id, toUpdateSearchResults]
+    [orderData, order_id, toUpdateSearchResults]
   );
 
   // Função para atualizar o status do financeiro
@@ -573,7 +564,7 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
       // Define que o banco de dados deve ser atualizado
       setOrderUpdated(true);
     },
-    [orderData.status_payment, order_id, toUpdateSearchResults]
+    [orderData, order_id, toUpdateSearchResults]
   );
 
   // Função para atualizar as condições de pagamento
@@ -588,7 +579,7 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
         setOrderUpdated(true);
       }
     },
-    [orderData.delivery_conditions]
+    [orderData]
   );
 
   // Função para executar a função submitDeliveryConditions
@@ -820,7 +811,7 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
         setOrderUpdated(true);
       }
     },
-    [orderData.payment_way]
+    [orderData]
   );
 
   // Função para executar a função submitPaymentWay
@@ -840,7 +831,7 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
         setOrderUpdated(true);
       }
     },
-    [orderData.due_date]
+    [orderData]
   );
 
   // Função para executar a função submitDueDate
@@ -1297,13 +1288,7 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
         });
       }
     },
-    [
-      addToast,
-      checkToken,
-      orderData.orders_products,
-      order_id,
-      toUpdateSearchResults,
-    ]
+    [addToast, checkToken, orderData, order_id, toUpdateSearchResults]
   );
 
   // Função para somar o valor total do pedido baseado nos orders_products
