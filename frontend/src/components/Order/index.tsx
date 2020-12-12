@@ -1329,7 +1329,13 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
       setSelectedOrderProduct(order_product);
 
       // Verifica se pode editar o order_product ou apenas visualizar
-      if (from === 'Comercial') {
+      if (
+        (from === 'Comercial' &&
+          !orderData.status_delivery &&
+          !orderData.status_billing &&
+          !orderData.status_payment) ||
+        (from === 'Comercial' && user.permissions === 'Admin')
+      ) {
         overlapNewProductOpen(!newProductOpen);
       } else {
         overlapProductViewOpen(!productViewOpen);
@@ -1338,9 +1344,13 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
     [
       from,
       newProductOpen,
+      orderData.status_billing,
+      orderData.status_delivery,
+      orderData.status_payment,
       overlapNewProductOpen,
       overlapProductViewOpen,
       productViewOpen,
+      user.permissions,
     ]
   );
 
