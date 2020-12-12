@@ -95,7 +95,7 @@ const SignUp: React.FC = () => {
           abortEarly: false,
         });
 
-        checkToken();
+        // checkToken();
 
         await api.post('/users', {
           name: data.name,
@@ -132,7 +132,7 @@ const SignUp: React.FC = () => {
         });
       }
     },
-    [checkToken, addToast, history, permission]
+    [addToast, history, permission]
   );
 
   return (
