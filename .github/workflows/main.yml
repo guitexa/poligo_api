@@ -42,14 +42,14 @@ jobs:
           yarn build
       
       # Copiar código para dentro da Digital Ocean
-      - name: Copy dist to Digital Ocean
+      - name: Copy code to Digital Ocean
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_KEY }}
-          source: "./backend/.,!node_modules"
+          source: "/backend/.,!node_modules"
           target: "~/app/poligo"
       
       # Executar "yarn" na Digital Ocean
