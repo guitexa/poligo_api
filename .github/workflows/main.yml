@@ -51,6 +51,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           source: "backend/.,!node_modules"
           target: "~/app/poligo"
+          strip_components: 1
       
       # Executar "yarn" na Digital Ocean
       # Executar as migrations do TypeORM
