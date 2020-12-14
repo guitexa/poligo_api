@@ -1831,7 +1831,14 @@ const Order: React.FC<OrderProps> = ({ color, order_id, from }) => {
                         <p>{orderData?.formatted_delivery_date}</p>
                       </>
                     )}
-                    {from !== 'TechnicalArea' && !!orderData.status_delivery && (
+                    {from === 'Comercial' && !!orderData.status_delivery && (
+                      <>
+                        <p>{orderData?.delivery_conditions}</p>
+                        <p>{orderData?.formatted_requested_delivery_date}</p>
+                        <p>{orderData?.formatted_delivery_date}</p>
+                      </>
+                    )}
+                    {from === 'Billing' && (
                       <>
                         <p>{orderData?.delivery_conditions}</p>
                         <p>{orderData?.formatted_requested_delivery_date}</p>

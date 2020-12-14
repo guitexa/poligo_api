@@ -365,7 +365,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
   useEffect(() => {
     if (
       user &&
-      (!client_name || client_name.length <= 3) &&
+      (!client_name || client_name.length <= 2) &&
       !approved_at &&
       !created_at &&
       !delivery_date &&
@@ -399,7 +399,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({ color, from }) => {
       }
     } else if (
       user &&
-      (client_name.length > 3 ||
+      (client_name.length > 2 ||
         approved_at ||
         created_at ||
         delivery_date ||

@@ -81,11 +81,11 @@ export const AuthProvider: React.FC = ({ children }) => {
     // Armazena no localStorage o token recebido
     localStorage.setItem('@Poligo:token', userWithTokenResponse.data.token);
 
-    // Armazena no estado o token recebido
-    setToken(userWithTokenResponse.data.token);
-
     // Armazena no header o token para ser utilizado no restante da aplicação
     api.defaults.headers.authorization = `Bearer ${userWithTokenResponse.data.token}`;
+
+    // Armazena no estado o token recebido
+    setToken(userWithTokenResponse.data.token);
   }, []);
 
   // Função para realizar sair da aplicação

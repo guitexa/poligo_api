@@ -4,12 +4,7 @@ import { FiUser, FiMail, FiLock, FiArrowLeft } from 'react-icons/fi';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
-import {
-  // Select,
-  MenuItem,
-  ThemeProvider,
-  createMuiTheme,
-} from '@material-ui/core';
+import { MenuItem, ThemeProvider, createMuiTheme } from '@material-ui/core';
 import { Select } from 'unform-material-ui';
 
 import { useToast } from '../../hooks/toast';
@@ -95,7 +90,7 @@ const SignUp: React.FC = () => {
           abortEarly: false,
         });
 
-        // checkToken();
+        checkToken();
 
         await api.post('/users', {
           name: data.name,
@@ -132,7 +127,7 @@ const SignUp: React.FC = () => {
         });
       }
     },
-    [addToast, history, permission]
+    [addToast, checkToken, history, permission]
   );
 
   return (
