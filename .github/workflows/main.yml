@@ -31,15 +31,11 @@ jobs:
       
       # Instalar as dependências NPM/Yarn
       - name: Install dependencies
-        run: |
-          cd backend/
-          yarn
+        run: yarn
       
       # Executar a build
       - name: Run build
-        run: |
-          cd backend/
-          yarn build
+        run: yarn build
       
       # Copiar código para dentro da Digital Ocean
       - name: Copy code to Digital Ocean
@@ -49,7 +45,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           port: ${{ secrets.SSH_PORT }}
           key: ${{ secrets.SSH_KEY }}
-          source: "backend/package.json,backend/yarn.lock,backend/dist"
+          source: "package.json,yarn.lock,dist"
           target: "~/app/poligo"
           strip_components: 1
       
