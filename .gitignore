@@ -1,1 +1,11 @@
-desktop.ini
+.vscode/
+node_modules/
+build/
+temp/
+.env
+ormconfig.js
+dist/
+coverage/
+
+tmp/*
+!tmp/.gitkeep
