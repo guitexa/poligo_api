@@ -20,7 +20,7 @@ usersRouter.post(
       permissions: Joi.string().required(),
     },
   }),
-  ensureAuth,
+  // ensureAuth,
   usersController.create,
 );
 
