@@ -5,10 +5,6 @@
 <br />
 
 <p align="center">
-<img alt="Project working" src="https://media.giphy.com/media/KZpoGrknAvjqznqXWU/giphy.gif" />
-</p>
-
-<p align="center">
 
   <a href="https://github.com/guitexa" target="_blank">
     <img alt="Made by Guilherme Teixeira" src="https://img.shields.io/badge/made%20by-Guilherme_Teixeira-informational">
@@ -32,7 +28,7 @@
 
 This is a private project. The purpose is use it to improve business on [WR Medicina e Segurança do Trabalho](https://www.wrseg.com.br/). However, this project can be commercialized to all occupational safety and health clinicals on Brazil.
 
-## ⚙️ Install and Usage
+## ⚙️ Install and Usage on Localhost
 
 > [Install Node.js](https://nodejs.org/)
 
@@ -62,21 +58,16 @@ password: poligo
 ```
 
 ```sh
-# On /backend run this command to create tables on database
+# Run this command to create tables on database
 yarn typeorm migration:run
 ```
 
 ```sh
-# On /backend run this command to start server
+# Rn this command to start server
 yarn dev:server
 ```
 
-```sh
-# On /frontend run this command to start frontend
-yarn start
-```
-
-> 🚧 For now, the option to create an account is disabled because it will be an admin function, but you can create a new account on this url [http://localhost:3000/SignUp](http://localhost:3000/SignUp)
+> [Run frontend](https://github.com/guitexa/poligo_app)
 
 <br />
 Copyright © 2020 Guilherme Teixeira
