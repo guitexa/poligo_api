@@ -28,8 +28,8 @@ ordersRouter.get(
   '/',
   celebrate({
     [Segments.QUERY]: {
-      take: Joi.string().required(),
-      from: Joi.string().required(),
+      take: Joi.string(),
+      from: Joi.string(),
     },
   }),
   ordersController.show,
