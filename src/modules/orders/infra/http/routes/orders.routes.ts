@@ -24,16 +24,7 @@ ordersRouter.post(
 );
 
 // Rota para mostrar todas as orders cadastrados
-ordersRouter.get(
-  '/',
-  celebrate({
-    [Segments.QUERY]: {
-      take: Joi.string(),
-      from: Joi.string(),
-    },
-  }),
-  ordersController.show,
-);
+ordersRouter.get('/', ordersController.show);
 
 // Rota para mostrar um order específico
 ordersRouter.get(
