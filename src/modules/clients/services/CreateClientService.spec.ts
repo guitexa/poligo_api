@@ -63,19 +63,6 @@ describe('CreateClient', () => {
     ).rejects.toBeInstanceOf(AppError);
   });
 
-  it('should NOT be able to create a client without CNPJ/CPF', async () => {
-    await expect(
-      createClient.execute({
-        name: 'New Company',
-        cnpj_cpf: '',
-        contact_name: 'John Doe',
-        email: 'johndoe@mail.com',
-        phone: '3433885544',
-        mobile: '34988335566',
-      }),
-    ).rejects.toBeInstanceOf(AppError);
-  });
-
   it('should NOT be able to create a client without contact name', async () => {
     await expect(
       createClient.execute({

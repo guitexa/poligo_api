@@ -171,31 +171,6 @@ describe('UpdateClient', () => {
     );
   });
 
-  it('should NOT be able to update a client without a CNPJ or CPF', async () => {
-    const clientOne = await fakeClientsRepository.create({
-      name: 'New Company',
-      cnpj_cpf: '81023545000115',
-      contact_name: 'John Doe',
-      email: 'johndoe@mail.com',
-      phone: '3433885544',
-      mobile: '34988335566',
-    });
-
-    const newClientOne = {
-      id: clientOne.id,
-      name: 'Old Company',
-      cnpj_cpf: '',
-      contact_name: 'Jane Doe',
-      email: 'janedoe@mail.com',
-      phone: '4134354768',
-      mobile: '41983475834',
-    };
-
-    await expect(updateClient.execute(newClientOne)).rejects.toBeInstanceOf(
-      AppError,
-    );
-  });
-
   it('should NOT be able to update a client without a contact name', async () => {
     const clientOne = await fakeClientsRepository.create({
       name: 'New Company',
