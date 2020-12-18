@@ -25,10 +25,6 @@ export default class CreateClientService {
       throw new AppError('A client name must be provided', 401);
     }
 
-    if (!cnpj_cpf) {
-      throw new AppError('A CPF or a CNPJ must be provided', 401);
-    }
-
     if (!contact_name) {
       throw new AppError('A contact name must be provided', 401);
     }

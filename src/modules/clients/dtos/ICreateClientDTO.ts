@@ -2,7 +2,7 @@
 
 export default interface ICreateClientDTO {
   name: string;
-  cnpj_cpf: string;
+  cnpj_cpf?: string;
   contact_name: string;
   email: string;
   phone?: string;

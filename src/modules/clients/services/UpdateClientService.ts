@@ -46,10 +46,6 @@ export default class UpdateClientService {
     }
 
     if (cnpj_cpf || cnpj_cpf === '') {
-      // Verifica se o usuário não está tentando limpar o campo
-      if (!cnpj_cpf) {
-        throw new AppError('A CNPJ or CPF must be provided', 401);
-      }
       client.cnpj_cpf = cnpj_cpf;
     }
 
