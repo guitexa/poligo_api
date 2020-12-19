@@ -27,8 +27,6 @@ export default class OrdersController {
   public async show(req: Request, res: Response): Promise<Response> {
     const data = req.query;
 
-    console.log(`request: ${new Date(Date.now())}`);
-
     const listOrders = container.resolve(ListOrdersService);
 
     const orders = await listOrders.execute(data);
