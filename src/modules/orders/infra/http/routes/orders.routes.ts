@@ -2,12 +2,14 @@ import { Router } from 'express';
 import { celebrate, Segments, Joi } from 'celebrate';
 
 import ensureAuth from '@modules/users/infra/http/middlewares/ensureAuth';
-import OrdersController from '../controllers/OrdersController';
 import OrderController from '../controllers/OrderController';
+import OrdersController from '../controllers/OrdersController';
+import OrdersWithErrorsController from '../controllers/OrdersWithErrorsController';
 
 const ordersRouter = Router();
-const ordersController = new OrdersController();
 const orderController = new OrderController();
+const ordersController = new OrdersController();
+const ordersWithErrorsController = new OrdersWithErrorsController();
 
 ordersRouter.use(ensureAuth);
 
@@ -25,6 +27,9 @@ ordersRouter.post(
 
 // Rota para mostrar todas as orders cadastrados
 ordersRouter.get('/', ordersController.show);
+
+// Rota para mostrar todas as orders com erros cadastrados
+ordersRouter.get('/errors', ordersWithErrorsController.show);
 
 // Rota para mostrar um order específico
 ordersRouter.get(

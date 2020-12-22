@@ -21,6 +21,10 @@ export default class FakeOrdersRepository implements IOrdersRepository {
     return this.orderRepository;
   }
 
+  public async findAllWithErrors(): Promise<Order[] | undefined> {
+    return this.orderRepository;
+  }
+
   public async findById(order_id: string): Promise<Order | undefined> {
     return this.orderRepository.find(ord => ord.id === order_id);
   }
