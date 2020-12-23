@@ -37,6 +37,11 @@ export default class OrdersRepository implements IOrdersRepository {
       .leftJoinAndSelect('orders_products.product', 'product');
 
     if (from === 'TechnicalArea') {
+      // Função para filtrar por pedidos aprovados e que possuem status do pedido diferente de Cancelado e status de entrega Cancelado
+      query.where(
+        "orders.approved_at IS NOT NULL AND orders.status_order != 'Cancelado' AND orders.status_delivery = 'Cancelado'",
+      );
+
       // Função para filtrar por pedidos aprovados e que possuem status do pedido Cancelado e status de entrega Cancelado
       query.orWhere(
         "orders.approved_at IS NOT NULL AND orders.status_order = 'Cancelado' AND orders.status_delivery = 'Cancelado'",
@@ -59,6 +64,21 @@ export default class OrdersRepository implements IOrdersRepository {
     if (from === 'Billing') {
       // Função para filtrar por pedidos aprovados e que possuem status do pedido Cancelado e status de faturamento Cancelado e status de pagamento Cancelado
       query.where(
+        "orders.approved_at IS NOT NULL AND orders.status_order != 'Cancelado' AND orders.status_billing = 'Cancelado' AND orders.status_payment = 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos aprovados e que possuem status do pedido Cancelado e status de faturamento Cancelado e status de pagamento Cancelado
+      query.orWhere(
+        "orders.approved_at IS NOT NULL AND orders.status_order != 'Cancelado' AND orders.status_billing = 'Cancelado' AND orders.status_payment != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos aprovados e que possuem status do pedido Cancelado e status de faturamento Cancelado e status de pagamento Cancelado
+      query.orWhere(
+        "orders.approved_at IS NOT NULL AND orders.status_order != 'Cancelado' AND orders.status_billing != 'Cancelado' AND orders.status_payment = 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos aprovados e que possuem status do pedido Cancelado e status de faturamento Cancelado e status de pagamento Cancelado
+      query.orWhere(
         "orders.approved_at IS NOT NULL AND orders.status_order = 'Cancelado' AND orders.status_billing = 'Cancelado' AND orders.status_payment = 'Cancelado'",
       );
 
@@ -396,7 +416,7 @@ export default class OrdersRepository implements IOrdersRepository {
       query.andWhere(
         new Brackets(qb => {
           qb.where(
-            "orders.approved_at IS NOT NULL OR orders.status_delivery != ''",
+            "orders.approved_at IS NOT NULL AND orders.status_order != 'Cancelado' OR orders.status_delivery != ''",
           );
         }),
       );
@@ -407,7 +427,7 @@ export default class OrdersRepository implements IOrdersRepository {
       query.andWhere(
         new Brackets(qb => {
           qb.where(
-            "orders.approved_at IS NOT NULL OR orders.status_billing != ''",
+            "orders.approved_at IS NOT NULL AND orders.status_order != 'Cancelado' OR orders.status_billing != ''",
           );
         }),
       );
