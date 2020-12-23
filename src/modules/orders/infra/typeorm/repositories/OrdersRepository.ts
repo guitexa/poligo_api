@@ -1,4 +1,4 @@
-import { Repository, getRepository, Not, IsNull, Brackets } from 'typeorm';
+import { Repository, getRepository, Brackets } from 'typeorm';
 
 import IOrdersRepository from '@modules/orders/repositories/IOrdersRepository';
 import ICreateOrderDTO from '@modules/orders/dtos/ICreateOrderDTO';
@@ -28,36 +28,206 @@ export default class OrdersRepository implements IOrdersRepository {
     take,
     from,
   }: IFindAllOrderDTO): Promise<Order[] | undefined> {
+    const query = this.ormRepository
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.client', 'client')
+      .leftJoinAndSelect('orders.seller', 'seller')
+      .leftJoinAndSelect('orders.technical', 'technical')
+      .leftJoinAndSelect('orders.orders_products', 'orders_products')
+      .leftJoinAndSelect('orders_products.product', 'product');
+
     if (from === 'TechnicalArea') {
-      return this.ormRepository.find({
-        where: [{ approved_at: Not(IsNull()) }, { status_delivery: Not('') }],
-        relations: ['client', 'seller', 'technical', 'orders_products'],
-        order: {
-          approved_at: 'DESC',
-        },
-        take,
-        skip: 0,
-      });
+      // Função para filtrar por pedidos aprovados e que possuem status do pedido Cancelado e status de entrega Cancelado
+      query.orWhere(
+        "orders.approved_at IS NOT NULL AND orders.status_order = 'Cancelado' AND orders.status_delivery = 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos aprovados e que não possuem status de entrega e status do pedido diferente de Cancelado
+      query.orWhere(
+        "orders.approved_at IS NOT NULL AND orders.status_delivery != '' AND orders.status_order != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos aprovados e que possuem qualquer status de entrega e status do pedido diferente de Cancelado
+      query.orWhere(
+        "orders.approved_at IS NOT NULL AND orders.status_delivery = '' AND orders.status_order != 'Cancelado'",
+      );
+
+      // Função para ordenar os resultados
+      query.orderBy('orders.approved_at', 'DESC');
     }
+
     if (from === 'Billing') {
-      return this.ormRepository.find({
-        where: [{ status_order: 'Aprovado' }, { status_billing: Not('') }],
-        relations: ['client', 'seller', 'technical', 'orders_products'],
-        order: {
-          approved_at: 'DESC',
-        },
-        take,
-        skip: 0,
-      });
+      // Função para filtrar por pedidos aprovados e que possuem status do pedido Cancelado e status de faturamento Cancelado e status de pagamento Cancelado
+      query.where(
+        "orders.approved_at IS NOT NULL AND orders.status_order = 'Cancelado' AND orders.status_billing = 'Cancelado' AND orders.status_payment = 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos aprovados e que não possuem status de faturamento e status de pagamento diferente de Cancelado e status do pedido diferente de Cancelado
+      query.orWhere(
+        "orders.approved_at IS NOT NULL AND orders.status_billing != '' AND orders.status_billing != 'Cancelado' AND orders.status_order != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos aprovados e que possuem qualquer status de faturamento e status de pagamento diferente de Cancelado e status do pedido diferente de Cancelado
+      query.orWhere(
+        "orders.approved_at IS NOT NULL AND orders.status_billing = '' AND orders.status_billing != 'Cancelado' AND orders.status_order != 'Cancelado'",
+      );
+
+      // Função para ordenar os resultados
+      query.orderBy('orders.created_at', 'DESC');
     }
-    return this.ormRepository.find({
-      relations: ['client', 'seller', 'technical', 'orders_products'],
-      order: {
-        created_at: 'DESC',
-      },
-      take,
-      skip: 0,
-    });
+
+    if (from === 'Comercial') {
+      // Função para filtrar por pedidos que possuem status do pedido diferente de Cancelado
+      query.where("orders.status_order != 'Cancelado'");
+
+      // Função para filtrar por pedidos que possuem todos os status Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_billing = 'Cancelado' AND orders.status_payment = 'Cancelado' AND orders.status_delivery = 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e não possua demais status
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_delivery = '' AND orders.status_billing = '' AND orders.status_payment = ''",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e sem status do faturamento e demais status Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_billing = '' AND orders.status_payment = 'Cancelado' AND orders.status_delivery = 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e sem status do pagamento e demais status Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_billing = 'Cancelado' AND orders.status_payment = '' AND orders.status_delivery = 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e sem status da entrega e demais status Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_billing = 'Cancelado' AND orders.status_payment = 'Cancelado' AND orders.status_delivery = ''",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e sem status do pagamento e do faturamento e status da entrega Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_billing = '' AND orders.status_payment = '' AND orders.status_delivery = 'Cancelado'",
+      );
+
+      // Função para ordenar os resultados
+      query.orderBy('orders.created_at', 'DESC');
+    }
+
+    return (
+      query
+        // Função para não pular nenhum resultado
+        .skip(0)
+        // Função para limitar a quantidade de resultados
+        .take(take)
+        .getMany()
+    );
+  }
+
+  // Função para procurar todas as orders cadastradas que possuem erros
+  public async findAllWithErrors({
+    take,
+    from,
+  }: IFindAllOrderDTO): Promise<Order[] | undefined> {
+    const query = this.ormRepository
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.client', 'client')
+      .leftJoinAndSelect('orders.seller', 'seller')
+      .leftJoinAndSelect('orders.technical', 'technical')
+      .leftJoinAndSelect('orders.orders_products', 'orders_products')
+      .leftJoinAndSelect('orders_products.product', 'product');
+
+    if (from === 'TechnicalArea') {
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e não possuem e status da entrega ou que seja diferente de Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_delivery != '' AND orders.status_delivery != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos aprovados e/ou que possuem status de entrega
+      query.andWhere(
+        new Brackets(qb => {
+          qb.where(
+            "orders.approved_at IS NOT NULL OR orders.status_delivery != ''",
+          );
+        }),
+      );
+
+      // Função para ordenar os resultados
+      query.orderBy('orders.approved_at', 'DESC');
+    }
+
+    if (from === 'Billing') {
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e não possuem e status da faturamento ou que seja diferente de Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_billing != '' AND orders.status_billing != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e não possuem e status da pagamento ou que seja diferente de Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_payment != '' AND orders.status_payment != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e possuem e status da entrega diferente de Cancelado e status de pagamento Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_billing != 'Cancelado' AND orders.status_payment = 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e possuem e status da pedido diferente de Cancelado e status de entrega Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_payment != 'Cancelado' AND orders.status_billing = 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos aprovados e/ou que possuem status de faturamento
+      query.andWhere(
+        new Brackets(qb => {
+          qb.where(
+            "orders.approved_at IS NOT NULL OR orders.status_billing != ''",
+          );
+        }),
+      );
+
+      // Função para ordenar os resultados
+      query.orderBy('orders.created_at', 'DESC');
+    }
+
+    if (from === 'Comercial') {
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e não possuem e status da entrega ou que seja diferente de Cancelado
+      query.where(
+        "orders.status_order = 'Cancelado' AND orders.status_delivery != '' AND orders.status_delivery != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e não possuem e status da faturamento ou que seja diferente de Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_billing != '' AND orders.status_billing != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e não possuem e status da faturamento ou que seja diferente de Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_payment = '' AND orders.status_billing != '' AND orders.status_billing != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e não possuem e status da pagamento ou que seja diferente de Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_payment != '' AND orders.status_payment != 'Cancelado'",
+      );
+
+      // Função para filtrar por pedidos que possuem status do pedido Cancelado e não possuem e status da pagamento ou que seja diferente de Cancelado
+      query.orWhere(
+        "orders.status_order = 'Cancelado' AND orders.status_billing = '' AND orders.status_payment != '' AND orders.status_payment != 'Cancelado'",
+      );
+
+      // Função para ordenar os resultados
+      query.orderBy('orders.created_at', 'DESC');
+    }
+
+    return (
+      query
+        // Função para não pular nenhum resultado
+        .skip(0)
+        // Função para limitar a quantidade de resultados
+        .take(take)
+        .getMany()
+    );
   }
 
   // Função para procurar uma order específica
@@ -243,12 +413,12 @@ export default class OrdersRepository implements IOrdersRepository {
       );
     }
 
-    if (from === 'Comercial') {
+    if (from === 'Comercial' || from === 'Billing') {
       // Função para ordenar os resultados
       query.orderBy('orders.created_at', 'DESC');
     }
 
-    if (from === 'TechnicalArea' || from === 'Billing') {
+    if (from === 'TechnicalArea') {
       // Função para ordenar os resultados
       query.orderBy('orders.approved_at', 'DESC');
     }

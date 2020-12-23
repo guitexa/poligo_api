@@ -102,13 +102,13 @@ describe('CreateOrderProduct', () => {
     ).rejects.toBeInstanceOf(AppError);
   });
 
-  it('should NOT be able to create an order_product without value', async () => {
+  it('should NOT be able to create an order_product with wrong value', async () => {
     await expect(
       createOrderProduct.execute({
         order_id: order.id,
         product_id: product.id,
         product_description: 'This product is good',
-        product_value: 0,
+        product_value: -1,
       }),
     ).rejects.toBeInstanceOf(AppError);
   });

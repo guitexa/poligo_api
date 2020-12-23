@@ -27,12 +27,13 @@ export default class OrdersController {
   public async show(req: Request, res: Response): Promise<Response> {
     const data = req.query;
 
-    console.log(`request: ${new Date(Date.now())}`);
-
+    // Realiza injeção de dependência para utilizar o service
     const listOrders = container.resolve(ListOrdersService);
 
+    // Executa o service enviando os valores recebidos na query
     const orders = await listOrders.execute(data);
 
+    // Responde a requisição com o retorno do service
     return res.json(classToClass(orders));
   }
 }

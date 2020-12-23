@@ -78,17 +78,36 @@ describe('UpdateOrderProduct', () => {
     });
   });
 
-  it('should be able to update a new order_product', async () => {
+  it('should be able to update an existent order_product', async () => {
     await updateOrderProduct.execute({
       order_product_id: order_product.id,
       product_id: product.id,
       product_description: '',
-      product_value: 200,
+      product_value: 0,
     });
 
     expect(order_product).toEqual(
       expect.objectContaining({
-        product_value: 200,
+        product_value: 0,
+      }),
+    );
+  });
+
+  it('should be able to update an existent order_product with a new product', async () => {
+    const newProduct = await fakeProductsRepository.create({
+      name: 'new-product-name',
+    });
+
+    await updateOrderProduct.execute({
+      order_product_id: order_product.id,
+      product_id: newProduct.id,
+      product_description: '',
+      product_value: 100,
+    });
+
+    expect(order_product.product).toEqual(
+      expect.objectContaining({
+        id: newProduct.id,
       }),
     );
   });

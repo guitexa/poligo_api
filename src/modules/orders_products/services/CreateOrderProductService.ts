@@ -49,9 +49,14 @@ export default class CreateOrderProductService {
       }
     }
 
-    // Verifica se não está faltando o valor e se esse valor é maior que 0
-    if (!product_value || product_value <= 0) {
+    // Verifica se está recebendo um valor
+    if (!product_value && product_value !== 0) {
       throw new AppError('A product_value must be provided', 401);
+    }
+
+    // Verifica se não está recebendo um valor negativo
+    if (product_value < 0) {
+      throw new AppError('A valid product_value must be provided', 401);
     }
 
     // Cria uma order_product e pega o order_product_updated para enviar no response

@@ -49,7 +49,7 @@ export default class UpdateOrderProductService {
       order_product.product_description = product_description;
     }
 
-    if (product_value) {
+    if (product_value || product_value === 0) {
       order_product.product_value = product_value;
     }
 
