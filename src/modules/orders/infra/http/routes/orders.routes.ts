@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { celebrate, Segments, Joi } from 'celebrate';
 
 import ensureAuth from '@modules/users/infra/http/middlewares/ensureAuth';
+import { inputAlphaNumField } from '@shared/utils/regex';
 import OrderController from '../controllers/OrderController';
 import OrdersController from '../controllers/OrdersController';
 import OrdersWithErrorsController from '../controllers/OrdersWithErrorsController';
@@ -52,12 +53,12 @@ ordersRouter.patch(
     [Segments.BODY]: {
       status_order: Joi.string().allow(''),
       approved_at: Joi.date().allow(null),
-      delivery_conditions: Joi.string().allow(''),
+      delivery_conditions: Joi.string().allow('').regex(inputAlphaNumField),
       requested_delivery_date: Joi.date().allow(null),
       delivery_date: Joi.date().allow(null),
       status_delivery: Joi.string().allow(''),
-      payment_way: Joi.string().allow(''),
-      due_date: Joi.string().allow(''),
+      payment_way: Joi.string().allow('').regex(inputAlphaNumField),
+      due_date: Joi.string().allow('').regex(inputAlphaNumField),
       status_billing: Joi.string().allow(''),
       status_payment: Joi.string().allow(''),
       technical_id: Joi.string().uuid().allow(null),

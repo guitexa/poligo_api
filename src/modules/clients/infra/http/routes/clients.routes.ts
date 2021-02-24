@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { celebrate, Segments, Joi } from 'celebrate';
 
 import ensureAuth from '@modules/users/infra/http/middlewares/ensureAuth';
+import { inputAlphaNumField } from '@shared/utils/regex';
 import ClientsController from '../controllers/ClientsController';
 import ClientController from '../controllers/ClientController';
 
@@ -16,9 +17,9 @@ clientsRouter.post(
   '/',
   celebrate({
     [Segments.BODY]: {
-      name: Joi.string().required(),
+      name: Joi.string().required().regex(inputAlphaNumField),
       cnpj_cpf: Joi.string().allow(''),
-      contact_name: Joi.string().required(),
+      contact_name: Joi.string().required().regex(inputAlphaNumField),
       email: Joi.string().email().required(),
       phone: Joi.string().allow(''),
       mobile: Joi.string().allow(''),
@@ -47,9 +48,11 @@ clientsRouter.patch(
   celebrate({
     [Segments.PARAMS]: {
       client_id: Joi.string().uuid().required(),
-      name: Joi.string().allow(''),
+    },
+    [Segments.BODY]: {
+      name: Joi.string().allow('').regex(inputAlphaNumField),
       cnpj_cpf: Joi.string().allow(''),
-      contact_name: Joi.string().allow(''),
+      contact_name: Joi.string().allow('').regex(inputAlphaNumField),
       email: Joi.string().email().allow(''),
       phone: Joi.string().allow(''),
       mobile: Joi.string().allow(''),

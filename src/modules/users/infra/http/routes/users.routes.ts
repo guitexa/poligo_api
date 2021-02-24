@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { celebrate, Segments, Joi } from 'celebrate';
 
+import { inputAlphaNumField } from '@shared/utils/regex';
 import ensureAuth from '../middlewares/ensureAuth';
 import UsersController from '../controllers/UsersController';
 import UserController from '../controllers/UserController';
@@ -14,7 +15,7 @@ usersRouter.post(
   '/',
   celebrate({
     [Segments.BODY]: {
-      name: Joi.string().required(),
+      name: Joi.string().required().regex(inputAlphaNumField),
       email: Joi.string().email().required(),
       password: Joi.string().min(6),
       permissions: Joi.string().required(),

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { celebrate, Segments, Joi } from 'celebrate';
 
 import ensureAuth from '@modules/users/infra/http/middlewares/ensureAuth';
+import { inputAlphaNumField } from '@shared/utils/regex';
 import ProductsController from '../controllers/ProductsController';
 import ProductController from '../controllers/ProductController';
 
@@ -16,7 +17,7 @@ productsRouter.post(
   '/',
   celebrate({
     [Segments.BODY]: {
-      name: Joi.string().required(),
+      name: Joi.string().required().regex(inputAlphaNumField),
     },
   }),
   productsController.create,
