@@ -67,7 +67,7 @@ export default class UpdateClientService {
 
     if (phone || phone === '') {
       // Verifica se o usuário não está tentando limpar o campo sem que haja outro telefone
-      if (phone === '' && !client.mobile) {
+      if (phone === '' && !client.mobile && !mobile) {
         throw new AppError(
           'At least a phone or a mobile must be provided',
           401,
@@ -79,7 +79,7 @@ export default class UpdateClientService {
 
     if (mobile || mobile === '') {
       // Verifica se o usuário não está tentando limpar o campo sem que haja outro telefone
-      if (mobile === '' && !client.phone) {
+      if (mobile === '' && !client.phone && !phone) {
         throw new AppError(
           'At least a phone or a mobile must be provided',
           401,

@@ -29,6 +29,7 @@ app.use((err: Error, req: Request, res: Response, _: NextFunction) => {
       .json({ status: 'error', message: err.message });
   }
 
+  // eslint-disable-next-line no-console
   console.error(err);
 
   return res.status(500).json({
@@ -38,5 +39,6 @@ app.use((err: Error, req: Request, res: Response, _: NextFunction) => {
 });
 
 app.listen(port, () => {
+  // eslint-disable-next-line no-console
   console.log(`SERVER ON PORT ${port}`);
 });

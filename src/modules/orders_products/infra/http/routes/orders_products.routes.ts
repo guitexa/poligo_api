@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { celebrate, Segments, Joi } from 'celebrate';
 
 import ensureAuth from '@modules/users/infra/http/middlewares/ensureAuth';
+import { inputAlphaNumField } from '@shared/utils/regex';
 import OrdersProductsController from '../controllers/OrdersProductsController';
 
 const ordersProductsRouter = Router();
@@ -18,7 +19,7 @@ ordersProductsRouter.post(
     },
     [Segments.BODY]: {
       product_id: Joi.string().required(),
-      product_description: Joi.string().allow(''),
+      product_description: Joi.string().allow('').regex(inputAlphaNumField),
       product_value: Joi.number().required(),
     },
   }),
@@ -45,7 +46,7 @@ ordersProductsRouter.patch(
     },
     [Segments.BODY]: {
       product_id: Joi.string().uuid(),
-      product_description: Joi.string().allow(''),
+      product_description: Joi.string().allow('').regex(inputAlphaNumField),
       product_value: Joi.number(),
     },
   }),
