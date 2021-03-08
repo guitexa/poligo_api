@@ -17,7 +17,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: 'api.poligo.com.br',
+    origin: '206.189.238.158',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   }),
 ); // Controla o acesso de servidores externos
