@@ -15,12 +15,7 @@ import '@shared/container';
 const port = 4875; // A API está rodando nesta porta
 const app = express();
 
-app.use(
-  cors({
-    origin: 'app.poligo.com.br',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  }),
-); // Controla o acesso de servidores externos
+app.use(cors()); // Controla o acesso de servidores externos
 app.use(express.json()); // Permite utilizar JSON nas requisições
 app.use(routes);
 
