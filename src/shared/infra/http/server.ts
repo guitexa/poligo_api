@@ -15,7 +15,12 @@ import '@shared/container';
 const port = 4875; // A API está rodando nesta porta
 const app = express();
 
-app.use(cors()); // Controla o acesso de servidores externos
+app.use(
+  cors({
+    origin: '*', // mas aqui é legal vc configurar só seu IP e não deixar coringa pra todos os endereços
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  }),
+); // Controla o acesso de servidores externos
 app.use(express.json()); // Permite utilizar JSON nas requisições
 app.use(routes);
 
