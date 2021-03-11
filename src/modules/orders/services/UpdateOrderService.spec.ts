@@ -1,25 +1,25 @@
 import AppError from '@shared/errors/AppError';
 
-import FakeClientsRepository from '@modules/clients/repositories/fakes/FakeClientsRepository';
+import FakeCompaniesRepository from '@modules/companies/repositories/fakes/FakeCompaniesRepository';
 import FakeUsersRepository from '@modules/users/repositories/fakes/FakeUsersRepository';
 import User from '@modules/users/infra/typeorm/entities/User';
-import Client from '@modules/clients/infra/typeorm/entities/Client';
+import Company from '@modules/companies/infra/typeorm/entities/Company';
 import FakeOrdersRepository from '../repositories/fakes/FakeOrdersRepository';
 import UpdateOrderService from './UpdateOrderService';
 import Order from '../infra/typeorm/entities/Order';
 
-let fakeClientsRepository: FakeClientsRepository;
+let fakeCompaniesRepository: FakeCompaniesRepository;
 let fakeUsersRepository: FakeUsersRepository;
 let fakeOrdersRepository: FakeOrdersRepository;
 let updateOrder: UpdateOrderService;
-let client: Client;
+let company: Company;
 let seller: User;
 let technical: User;
 let order: Order;
 
 describe('UpdateOrder', () => {
   beforeEach(async () => {
-    fakeClientsRepository = new FakeClientsRepository();
+    fakeCompaniesRepository = new FakeCompaniesRepository();
     fakeUsersRepository = new FakeUsersRepository();
     fakeOrdersRepository = new FakeOrdersRepository();
     updateOrder = new UpdateOrderService(
@@ -27,7 +27,7 @@ describe('UpdateOrder', () => {
       fakeUsersRepository,
     );
 
-    client = await fakeClientsRepository.create({
+    company = await fakeCompaniesRepository.create({
       name: 'New Company',
       cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
@@ -51,7 +51,7 @@ describe('UpdateOrder', () => {
     });
 
     order = await fakeOrdersRepository.create({
-      client_id: client.id,
+      company_id: company.id,
       seller_id: seller.id,
       status_order: 'Rascunho',
       status_delivery: '',
@@ -82,7 +82,7 @@ describe('UpdateOrder', () => {
     expect(orderUpdated).toEqual(
       expect.objectContaining({
         id: order.id,
-        client_id: client.id,
+        company_id: company.id,
         seller_id: seller.id,
       }),
     );
@@ -97,7 +97,7 @@ describe('UpdateOrder', () => {
     expect(orderUpdated).toEqual(
       expect.objectContaining({
         id: order.id,
-        client_id: client.id,
+        company_id: company.id,
         seller_id: seller.id,
         technical_id: technical.id,
       }),
@@ -113,7 +113,7 @@ describe('UpdateOrder', () => {
     expect(orderUpdated).toEqual(
       expect.objectContaining({
         id: order.id,
-        client_id: client.id,
+        company_id: company.id,
         seller_id: seller.id,
         technical_id: null,
       }),

@@ -1,25 +1,25 @@
 import AppError from '@shared/errors/AppError';
 
-import FakeClientsRepository from '@modules/clients/repositories/fakes/FakeClientsRepository';
+import FakeCompaniesRepository from '@modules/companies/repositories/fakes/FakeCompaniesRepository';
 import FakeUsersRepository from '@modules/users/repositories/fakes/FakeUsersRepository';
 import FakeOrdersRepository from '../repositories/fakes/FakeOrdersRepository';
 import ListOrderService from './ListOrderService';
 
-let fakeClientsRepository: FakeClientsRepository;
+let fakeCompaniesRepository: FakeCompaniesRepository;
 let fakeUsersRepository: FakeUsersRepository;
 let fakeOrdersRepository: FakeOrdersRepository;
 let listOrder: ListOrderService;
 
 describe('ListOrder', () => {
   beforeEach(() => {
-    fakeClientsRepository = new FakeClientsRepository();
+    fakeCompaniesRepository = new FakeCompaniesRepository();
     fakeUsersRepository = new FakeUsersRepository();
     fakeOrdersRepository = new FakeOrdersRepository();
     listOrder = new ListOrderService(fakeOrdersRepository);
   });
 
   it('should be able to list one specific order', async () => {
-    const client = await fakeClientsRepository.create({
+    const company = await fakeCompaniesRepository.create({
       name: 'New Company',
       cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
@@ -36,7 +36,7 @@ describe('ListOrder', () => {
     });
 
     const newOrder = await fakeOrdersRepository.create({
-      client_id: client.id,
+      company_id: company.id,
       seller_id: seller.id,
       status_order: 'Rascunho',
       status_delivery: '',

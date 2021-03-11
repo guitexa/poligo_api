@@ -19,7 +19,7 @@ searchOrdersRouter.get(
       created_at: Joi.string().allow(''),
       delivery_date: Joi.string().allow(''),
       technical: Joi.string().allow(''),
-      client_name: Joi.string().allow('').regex(inputAlphaNumField),
+      company_name: Joi.string().allow('').regex(inputAlphaNumField),
       seller: Joi.string().allow(''),
       products: Joi.string().allow('').regex(inputAlphaNumField),
       total_value: Joi.string().allow('').regex(inputValueField),

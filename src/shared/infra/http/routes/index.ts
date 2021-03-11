@@ -3,11 +3,12 @@ import { Router } from 'express';
 import usersRouter from '@modules/users/infra/http/routes/users.routes';
 import sessionsMailRouter from '@modules/users/infra/http/routes/sessions-mail.routes';
 import sessionsPasswordRouter from '@modules/users/infra/http/routes/sessions-password.routes';
-import clientsRouter from '@modules/clients/infra/http/routes/clients.routes';
+import companiesRouter from '@modules/companies/infra/http/routes/companies.routes';
 import productsRouter from '@modules/products/infra/http/routes/products.routes';
 import ordersRouter from '@modules/orders/infra/http/routes/orders.routes';
 import ordersProductsRouter from '@modules/orders_products/infra/http/routes/orders_products.routes';
 import searchOrdersRouter from '@modules/orders/infra/http/routes/search_orders.routes';
+import financialsRouter from '@modules/financials/infra/http/routes/financials.routes';
 
 const routes = Router();
 
@@ -20,8 +21,8 @@ routes.use('/sessions-mail', sessionsMailRouter);
 // Rota da segunda autenticação do user com e-mail e senha
 routes.use('/sessions-password', sessionsPasswordRouter);
 
-// Rota para criar e listar clients
-routes.use('/clients', clientsRouter);
+// Rota para criar e listar companies
+routes.use('/companies', companiesRouter);
 
 // Rota para criar e listar products
 routes.use('/products', productsRouter);
@@ -34,5 +35,8 @@ routes.use('/orders-products', ordersProductsRouter);
 
 // Rota para buscar informações dentro dos orders
 routes.use('/search-orders', searchOrdersRouter);
+
+// Rota para criar, listar e atualizar lançamentos financeiros
+routes.use('/financials', financialsRouter);
 
 export default routes;

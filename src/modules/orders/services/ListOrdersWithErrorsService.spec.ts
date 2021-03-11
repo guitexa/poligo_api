@@ -1,23 +1,23 @@
-import FakeClientsRepository from '@modules/clients/repositories/fakes/FakeClientsRepository';
+import FakeCompaniesRepository from '@modules/companies/repositories/fakes/FakeCompaniesRepository';
 import FakeUsersRepository from '@modules/users/repositories/fakes/FakeUsersRepository';
 import FakeOrdersRepository from '../repositories/fakes/FakeOrdersRepository';
 import ListOrdersWithErrorsService from './ListOrdersWithErrorsService';
 
-let fakeClientsRepository: FakeClientsRepository;
+let fakeCompaniesRepository: FakeCompaniesRepository;
 let fakeUsersRepository: FakeUsersRepository;
 let fakeOrdersRepository: FakeOrdersRepository;
 let listOrder: ListOrdersWithErrorsService;
 
 describe('ListOrdersWithErrors', () => {
   beforeEach(() => {
-    fakeClientsRepository = new FakeClientsRepository();
+    fakeCompaniesRepository = new FakeCompaniesRepository();
     fakeUsersRepository = new FakeUsersRepository();
     fakeOrdersRepository = new FakeOrdersRepository();
     listOrder = new ListOrdersWithErrorsService(fakeOrdersRepository);
   });
 
   it('should be able to list orders', async () => {
-    const client = await fakeClientsRepository.create({
+    const company = await fakeCompaniesRepository.create({
       name: 'New Company',
       cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
@@ -34,7 +34,7 @@ describe('ListOrdersWithErrors', () => {
     });
 
     const orderOne = await fakeOrdersRepository.create({
-      client_id: client.id,
+      company_id: company.id,
       seller_id: seller.id,
       status_order: 'Rascunho',
       status_delivery: '',
@@ -47,7 +47,7 @@ describe('ListOrdersWithErrors', () => {
     });
 
     const orderTwo = await fakeOrdersRepository.create({
-      client_id: client.id,
+      company_id: company.id,
       seller_id: seller.id,
       status_order: 'Rascunho',
       status_delivery: '',

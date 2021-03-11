@@ -30,7 +30,7 @@ export default class OrdersRepository implements IOrdersRepository {
   }: IFindAllOrderDTO): Promise<Order[] | undefined> {
     const query = this.ormRepository
       .createQueryBuilder('orders')
-      .leftJoinAndSelect('orders.client', 'client')
+      .leftJoinAndSelect('orders.company', 'company')
       .leftJoinAndSelect('orders.seller', 'seller')
       .leftJoinAndSelect('orders.technical', 'technical')
       .leftJoinAndSelect('orders.orders_products', 'orders_products')
@@ -151,7 +151,7 @@ export default class OrdersRepository implements IOrdersRepository {
   }: IFindAllOrderDTO): Promise<Order[] | undefined> {
     const query = this.ormRepository
       .createQueryBuilder('orders')
-      .leftJoinAndSelect('orders.client', 'client')
+      .leftJoinAndSelect('orders.company', 'company')
       .leftJoinAndSelect('orders.seller', 'seller')
       .leftJoinAndSelect('orders.technical', 'technical')
       .leftJoinAndSelect('orders.orders_products', 'orders_products')
@@ -256,7 +256,7 @@ export default class OrdersRepository implements IOrdersRepository {
       where: {
         id: order_id,
       },
-      relations: ['client', 'seller', 'technical', 'orders_products'],
+      relations: ['company', 'seller', 'technical', 'orders_products'],
     });
 
     return order;
@@ -283,7 +283,7 @@ export default class OrdersRepository implements IOrdersRepository {
       where: {
         id: order.id,
       },
-      relations: ['client', 'seller', 'technical', 'orders_products'],
+      relations: ['company', 'seller', 'technical', 'orders_products'],
     });
 
     if (findOrder) {
@@ -298,7 +298,7 @@ export default class OrdersRepository implements IOrdersRepository {
     created_at,
     delivery_date,
     technical,
-    client_name,
+    company_name,
     seller,
     status_order,
     status_delivery,
@@ -310,16 +310,16 @@ export default class OrdersRepository implements IOrdersRepository {
   }: ISearchOrderDTO): Promise<Order[] | undefined> {
     const query = this.ormRepository
       .createQueryBuilder('orders')
-      .leftJoinAndSelect('orders.client', 'client')
+      .leftJoinAndSelect('orders.company', 'company')
       .leftJoinAndSelect('orders.seller', 'seller')
       .leftJoinAndSelect('orders.technical', 'technical')
       .leftJoinAndSelect('orders.orders_products', 'orders_products')
       .leftJoinAndSelect('orders_products.product', 'product');
 
-    if (client_name) {
-      // Função para filtrar pelo nome da empresa cliente
-      query.where('client.name ILIKE :client_name', {
-        client_name: `%${client_name}%`,
+    if (company_name) {
+      // Função para filtrar pelo nome da empresa company
+      query.where('company.name ILIKE :company_name', {
+        company_name: `%${company_name}%`,
       });
     }
 

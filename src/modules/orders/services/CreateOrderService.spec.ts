@@ -1,29 +1,29 @@
 import AppError from '@shared/errors/AppError';
 
-import FakeClientsRepository from '@modules/clients/repositories/fakes/FakeClientsRepository';
+import FakeCompaniesRepository from '@modules/companies/repositories/fakes/FakeCompaniesRepository';
 import FakeUsersRepository from '@modules/users/repositories/fakes/FakeUsersRepository';
 import FakeOrdersRepository from '../repositories/fakes/FakeOrdersRepository';
 import CreateOrderService from './CreateOrderService';
 
-let fakeClientsRepository: FakeClientsRepository;
+let fakeCompaniesRepository: FakeCompaniesRepository;
 let fakeUsersRepository: FakeUsersRepository;
 let fakeOrdersRepository: FakeOrdersRepository;
 let createOrder: CreateOrderService;
 
 describe('CreateOrder', () => {
   beforeEach(() => {
-    fakeClientsRepository = new FakeClientsRepository();
+    fakeCompaniesRepository = new FakeCompaniesRepository();
     fakeUsersRepository = new FakeUsersRepository();
     fakeOrdersRepository = new FakeOrdersRepository();
     createOrder = new CreateOrderService(
       fakeOrdersRepository,
-      fakeClientsRepository,
+      fakeCompaniesRepository,
       fakeUsersRepository,
     );
   });
 
   it('should be able to create a new order', async () => {
-    const client = await fakeClientsRepository.create({
+    const company = await fakeCompaniesRepository.create({
       name: 'New Company',
       cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
@@ -40,14 +40,14 @@ describe('CreateOrder', () => {
     });
 
     const order = await createOrder.execute({
-      client_id: client.id,
+      company_id: company.id,
       seller_id: seller.id,
     });
 
     expect(order).toHaveProperty('id');
   });
 
-  it('should NOT be able to create a new order for an inexistent client', async () => {
+  it('should NOT be able to create a new order for an inexistent company', async () => {
     const seller = await fakeUsersRepository.create({
       name: 'Jane Doe',
       email: 'janedoe@mail.com',
@@ -57,14 +57,14 @@ describe('CreateOrder', () => {
 
     await expect(
       createOrder.execute({
-        client_id: 'inexistent-client-id',
+        company_id: 'inexistent-company-id',
         seller_id: seller.id,
       }),
     ).rejects.toBeInstanceOf(AppError);
   });
 
   it('should NOT be able to create a new order for an inexistent seller', async () => {
-    const client = await fakeClientsRepository.create({
+    const company = await fakeCompaniesRepository.create({
       name: 'New Company',
       cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
@@ -75,7 +75,7 @@ describe('CreateOrder', () => {
 
     await expect(
       createOrder.execute({
-        client_id: client.id,
+        company_id: company.id,
         seller_id: 'inexistent-seller-id',
       }),
     ).rejects.toBeInstanceOf(AppError);

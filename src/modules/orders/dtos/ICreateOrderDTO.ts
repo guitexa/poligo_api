@@ -1,7 +1,7 @@
 // Interface para tipar as variáveis ao criar uma order
 
 export default interface ICreateOrderDTO {
-  client_id: string;
+  company_id: string;
   seller_id: string;
   status_order: 'Rascunho';
   status_delivery: '';

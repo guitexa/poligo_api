@@ -19,7 +19,7 @@ ordersRouter.post(
   '/',
   celebrate({
     [Segments.BODY]: {
-      client_id: Joi.string().uuid().required(),
+      company_id: Joi.string().uuid().required(),
       seller_id: Joi.string().uuid().required(),
     },
   }),

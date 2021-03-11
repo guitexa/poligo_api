@@ -10,7 +10,7 @@ import {
   OneToOne,
 } from 'typeorm';
 
-import Client from '@modules/clients/infra/typeorm/entities/Client';
+import Company from '@modules/companies/infra/typeorm/entities/Company';
 import User from '@modules/users/infra/typeorm/entities/User';
 import OrderProduct from '@modules/orders_products/infra/typeorm/entities/OrderProduct';
 
@@ -23,13 +23,13 @@ export default class Order {
   @Generated('increment')
   order_number: number;
 
-  // ONE order can have ONE client
-  @OneToOne(() => Client, client => client.id)
-  @JoinColumn({ name: 'client_id' })
-  client: Client;
+  // ONE order can have ONE company
+  @OneToOne(() => Company, company => company.id)
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
 
   @Column()
-  client_id: string;
+  company_id: string;
 
   // ONE order can have ONE seller
   @OneToOne(() => User, user => user.id)

@@ -1,24 +1,24 @@
 import AppError from '@shared/errors/AppError';
 
-import FakeClientsRepository from '@modules/clients/repositories/fakes/FakeClientsRepository';
+import FakeCompaniesRepository from '@modules/companies/repositories/fakes/FakeCompaniesRepository';
 import FakeUsersRepository from '@modules/users/repositories/fakes/FakeUsersRepository';
 import FakeOrdersRepository from '@modules/orders/repositories/fakes/FakeOrdersRepository';
 import FakeProductsRepository from '@modules/products/repositories/fakes/FakeProductsRepository';
 import Order from '@modules/orders/infra/typeorm/entities/Order';
 import User from '@modules/users/infra/typeorm/entities/User';
-import Client from '@modules/clients/infra/typeorm/entities/Client';
+import Company from '@modules/companies/infra/typeorm/entities/Company';
 import Product from '@modules/products/infra/typeorm/entities/Product';
 import DeleteOrderProductService from './DeleteOrderProductService';
 import FakeOrdersProductsRepository from '../repositories/fakes/FakeOrdersProductsRepository';
 import OrderProduct from '../infra/typeorm/entities/OrderProduct';
 
-let fakeClientsRepository: FakeClientsRepository;
+let fakeCompaniesRepository: FakeCompaniesRepository;
 let fakeUsersRepository: FakeUsersRepository;
 let fakeOrdersRepository: FakeOrdersRepository;
 let fakeOrdersProductsRepository: FakeOrdersProductsRepository;
 let fakeProductsRepository: FakeProductsRepository;
 let deleteOrderProduct: DeleteOrderProductService;
-let client: Client;
+let company: Company;
 let seller: User;
 let product: Product;
 let order: Order;
@@ -26,7 +26,7 @@ let order_product: OrderProduct;
 
 describe('DeleteOrderProduct', () => {
   beforeEach(async () => {
-    fakeClientsRepository = new FakeClientsRepository();
+    fakeCompaniesRepository = new FakeCompaniesRepository();
     fakeUsersRepository = new FakeUsersRepository();
     fakeOrdersRepository = new FakeOrdersRepository();
     fakeOrdersProductsRepository = new FakeOrdersProductsRepository();
@@ -36,7 +36,7 @@ describe('DeleteOrderProduct', () => {
       fakeOrdersRepository,
     );
 
-    client = await fakeClientsRepository.create({
+    company = await fakeCompaniesRepository.create({
       name: 'New Company',
       cnpj_cpf: '81023545000115',
       contact_name: 'John Doe',
@@ -57,7 +57,7 @@ describe('DeleteOrderProduct', () => {
     });
 
     order = await fakeOrdersRepository.create({
-      client_id: client.id,
+      company_id: company.id,
       seller_id: seller.id,
       status_order: 'Rascunho',
       status_delivery: '',
