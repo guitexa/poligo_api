@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 // import { container } from 'tsyringe';
 
-// import ListOrderService from '@modules/orders/services/ListOrderService';
+// import ListFinancialService from '@modules/financials/services/ListFinancialService';
 // import UpdateOrderService from '@modules/orders/services/UpdateOrderService';
 // import { classToClass } from 'class-transformer';
 
@@ -11,10 +11,10 @@ export default class OrderController {
     // const { order_id } = req.params;
 
     // Realiza injeção de dependência para utilizar o service
-    // const listOrder = container.resolve(ListOrderService);
+    // const listFinancial = container.resolve(ListFinancialService);
 
     // Executa o service enviando os valores recebidos no params
-    // const order = await listOrder.execute(order_id);
+    // const order = await listFinancial.execute(order_id);
 
     // Responde a requisição com o retorno do service
     return res.json({ ok: 33333333 });

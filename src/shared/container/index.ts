@@ -22,6 +22,9 @@ import IOrdersProductsRepository from '@modules/orders_products/repositories/IOr
 import FinancialsRepository from '@modules/financials/infra/typeorm/repositories/FinancialsRepository';
 import IFinancialsRepository from '@modules/financials/repositories/IFinancialsRepository';
 
+import BankAccountsRepository from '@modules/bank_accounts/infra/typeorm/repositories/BankAccountsRepository';
+import IBankAccountsRepository from '@modules/bank_accounts/repositories/IBankAccountsRepository';
+
 container.registerSingleton<IUsersRepository>(
   'UsersRepository',
   UsersRepository,
@@ -50,4 +53,9 @@ container.registerSingleton<IOrdersProductsRepository>(
 container.registerSingleton<IFinancialsRepository>(
   'FinancialsRepository',
   FinancialsRepository,
+);
+
+container.registerSingleton<IBankAccountsRepository>(
+  'BankAccountsRepository',
+  BankAccountsRepository,
 );

@@ -3,12 +3,12 @@
 export default interface ICreateOrderDTO {
   company_id: string;
   seller_id: string;
-  status_order: 'Rascunho';
-  status_delivery: '';
-  status_billing: '';
-  status_payment: '';
-  delivery_conditions: '';
-  payment_way: '';
-  due_date: '';
-  total_value: '';
+  status_order: string;
+  status_delivery: string;
+  status_billing: string;
+  status_payment: string;
+  delivery_conditions: string;
+  payment_way: string;
+  due_date: string;
+  total_value: string;
 }

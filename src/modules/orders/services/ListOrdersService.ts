@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 
 import IOrdersRepository from '../repositories/IOrdersRepository';
 import Order from '../infra/typeorm/entities/Order';
-import IFindAllOrderDTO from '../dtos/IFindAllOrderDTO';
+import IFindAllOrdersDTO from '../dtos/IFindAllOrdersDTO';
 
 @injectable()
 export default class ListOrdersService {
@@ -12,7 +12,7 @@ export default class ListOrdersService {
   ) {}
 
   // Função para procurar todas as orders cadastradas
-  public async execute(data: IFindAllOrderDTO): Promise<Order[] | undefined> {
+  public async execute(data: IFindAllOrdersDTO): Promise<Order[] | undefined> {
     return this.ordersRepository.findAll(data);
   }
 }

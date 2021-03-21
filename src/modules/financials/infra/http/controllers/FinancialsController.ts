@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { container } from 'tsyringe';
 
 import CreateFinancialService from '@modules/financials/services/CreateFinancialService';
-// import ListFinancialsService from '@modules/financials/services/ListFinancialsService';
+import ListFinancialsService from '@modules/financials/services/ListFinancialsService';
 // import { classToClass } from 'class-transformer';
 
 export default class FinancialsController {
@@ -22,18 +22,15 @@ export default class FinancialsController {
 
   // Função para mostrar todos os lançamentos financeiros cadastrados
   public async show(req: Request, res: Response): Promise<Response> {
-    // const { company_id } = req.body;
+    const data = req.query;
 
     // Realiza injeção de dependência para utilizar o service
-    // const createOrder = container.resolve(CreateOrderService);
+    const listFinancials = container.resolve(ListFinancialsService);
 
     // Executa o service enviando os valores recebidos no body
-    // const order = await createOrder.execute({
-    //   company_id,
-    //   seller_id,
-    // });
+    const financials = await listFinancials.execute(data);
 
     // Responde a requisição com o retorno do service
-    return res.json({ ok: 2222222 });
+    return res.json(financials);
   }
 }

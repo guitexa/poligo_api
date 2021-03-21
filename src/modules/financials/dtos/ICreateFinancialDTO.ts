@@ -2,8 +2,7 @@
 
 export default interface ICreateFinancialDTO {
   company_id: string;
-  order_id: string;
-  entry_type: string;
+  order_id?: string;
   gross_value?: number;
   net_value?: number;
   due_date?: Date | null;
@@ -18,7 +17,7 @@ export default interface ICreateFinancialDTO {
   final_competence?: Date | null;
   cost_center?: string;
   category?: string;
-  bank_account?: string;
+  bank_account_id?: string;
   description?: string;
   charge_description?: string;
   before_status_charge?: Date | null;

@@ -1,11 +1,11 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export default class CreateFinancial1615253891785
+export default class CreateFinancials1615661643764
   implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.createTable(
       new Table({
-        name: 'financial',
+        name: 'financials',
         columns: [
           {
             name: 'id',
@@ -32,8 +32,9 @@ export default class CreateFinancial1615253891785
             isNullable: true,
           },
           {
-            name: 'entry_type',
+            name: 'cost_type',
             type: 'varchar',
+            isNullable: true,
           },
           {
             name: 'gross_value',
@@ -43,10 +44,20 @@ export default class CreateFinancial1615253891785
             isNullable: true,
           },
           {
+            name: 'gross_value_string',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
             name: 'net_value',
             type: 'decimal',
             precision: 10,
             scale: 2,
+            isNullable: true,
+          },
+          {
+            name: 'net_value_string',
+            type: 'varchar',
             isNullable: true,
           },
           {
@@ -82,6 +93,11 @@ export default class CreateFinancial1615253891785
             isNullable: true,
           },
           {
+            name: 'paid_value_string',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
             name: 'fee_value',
             type: 'decimal',
             precision: 10,
@@ -89,10 +105,20 @@ export default class CreateFinancial1615253891785
             isNullable: true,
           },
           {
+            name: 'fee_value_string',
+            type: 'varchar',
+            isNullable: true,
+          },
+          {
             name: 'updated_value',
             type: 'decimal',
             precision: 10,
             scale: 2,
+            isNullable: true,
+          },
+          {
+            name: 'updated_value_string',
+            type: 'varchar',
             isNullable: true,
           },
           {
@@ -116,8 +142,8 @@ export default class CreateFinancial1615253891785
             isNullable: true,
           },
           {
-            name: 'bank_account',
-            type: 'varchar',
+            name: 'bank_account_id',
+            type: 'uuid',
             isNullable: true,
           },
           {
@@ -196,6 +222,6 @@ export default class CreateFinancial1615253891785
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('financial');
+    await queryRunner.dropTable('financials');
   }
 }

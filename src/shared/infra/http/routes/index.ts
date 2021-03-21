@@ -9,6 +9,8 @@ import ordersRouter from '@modules/orders/infra/http/routes/orders.routes';
 import ordersProductsRouter from '@modules/orders_products/infra/http/routes/orders_products.routes';
 import searchOrdersRouter from '@modules/orders/infra/http/routes/search_orders.routes';
 import financialsRouter from '@modules/financials/infra/http/routes/financials.routes';
+import bankAccountsRouter from '@modules/bank_accounts/infra/http/routes/bank_accounts.routes';
+import searchFinancialsRouter from '@modules/financials/infra/http/routes/search_financials.routes';
 
 const routes = Router();
 
@@ -38,5 +40,11 @@ routes.use('/search-orders', searchOrdersRouter);
 
 // Rota para criar, listar e atualizar lançamentos financeiros
 routes.use('/financials', financialsRouter);
+
+// Rota para criar, listar e atualizar contas bancárias
+routes.use('/bank-accounts', bankAccountsRouter);
+
+// Rota para buscar informações dentro dos lançamentos financeiros
+routes.use('/search-financials', searchFinancialsRouter);
 
 export default routes;

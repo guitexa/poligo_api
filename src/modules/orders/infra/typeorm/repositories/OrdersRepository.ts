@@ -1,10 +1,10 @@
 import { Repository, getRepository, Brackets } from 'typeorm';
+import { endOfDay, isValid, startOfDay } from 'date-fns';
 
 import IOrdersRepository from '@modules/orders/repositories/IOrdersRepository';
 import ICreateOrderDTO from '@modules/orders/dtos/ICreateOrderDTO';
 import ISearchOrderDTO from '@modules/orders/dtos/ISearchOrderDTO';
-import { endOfDay, isValid, startOfDay } from 'date-fns';
-import IFindAllOrderDTO from '@modules/orders/dtos/IFindAllOrderDTO';
+import IFindAllOrdersDTO from '@modules/orders/dtos/IFindAllOrdersDTO';
 import Order from '../entities/Order';
 
 export default class OrdersRepository implements IOrdersRepository {
@@ -27,7 +27,7 @@ export default class OrdersRepository implements IOrdersRepository {
   public async findAll({
     take,
     from,
-  }: IFindAllOrderDTO): Promise<Order[] | undefined> {
+  }: IFindAllOrdersDTO): Promise<Order[] | undefined> {
     const query = this.ormRepository
       .createQueryBuilder('orders')
       .leftJoinAndSelect('orders.company', 'company')
@@ -148,7 +148,7 @@ export default class OrdersRepository implements IOrdersRepository {
   public async findAllWithErrors({
     take,
     from,
-  }: IFindAllOrderDTO): Promise<Order[] | undefined> {
+  }: IFindAllOrdersDTO): Promise<Order[] | undefined> {
     const query = this.ormRepository
       .createQueryBuilder('orders')
       .leftJoinAndSelect('orders.company', 'company')
@@ -317,8 +317,8 @@ export default class OrdersRepository implements IOrdersRepository {
       .leftJoinAndSelect('orders_products.product', 'product');
 
     if (company_name) {
-      // Função para filtrar pelo nome da empresa company
-      query.where('company.name ILIKE :company_name', {
+      // Função para filtrar pelo nome da empresa
+      query.andWhere('company.name ILIKE :company_name', {
         company_name: `%${company_name}%`,
       });
     }

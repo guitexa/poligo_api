@@ -12,8 +12,9 @@ import {
 import Order from '@modules/orders/infra/typeorm/entities/Order';
 import Company from '@modules/companies/infra/typeorm/entities/Company';
 import User from '@modules/users/infra/typeorm/entities/User';
+import BankAccount from '@modules/bank_accounts/infra/typeorm/entities/BankAccount';
 
-@Entity('financial')
+@Entity('financials')
 class Financial {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -39,13 +40,19 @@ class Financial {
   order_id: string;
 
   @Column()
-  entry_type: string;
+  cost_type: string;
 
   @Column('decimal')
   gross_value: number;
 
+  @Column()
+  gross_value_string: string;
+
   @Column('decimal')
   net_value: number;
+
+  @Column()
+  net_value_string: string;
 
   @Column('timestamp with time zone')
   due_date: Date | null;
@@ -65,11 +72,20 @@ class Financial {
   @Column('decimal')
   paid_value: number;
 
+  @Column()
+  paid_value_string: string;
+
   @Column('decimal')
   fee_value: number;
 
+  @Column()
+  fee_value_string: string;
+
   @Column('decimal')
   updated_value: number;
+
+  @Column()
+  updated_value_string: string;
 
   @Column('timestamp with time zone')
   initial_competence: Date | null;
@@ -83,8 +99,13 @@ class Financial {
   @Column()
   category: string;
 
+  // ONE financial can have ONE bank_account
+  @OneToOne(() => BankAccount, bank_account => bank_account.id)
+  @JoinColumn({ name: 'bank_account_id' })
+  bank_account: BankAccount;
+
   @Column()
-  bank_account: string;
+  bank_account_id: string;
 
   @Column()
   description: string;
