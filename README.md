@@ -1,5 +1,5 @@
 <p align="center">
-    <img alt="POLIGO" src="https://i.imgur.com/QnGTmJV.png" width=60%/>
+    <img alt="POLIGO" src="https://i.imgur.com/sXR5NmF.png" width=60%/>
 </p>
 
 <br />
@@ -26,7 +26,7 @@
 
 ## 📜 About the project
 
-This is a private project. The purpose is use it to improve business on [WR Medicina e Segurança do Trabalho](https://www.wrseg.com.br/). However, this project can be commercialized to all occupational safety and health clinicals on Brazil.
+This is a private project. The purpose is use it to improve business on [WR Medicina e Segurança do Trabalho](https://www.wrseg.com.br/). However, this project can be commercialized to all companies that need a system to manage their business.
 
 ## ⚙️ Install and Usage on Localhost
 
