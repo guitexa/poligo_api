@@ -42,11 +42,6 @@ export default class OrdersRepository implements IOrdersRepository {
         "orders.approved_at IS NOT NULL AND orders.status_order != 'Cancelado' AND orders.status_delivery != 'Cancelado' AND orders.status_delivery != 'Entregue'",
       );
 
-      // Função para filtrar por pedidos aprovados e que não possuem status de entrega e status do pedido diferente de Cancelado e status de entrega diferente de Entregue
-      query.orWhere(
-        "orders.approved_at IS NOT NULL AND orders.status_delivery != '' AND orders.status_order != 'Cancelado' AND orders.status_delivery != 'Entregue'",
-      );
-
       // Função para ordenar os resultados
       query.orderBy('orders.approved_at', 'DESC');
     }
@@ -57,16 +52,6 @@ export default class OrdersRepository implements IOrdersRepository {
         "orders.approved_at IS NOT NULL AND orders.status_order != 'Cancelado' AND orders.status_billing != 'Cancelado' AND orders.status_payment != 'Cancelado' AND orders.status_billing != 'Faturado'",
       );
 
-      // Função para filtrar por pedidos aprovados e que não possuem status de faturamento e status de pagamento diferente de Cancelado e status do pedido diferente de Cancelado e status de faturamento diferente Faturado
-      query.orWhere(
-        "orders.approved_at IS NOT NULL AND orders.status_billing != '' AND orders.status_billing != 'Cancelado' AND orders.status_order != 'Cancelado' AND orders.status_billing != 'Faturado'",
-      );
-
-      // Função para filtrar por pedidos aprovados e que possuem qualquer status de faturamento e status de pagamento diferente de Cancelado e status do pedido diferente de Cancelado e status de faturamento diferente Faturado
-      query.orWhere(
-        "orders.approved_at IS NOT NULL AND orders.status_billing = '' AND orders.status_billing != 'Cancelado' AND orders.status_order != 'Cancelado' AND orders.status_billing != 'Faturado'",
-      );
-
       // Função para ordenar os resultados
       query.orderBy('orders.created_at', 'DESC');
     }
@@ -74,7 +59,7 @@ export default class OrdersRepository implements IOrdersRepository {
     if (from === 'Comercial') {
       // Função para filtrar por pedidos que possuem status do pedido diferente de Cancelado e diferente de Aprovado
       query.where(
-        "orders.status_order != 'Cancelado' AND orders.status_order != 'Aprovado'",
+        "orders.status_order != 'Cancelado' AND orders.status_order != 'Aprovado' AND orders.status_order != 'Reprovado'",
       );
 
       // Função para ordenar os resultados
