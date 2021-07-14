@@ -8,6 +8,7 @@ export default interface ICreateOrderDTO {
   status_billing: string;
   status_payment: string;
   delivery_conditions: string;
+  technical_obs: string;
   payment_way: string;
   due_date: string;
   total_value: string;

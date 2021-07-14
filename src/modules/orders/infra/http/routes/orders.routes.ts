@@ -54,6 +54,7 @@ ordersRouter.patch(
       status_order: Joi.string().allow(''),
       approved_at: Joi.date().allow(null),
       delivery_conditions: Joi.string().allow('').regex(inputAlphaNumField),
+      technical_obs: Joi.string().allow('').regex(inputAlphaNumField),
       requested_delivery_date: Joi.date().allow(null),
       delivery_date: Joi.date().allow(null),
       status_delivery: Joi.string().allow(''),

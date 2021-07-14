@@ -48,6 +48,9 @@ export default class Order {
   @Column()
   delivery_conditions: string;
 
+  @Column()
+  technical_obs: string;
+
   @Column('timestamp with time zone')
   requested_delivery_date: Date | null;
 

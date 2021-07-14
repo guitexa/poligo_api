@@ -5,6 +5,7 @@ export default interface IUpdateOrderDTO {
   status_order?: string;
   approved_at?: Date | null;
   delivery_conditions?: string;
+  technical_obs?: string;
   requested_delivery_date?: Date | null;
   delivery_date?: Date | null;
   status_delivery?: string;

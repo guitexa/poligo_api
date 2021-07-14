@@ -24,6 +24,7 @@ export default class UpdateOrderService {
     status_order,
     approved_at,
     delivery_conditions,
+    technical_obs,
     requested_delivery_date,
     delivery_date,
     status_delivery,
@@ -53,6 +54,10 @@ export default class UpdateOrderService {
 
     if (delivery_conditions || delivery_conditions === '') {
       order.delivery_conditions = delivery_conditions;
+    }
+
+    if (technical_obs || technical_obs === '') {
+      order.technical_obs = technical_obs;
     }
 
     if (requested_delivery_date || requested_delivery_date === null) {
