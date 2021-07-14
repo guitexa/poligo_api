@@ -13,9 +13,10 @@ export default class ListOrderProductService {
 
   // Função para procurar um order_product específico
   public async execute(order_product_id: string): Promise<OrderProduct> {
-    const order_product = await this.ordersProductsRepository.findOrderProductById(
-      order_product_id,
-    );
+    const order_product =
+      await this.ordersProductsRepository.findOrderProductById(
+        order_product_id,
+      );
 
     if (!order_product) {
       throw new AppError('This order_product_id was not found', 404);

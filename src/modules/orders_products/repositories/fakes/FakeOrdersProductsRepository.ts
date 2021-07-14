@@ -5,7 +5,8 @@ import OrderProduct from '../../infra/typeorm/entities/OrderProduct';
 import IOrdersProductsRepository from '../IOrdersProductsRepository';
 
 export default class FakeOrdersProductsRepository
-  implements IOrdersProductsRepository {
+  implements IOrdersProductsRepository
+{
   private ordersProductsRepository: OrderProduct[] = [];
 
   public async create(

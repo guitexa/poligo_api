@@ -5,7 +5,8 @@ import ICreateBankAccountDTO from '@modules/bank_accounts/dtos/ICreateBankAccoun
 import BankAccount from '../../infra/typeorm/entities/BankAccount';
 
 export default class FakeBankAccountsRepository
-  implements IBankAccountsRepository {
+  implements IBankAccountsRepository
+{
   private bankAccountRepository: BankAccount[] = [];
 
   public async create(

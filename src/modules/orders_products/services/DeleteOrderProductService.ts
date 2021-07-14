@@ -16,9 +16,10 @@ export default class DeleteOrderProductService {
 
   // Função para deletar um order_product específico
   public async execute(order_product_id: string): Promise<void> {
-    const order_product = await this.ordersProductsRepository.findOrderProductById(
-      order_product_id,
-    );
+    const order_product =
+      await this.ordersProductsRepository.findOrderProductById(
+        order_product_id,
+      );
 
     if (!order_product) {
       throw new AppError('This order_product_id was not found', 404);
@@ -34,9 +35,10 @@ export default class DeleteOrderProductService {
 
     if (order) {
       // Procura todos os orders_products relacionados com esta order
-      const orders_products = await this.ordersProductsRepository.findAllOrdersProductsByOrderId(
-        order_product.order_id,
-      );
+      const orders_products =
+        await this.ordersProductsRepository.findAllOrdersProductsByOrderId(
+          order_product.order_id,
+        );
 
       // Faz a soma de todos os orders_products relacionados com esta order
       if (orders_products) {

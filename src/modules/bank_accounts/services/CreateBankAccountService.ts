@@ -14,9 +14,8 @@ export default class CreateBankAccountService {
 
   // Função para criar um bankAccount
   public async execute({ name }: ICreateBankAccountDTO): Promise<BankAccount> {
-    const checkIfBankAccountExists = await this.bankAccountsRepository.findByName(
-      name,
-    );
+    const checkIfBankAccountExists =
+      await this.bankAccountsRepository.findByName(name);
 
     if (checkIfBankAccountExists) {
       throw new AppError('This bankAccount already exists', 401);

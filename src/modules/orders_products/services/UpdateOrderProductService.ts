@@ -27,9 +27,10 @@ export default class UpdateOrderProductService {
     product_description,
     product_value,
   }: IUpdateOrderProductDTO): Promise<OrderProduct> {
-    const order_product = await this.ordersProductsRepository.findOrderProductById(
-      order_product_id,
-    );
+    const order_product =
+      await this.ordersProductsRepository.findOrderProductById(
+        order_product_id,
+      );
 
     if (!order_product) {
       throw new AppError('This order_product_id was not found', 404);
@@ -65,9 +66,10 @@ export default class UpdateOrderProductService {
 
     if (order) {
       // Procura todos os orders_products relacionados com esta order
-      const orders_products = await this.ordersProductsRepository.findAllOrdersProductsByOrderId(
-        order_product.order_id,
-      );
+      const orders_products =
+        await this.ordersProductsRepository.findAllOrdersProductsByOrderId(
+          order_product.order_id,
+        );
 
       // Faz a soma de todos os orders_products relacionados com esta order
       if (orders_products) {

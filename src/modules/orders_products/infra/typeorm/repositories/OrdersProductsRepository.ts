@@ -5,7 +5,8 @@ import ICreateOrderProductDTO from '@modules/orders_products/dtos/ICreateOrderPr
 import OrderProduct from '../entities/OrderProduct';
 
 export default class OrdersProductsRepository
-  implements IOrdersProductsRepository {
+  implements IOrdersProductsRepository
+{
   private ormRepository: Repository<OrderProduct>;
 
   constructor() {

@@ -34,9 +34,8 @@ export default class UpdateCompanyService {
       if (!name) {
         throw new AppError('A name must be provided', 401);
       }
-      const checkIfCompanyNameExists = await this.companiesRepository.findByName(
-        name,
-      );
+      const checkIfCompanyNameExists =
+        await this.companiesRepository.findByName(name);
 
       if (checkIfCompanyNameExists) {
         throw new AppError('This company name already exists', 401);

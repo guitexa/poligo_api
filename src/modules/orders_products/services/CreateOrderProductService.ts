@@ -68,9 +68,10 @@ export default class CreateOrderProductService {
     });
 
     // Procura todos os orders_products relacionados com esta order
-    const orders_products = await this.ordersProductsRepository.findAllOrdersProductsByOrderId(
-      order_id,
-    );
+    const orders_products =
+      await this.ordersProductsRepository.findAllOrdersProductsByOrderId(
+        order_id,
+      );
 
     if (orders_products) {
       // Faz a soma de todos os orders_products relacionados com esta order
