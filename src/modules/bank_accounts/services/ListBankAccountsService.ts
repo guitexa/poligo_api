@@ -10,7 +10,7 @@ export default class ListBankAccountsService {
     private bankAccountsRepository: IBankAccountsRepository,
   ) {}
 
-  // Função para procurar todos os bankAccounts cadastrados
+  // Função para procurar todos as contas bancárias cadastrados
   public async execute(): Promise<BankAccount[] | undefined> {
     return this.bankAccountsRepository.findAll();
   }

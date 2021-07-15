@@ -12,13 +12,13 @@ export default class CreateBankAccountService {
     private bankAccountsRepository: IBankAccountsRepository,
   ) {}
 
-  // Função para criar um bankAccount
+  // Função para criar uma conta bancária
   public async execute({ name }: ICreateBankAccountDTO): Promise<BankAccount> {
     const checkIfBankAccountExists =
       await this.bankAccountsRepository.findByName(name);
 
     if (checkIfBankAccountExists) {
-      throw new AppError('This bankAccount already exists', 401);
+      throw new AppError('This bank account already exists', 401);
     }
 
     const bankAccount = await this.bankAccountsRepository.create({

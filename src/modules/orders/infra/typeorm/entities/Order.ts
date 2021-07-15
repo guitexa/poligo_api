@@ -63,8 +63,8 @@ export default class Order {
   @Column()
   payment_way: string;
 
-  @Column()
-  due_date: string;
+  @Column('timestamp with time zone')
+  due_date: Date | null;
 
   @Column()
   status_billing: string;

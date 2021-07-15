@@ -25,6 +25,9 @@ import IFinancialsRepository from '@modules/financials/repositories/IFinancialsR
 import BankAccountsRepository from '@modules/bank_accounts/infra/typeorm/repositories/BankAccountsRepository';
 import IBankAccountsRepository from '@modules/bank_accounts/repositories/IBankAccountsRepository';
 
+import PaymentMethodsRepository from '@modules/payment_methods/infra/typeorm/repositories/PaymentMethodsRepository';
+import IPaymentMethodsRepository from '@modules/payment_methods/repositories/IPaymentMethodsRepository';
+
 container.registerSingleton<IUsersRepository>(
   'UsersRepository',
   UsersRepository,
@@ -58,4 +61,9 @@ container.registerSingleton<IFinancialsRepository>(
 container.registerSingleton<IBankAccountsRepository>(
   'BankAccountsRepository',
   BankAccountsRepository,
+);
+
+container.registerSingleton<IPaymentMethodsRepository>(
+  'PaymentMethodsRepository',
+  PaymentMethodsRepository,
 );

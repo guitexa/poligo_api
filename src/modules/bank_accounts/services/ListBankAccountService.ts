@@ -11,7 +11,7 @@ export default class ListBankAccountService {
     private bankAccountsRepository: IBankAccountsRepository,
   ) {}
 
-  // Função para procurar um bankAccount específico
+  // Função para procurar uma conta bancária específico
   public async execute(
     bank_account_id: string,
   ): Promise<BankAccount | undefined> {

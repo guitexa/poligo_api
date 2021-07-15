@@ -99,14 +99,14 @@ export default class CreateFinancials1615661643764
             isNullable: true,
           },
           {
-            name: 'fee_value',
+            name: 'interest_rate',
             type: 'decimal',
             precision: 10,
             scale: 2,
             isNullable: true,
           },
           {
-            name: 'fee_value_string',
+            name: 'interest_rate_string',
             type: 'varchar',
             isNullable: true,
           },

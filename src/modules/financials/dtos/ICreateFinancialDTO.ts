@@ -11,7 +11,7 @@ export default interface ICreateFinancialDTO {
   replan_date?: Date | null;
   paid_date?: Date | null;
   paid_value?: number;
-  fee_value?: number;
+  interest_rate_value?: number;
   updated_value?: number;
   initial_competence?: Date | null;
   final_competence?: Date | null;

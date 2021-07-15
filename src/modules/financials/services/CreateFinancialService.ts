@@ -74,8 +74,8 @@ export default class CreateFinancialService {
       );
     }
 
-    if (financial.fee_value) {
-      financial.fee_value_string = String(financial.fee_value).replace(
+    if (financial.interest_rate) {
+      financial.interest_rate_string = String(financial.interest_rate).replace(
         /[/.]/gi,
         ',',
       );

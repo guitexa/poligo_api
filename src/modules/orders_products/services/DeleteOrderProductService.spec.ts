@@ -66,7 +66,6 @@ describe('DeleteOrderProduct', () => {
       delivery_conditions: '',
       technical_obs: '',
       payment_way: '',
-      due_date: '',
       total_value: '',
     });
 

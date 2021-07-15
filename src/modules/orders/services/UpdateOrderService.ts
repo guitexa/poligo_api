@@ -76,7 +76,7 @@ export default class UpdateOrderService {
       order.payment_way = payment_way;
     }
 
-    if (due_date || due_date === '') {
+    if (due_date || due_date === null) {
       order.due_date = due_date;
     }
 

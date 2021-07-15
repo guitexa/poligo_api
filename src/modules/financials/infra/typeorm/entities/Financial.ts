@@ -76,10 +76,10 @@ class Financial {
   paid_value_string: string;
 
   @Column('decimal')
-  fee_value: number;
+  interest_rate: number;
 
   @Column()
-  fee_value_string: string;
+  interest_rate_string: string;
 
   @Column('decimal')
   updated_value: number;

@@ -10,7 +10,7 @@ export default interface IUpdateOrderDTO {
   delivery_date?: Date | null;
   status_delivery?: string;
   payment_way?: string;
-  due_date?: string;
+  due_date?: Date | null;
   status_billing?: string;
   status_payment?: string;
   technical_id?: string | null;

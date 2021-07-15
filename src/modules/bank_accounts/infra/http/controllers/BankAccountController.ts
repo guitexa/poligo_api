@@ -4,7 +4,7 @@ import { container } from 'tsyringe';
 import ListBankAccountService from '@modules/bank_accounts/services/ListBankAccountService';
 
 export default class BankAccountController {
-  // Função para mostrar um bankAccount específico
+  // Função para mostrar uma conta bancária específica
   public async show(req: Request, res: Response): Promise<Response> {
     const { bank_account_id } = req.params;
 

@@ -60,7 +60,6 @@ describe('UpdateOrder', () => {
       delivery_conditions: '',
       technical_obs: '',
       payment_way: '',
-      due_date: '',
       total_value: '',
     });
   });
@@ -76,7 +75,6 @@ describe('UpdateOrder', () => {
       delivery_date: new Date('2020-05-10'),
       status_delivery: 'Waiting',
       payment_way: 'Long term',
-      due_date: 'Usually',
       status_billing: 'Done',
       status_payment: 'Paid',
     });
