@@ -1,9 +1,12 @@
 import { inject, injectable } from 'tsyringe';
+import { endOfDay, isBefore } from 'date-fns';
 
 import AppError from '@shared/errors/AppError';
 
 import IUsersRepository from '@modules/users/repositories/IUsersRepository';
 import User from '@modules/users/infra/typeorm/entities/User';
+import PaymentMethod from '@modules/payment_methods/infra/typeorm/entities/PaymentMethod';
+import IPaymentMethodsRepository from '@modules/payment_methods/repositories/IPaymentMethodsRepository';
 import IOrdersRepository from '../repositories/IOrdersRepository';
 import Order from '../infra/typeorm/entities/Order';
 import IUpdateOrderDTO from '../dtos/IUpdateOrderDTO';
@@ -16,6 +19,9 @@ export default class UpdateOrderService {
 
     @inject('UsersRepository')
     private usersRepository: IUsersRepository,
+
+    @inject('PaymentMethodsRepository')
+    private paymentMethodsRepository: IPaymentMethodsRepository,
   ) {}
 
   // Função para atualizar uma order específica
@@ -30,6 +36,7 @@ export default class UpdateOrderService {
     status_delivery,
     payment_way,
     due_date,
+    payment_method_id,
     status_billing,
     status_payment,
     technical_id,
@@ -39,10 +46,12 @@ export default class UpdateOrderService {
     );
 
     if (!order) {
-      throw new AppError('This order_id was not found');
+      throw new AppError('This order id was not found');
     }
 
     let technical: User | undefined;
+
+    let payment_method: PaymentMethod | undefined;
 
     if (status_order) {
       order.status_order = status_order;
@@ -77,7 +86,26 @@ export default class UpdateOrderService {
     }
 
     if (due_date || due_date === null) {
+      if (due_date != null && isBefore(endOfDay(due_date), Date.now())) {
+        throw new AppError('You cannot set a past due date');
+      }
       order.due_date = due_date;
+    }
+
+    if (payment_method_id) {
+      payment_method = await this.paymentMethodsRepository.findById(
+        payment_method_id,
+      );
+
+      if (!payment_method) {
+        throw new AppError('This payment_method id was not found', 404);
+      }
+
+      order.payment_method_id = payment_method_id;
+    }
+
+    if (payment_method_id === null) {
+      order.payment_method_id = payment_method_id;
     }
 
     if (status_billing || status_billing === '') {
@@ -92,7 +120,7 @@ export default class UpdateOrderService {
       technical = await this.usersRepository.findById(technical_id);
 
       if (!technical) {
-        throw new AppError('This technical_id was not found', 404);
+        throw new AppError('This technical id was not found', 404);
       }
 
       order.technical_id = technical_id;

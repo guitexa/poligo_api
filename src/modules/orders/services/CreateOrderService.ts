@@ -30,13 +30,13 @@ export default class CreateOrderService {
     const company = await this.companiesRepository.findById(company_id);
 
     if (!company) {
-      throw new AppError('This company_id was not found', 404);
+      throw new AppError('This company id was not found', 404);
     }
 
     const seller = await this.usersRepository.findById(seller_id);
 
     if (!seller) {
-      throw new AppError('This seller_id was not found', 404);
+      throw new AppError('This seller id was not found', 404);
     }
 
     // Além do company_id e seller_id envia outros dados para cadastrar uma string vazia no banco ao invés de NULL

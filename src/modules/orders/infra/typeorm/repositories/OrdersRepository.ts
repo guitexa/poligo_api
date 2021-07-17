@@ -33,6 +33,7 @@ export default class OrdersRepository implements IOrdersRepository {
       .leftJoinAndSelect('orders.company', 'company')
       .leftJoinAndSelect('orders.seller', 'seller')
       .leftJoinAndSelect('orders.technical', 'technical')
+      .leftJoinAndSelect('orders.payment_method', 'payment_method')
       .leftJoinAndSelect('orders.orders_products', 'orders_products')
       .leftJoinAndSelect('orders_products.product', 'product');
 
@@ -86,6 +87,7 @@ export default class OrdersRepository implements IOrdersRepository {
       .leftJoinAndSelect('orders.company', 'company')
       .leftJoinAndSelect('orders.seller', 'seller')
       .leftJoinAndSelect('orders.technical', 'technical')
+      .leftJoinAndSelect('orders.payment_method', 'payment_method')
       .leftJoinAndSelect('orders.orders_products', 'orders_products')
       .leftJoinAndSelect('orders_products.product', 'product');
 
@@ -188,7 +190,13 @@ export default class OrdersRepository implements IOrdersRepository {
       where: {
         id: order_id,
       },
-      relations: ['company', 'seller', 'technical', 'orders_products'],
+      relations: [
+        'company',
+        'seller',
+        'technical',
+        'orders_products',
+        'payment_method',
+      ],
     });
 
     return order;
@@ -215,7 +223,13 @@ export default class OrdersRepository implements IOrdersRepository {
       where: {
         id: order.id,
       },
-      relations: ['company', 'seller', 'technical', 'orders_products'],
+      relations: [
+        'company',
+        'seller',
+        'technical',
+        'orders_products',
+        'payment_method',
+      ],
     });
 
     if (findOrder) {
@@ -245,6 +259,7 @@ export default class OrdersRepository implements IOrdersRepository {
       .leftJoinAndSelect('orders.company', 'company')
       .leftJoinAndSelect('orders.seller', 'seller')
       .leftJoinAndSelect('orders.technical', 'technical')
+      .leftJoinAndSelect('orders.payment_method', 'payment_method')
       .leftJoinAndSelect('orders.orders_products', 'orders_products')
       .leftJoinAndSelect('orders_products.product', 'product');
 

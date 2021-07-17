@@ -60,6 +60,7 @@ ordersRouter.patch(
       status_delivery: Joi.string().allow(''),
       payment_way: Joi.string().allow('').regex(inputAlphaNumField),
       due_date: Joi.date().allow(null),
+      payment_method_id: Joi.string().uuid().allow(null),
       status_billing: Joi.string().allow(''),
       status_payment: Joi.string().allow(''),
       technical_id: Joi.string().uuid().allow(null),

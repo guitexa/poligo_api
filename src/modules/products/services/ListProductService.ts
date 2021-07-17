@@ -16,7 +16,7 @@ export default class ListProductService {
     const product = await this.productsRepository.findById(product_id);
 
     if (!product) {
-      throw new AppError('This product_id was not found', 404);
+      throw new AppError('This product id was not found', 404);
     }
 
     return product;

@@ -20,7 +20,7 @@ export default class ListPaymentMethodService {
     );
 
     if (!paymentMethod) {
-      throw new AppError('This payment method_id was not found', 404);
+      throw new AppError('This payment method id was not found', 404);
     }
 
     return paymentMethod;

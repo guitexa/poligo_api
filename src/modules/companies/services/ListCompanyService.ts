@@ -16,7 +16,7 @@ export default class ListCompanyService {
     const company = await this.companiesRepository.findById(company_id);
 
     if (!company) {
-      throw new AppError('This company_id was not found', 404);
+      throw new AppError('This company id was not found', 404);
     }
 
     return company;

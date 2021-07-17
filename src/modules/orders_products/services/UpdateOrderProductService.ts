@@ -33,14 +33,14 @@ export default class UpdateOrderProductService {
       );
 
     if (!order_product) {
-      throw new AppError('This order_product_id was not found', 404);
+      throw new AppError('This order_product id was not found', 404);
     }
 
     if (product_id) {
       const product = await this.productsRepository.findById(product_id);
 
       if (!product) {
-        throw new AppError('This product_id was not found', 404);
+        throw new AppError('This product id was not found', 404);
       }
 
       order_product.product.id = product_id;

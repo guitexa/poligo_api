@@ -7,8 +7,8 @@ export default class AddPaymentMethodFieldToOrders1626287898267
     await queryRunner.addColumn(
       'orders',
       new TableColumn({
-        name: 'payment_method',
-        type: 'varchar',
+        name: 'payment_method_id',
+        type: 'uuid',
         isNullable: true,
       }),
     );

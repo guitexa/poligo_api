@@ -26,8 +26,8 @@ export default class FinancialsRepository implements IFinancialsRepository {
   // Função para mostrar todos os lançamentos financeiros cadastrados exceto os que vencem na data corrente
   public async findAll({
     take,
-    from,
-  }: IFindAllFinancialsDTO): Promise<Financial[] | undefined> {
+  }: // from,
+  IFindAllFinancialsDTO): Promise<Financial[] | undefined> {
     const query = this.ormRepository
       .createQueryBuilder('financials')
       .leftJoinAndSelect('financials.bank_account', 'bank_account')
@@ -72,8 +72,8 @@ export default class FinancialsRepository implements IFinancialsRepository {
   // Função para mostrar os lançamentos financeiros que vencem no dia corrente
   public async findAllTodayDueDate({
     take,
-    from,
-  }: IFindAllFinancialsDTO): Promise<Financial[] | undefined> {
+  }: // from,
+  IFindAllFinancialsDTO): Promise<Financial[] | undefined> {
     const query = this.ormRepository
       .createQueryBuilder('financials')
       .leftJoinAndSelect('financials.bank_account', 'bank_account')
@@ -131,8 +131,8 @@ export default class FinancialsRepository implements IFinancialsRepository {
     bank_account,
     status_financial,
     take,
-    from,
-  }: ISearchFinancialDTO): Promise<Financial[] | undefined> {
+  }: // from,
+  ISearchFinancialDTO): Promise<Financial[] | undefined> {
     const query = this.ormRepository
       .createQueryBuilder('financials')
       .leftJoinAndSelect('financials.bank_account', 'bank_account')

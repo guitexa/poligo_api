@@ -32,21 +32,21 @@ export default class CreateFinancialService {
     const company = await this.companiesRepository.findById(data.company_id);
 
     if (!company) {
-      throw new AppError('This company_id was not found', 404);
+      throw new AppError('This company id was not found', 404);
     }
 
     if (data.order_id) {
       const order = await this.ordersRepository.findById(data.order_id);
 
       if (!order) {
-        throw new AppError('This order_id was not found', 404);
+        throw new AppError('This order id was not found', 404);
       }
     }
 
     const user = await this.usersRepository.findById(data.user_id);
 
     if (!user) {
-      throw new AppError('This user_id was not found', 404);
+      throw new AppError('This user id was not found', 404);
     }
 
     // Cria o lançamento financeiro

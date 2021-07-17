@@ -13,6 +13,7 @@ import {
 import Company from '@modules/companies/infra/typeorm/entities/Company';
 import User from '@modules/users/infra/typeorm/entities/User';
 import OrderProduct from '@modules/orders_products/infra/typeorm/entities/OrderProduct';
+import PaymentMethod from '@modules/payment_methods/infra/typeorm/entities/PaymentMethod';
 
 @Entity('orders')
 export default class Order {
@@ -65,6 +66,14 @@ export default class Order {
 
   @Column('timestamp with time zone')
   due_date: Date | null;
+
+  // ONE order can have ONE payment_method
+  @OneToOne(() => PaymentMethod, paymentMethod => paymentMethod.id)
+  @JoinColumn({ name: 'payment_method_id' })
+  payment_method: PaymentMethod;
+
+  @Column()
+  payment_method_id: string | null;
 
   @Column()
   status_billing: string;

@@ -11,6 +11,7 @@ export default interface IUpdateOrderDTO {
   status_delivery?: string;
   payment_way?: string;
   due_date?: Date | null;
+  payment_method_id?: string | null;
   status_billing?: string;
   status_payment?: string;
   technical_id?: string | null;

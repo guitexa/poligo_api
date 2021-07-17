@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export default class RenameDueDateFieldOnOrders1626289364963
+export default class RenameDueDateFieldOnOrders1626407078259
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {

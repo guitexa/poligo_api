@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export default class AddTechnicalObsFieldToOrders1626287876185
+export default class AddTechnicalObsFieldToOrders1626407045604
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {

@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
-export default class AddNewDueDateFieldOnOrders1626289389270
+export default class AddNewDueDateFieldOnOrders1626407114111
   implements MigrationInterface
 {
   public async up(queryRunner: QueryRunner): Promise<void> {

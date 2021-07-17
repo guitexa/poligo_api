@@ -20,7 +20,7 @@ export default class ListBankAccountService {
     );
 
     if (!bankAccount) {
-      throw new AppError('This bank_account_id was not found', 404);
+      throw new AppError('This bank account id was not found', 404);
     }
 
     return bankAccount;

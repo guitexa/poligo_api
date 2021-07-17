@@ -22,7 +22,7 @@ export default class DeleteOrderProductService {
       );
 
     if (!order_product) {
-      throw new AppError('This order_product_id was not found', 404);
+      throw new AppError('This order_product id was not found', 404);
     }
 
     // Deleta no banco de dados o order_product
