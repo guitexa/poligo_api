@@ -2,22 +2,22 @@
 
 export default interface ICreateFinancialDTO {
   company_id: string;
-  order_id?: string;
-  gross_value?: number;
-  net_value?: number;
-  due_date?: Date | null;
+  order_id: string;
+  gross_value: number;
+  net_value: number;
+  due_date: Date | null;
   nf_number?: string;
   boleto_number?: string;
-  replan_date?: Date | null;
+  replan_date: Date | null;
   paid_date?: Date | null;
   paid_value?: number;
   interest_rate_value?: number;
   updated_value?: number;
-  initial_competence?: Date | null;
-  final_competence?: Date | null;
-  cost_center?: string;
-  category?: string;
-  bank_account_id?: string;
+  initial_competence: Date | null;
+  final_competence: Date | null;
+  cost_center: string;
+  category: string;
+  bank_account_id: string;
   description?: string;
   charge_description?: string;
   before_status_charge?: Date | null;
