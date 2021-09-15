@@ -13,6 +13,7 @@ import {
 import Company from '@modules/companies/infra/typeorm/entities/Company';
 import User from '@modules/users/infra/typeorm/entities/User';
 import OrderProduct from '@modules/orders_products/infra/typeorm/entities/OrderProduct';
+import SplitPaymentWay from '@modules/splits_payment_way/infra/typeorm/entities/SplitPaymentWay';
 import PaymentMethod from '@modules/payment_methods/infra/typeorm/entities/PaymentMethod';
 
 @Entity('orders')
@@ -64,11 +65,21 @@ export default class Order {
   @Column()
   payment_way: string;
 
+  // ONE order can have MANY splits_payment_way
+  @OneToMany(
+    () => SplitPaymentWay,
+    splits_payment_way => splits_payment_way.order,
+    {
+      cascade: true,
+    },
+  )
+  splits_payment_way: SplitPaymentWay[];
+
   @Column('timestamp with time zone')
   due_date: Date | null;
 
   // ONE order can have ONE payment_method
-  @OneToOne(() => PaymentMethod, paymentMethod => paymentMethod.id)
+  @OneToOne(() => PaymentMethod, payment_method => payment_method.id)
   @JoinColumn({ name: 'payment_method_id' })
   payment_method: PaymentMethod;
 

@@ -39,6 +39,9 @@ class OrderProduct {
   @Column('decimal')
   product_value: number;
 
+  @Column()
+  product_payment_type: string;
+
   @CreateDateColumn()
   created_at: Date;
 

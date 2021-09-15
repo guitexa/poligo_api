@@ -26,6 +26,7 @@ export default class UpdateOrderProductService {
     product_id,
     product_description,
     product_value,
+    product_payment_type,
   }: IUpdateOrderProductDTO): Promise<OrderProduct> {
     const order_product =
       await this.ordersProductsRepository.findOrderProductById(
@@ -54,6 +55,10 @@ export default class UpdateOrderProductService {
       order_product.product_value = product_value;
     }
 
+    if (product_payment_type || product_payment_type === '') {
+      order_product.product_payment_type = product_payment_type;
+    }
+
     // Atualiza o order_product e envia o retorno atualizado pro response
     const order_product_updated = await this.ordersProductsRepository.save(
       order_product,
@@ -71,8 +76,8 @@ export default class UpdateOrderProductService {
           order_product.order_id,
         );
 
-      // Faz a soma de todos os orders_products relacionados com esta order
       if (orders_products) {
+        // Faz a soma de todos os orders_products relacionados com esta order
         const totalValue = orders_products
           .map(e => Number(e.product_value))
           .reduce((accumulator, serviceValue) => {

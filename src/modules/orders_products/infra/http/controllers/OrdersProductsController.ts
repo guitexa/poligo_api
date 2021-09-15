@@ -11,7 +11,12 @@ export default class OrdersProductsController {
   public async create(req: Request, res: Response): Promise<Response> {
     const { order_id } = req.params;
 
-    const { product_id, product_value, product_description } = req.body;
+    const {
+      product_id,
+      product_value,
+      product_description,
+      product_payment_type,
+    } = req.body;
 
     // Realiza injeção de dependência para utilizar o service
     const createOrderProduct = container.resolve(CreateOrderProductService);
@@ -22,6 +27,7 @@ export default class OrdersProductsController {
       product_id,
       product_value,
       product_description,
+      product_payment_type,
     });
 
     // Responde a requisição com o retorno do service
@@ -46,7 +52,12 @@ export default class OrdersProductsController {
   public async update(req: Request, res: Response): Promise<Response> {
     const { order_product_id } = req.params;
 
-    const { product_id, product_description, product_value } = req.body;
+    const {
+      product_id,
+      product_description,
+      product_value,
+      product_payment_type,
+    } = req.body;
 
     // Realiza injeção de dependência para utilizar o service
     const updateOrderProduct = container.resolve(UpdateOrderProductService);
@@ -57,6 +68,7 @@ export default class OrdersProductsController {
       product_id,
       product_description,
       product_value,
+      product_payment_type,
     });
 
     // Responde a requisição com o retorno do service

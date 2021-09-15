@@ -12,6 +12,7 @@ import financialsRouter from '@modules/financials/infra/http/routes/financials.r
 import bankAccountsRouter from '@modules/bank_accounts/infra/http/routes/bank_accounts.routes';
 import paymentMethodsRouter from '@modules/payment_methods/infra/http/routes/payment_methods.routes';
 import searchFinancialsRouter from '@modules/financials/infra/http/routes/search_financials.routes';
+import splitsPaymentWayRouter from '@modules/splits_payment_way/infra/http/routes/splits_payment_way.routes';
 
 const routes = Router();
 
@@ -50,5 +51,8 @@ routes.use('/payment-methods', paymentMethodsRouter);
 
 // Rota para buscar informações dentro dos lançamentos financeiros
 routes.use('/search-financials', searchFinancialsRouter);
+
+// Rota para buscar parcelas
+routes.use('/splits-payment-way', splitsPaymentWayRouter);
 
 export default routes;

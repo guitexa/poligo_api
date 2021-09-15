@@ -11,6 +11,7 @@ interface IRequest {
   product_id: string;
   product_description: string;
   product_value: number;
+  product_payment_type: string;
 }
 
 @injectable()
@@ -32,6 +33,7 @@ export default class CreateOrderProductService {
     product_id,
     product_description,
     product_value,
+    product_payment_type,
   }: IRequest): Promise<OrderProduct | undefined> {
     const order = await this.ordersRepository.findByIdWithoutRelations(
       order_id,
@@ -65,6 +67,7 @@ export default class CreateOrderProductService {
       product_id,
       product_description,
       product_value,
+      product_payment_type: '',
     });
 
     // Procura todos os orders_products relacionados com esta order

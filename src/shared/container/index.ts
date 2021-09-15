@@ -28,6 +28,9 @@ import IBankAccountsRepository from '@modules/bank_accounts/repositories/IBankAc
 import PaymentMethodsRepository from '@modules/payment_methods/infra/typeorm/repositories/PaymentMethodsRepository';
 import IPaymentMethodsRepository from '@modules/payment_methods/repositories/IPaymentMethodsRepository';
 
+import SplitsPaymentWayRepository from '@modules/splits_payment_way/infra/typeorm/repositories/SplitsPaymentWayRepository';
+import ISplitsPaymentWayRepository from '@modules/splits_payment_way/repositories/ISplitsPaymentWayRepository';
+
 container.registerSingleton<IUsersRepository>(
   'UsersRepository',
   UsersRepository,
@@ -66,4 +69,9 @@ container.registerSingleton<IBankAccountsRepository>(
 container.registerSingleton<IPaymentMethodsRepository>(
   'PaymentMethodsRepository',
   PaymentMethodsRepository,
+);
+
+container.registerSingleton<ISplitsPaymentWayRepository>(
+  'SplitsPaymentWayRepository',
+  SplitsPaymentWayRepository,
 );

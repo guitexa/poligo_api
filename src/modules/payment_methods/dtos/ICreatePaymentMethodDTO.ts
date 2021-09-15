@@ -2,8 +2,8 @@
 
 export default interface ICreatePaymentMethodDTO {
   name: string;
-  split_max: string;
-  split_interval: string;
-  first_payment: string;
-  interest_rate: string;
+  split_max: number;
+  split_interval: number;
+  first_payment: number;
+  interest_rate: number;
 }

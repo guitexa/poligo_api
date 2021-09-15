@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 @Entity('payment_methods')
-export default class BankAccount {
+export default class PaymentMethod {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

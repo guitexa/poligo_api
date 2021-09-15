@@ -54,7 +54,7 @@ export default class OrdersRepository implements IOrdersRepository {
       );
 
       // Função para ordenar os resultados
-      query.orderBy('orders.created_at', 'DESC');
+      query.orderBy('orders.approved_at', 'DESC');
     }
 
     if (from === 'Comercial') {
@@ -141,7 +141,7 @@ export default class OrdersRepository implements IOrdersRepository {
       );
 
       // Função para ordenar os resultados
-      query.orderBy('orders.created_at', 'DESC');
+      query.orderBy('orders.approved_at', 'DESC');
     }
 
     if (from === 'Comercial') {
@@ -196,6 +196,7 @@ export default class OrdersRepository implements IOrdersRepository {
         'technical',
         'orders_products',
         'payment_method',
+        'splits_payment_way',
       ],
     });
 
@@ -380,12 +381,13 @@ export default class OrdersRepository implements IOrdersRepository {
       );
     }
 
-    if (from === 'Comercial' || from === 'Billing') {
+    if (from === 'Comercial' && status_order !== 'Aprovado') {
       // Função para ordenar os resultados
       query.orderBy('orders.created_at', 'DESC');
-    }
-
-    if (from === 'TechnicalArea') {
+    } else if (from === 'Comercial' && status_order === 'Aprovado') {
+      // Função para ordenar os resultados
+      query.orderBy('orders.approved_at', 'DESC');
+    } else if (from === 'TechnicalArea' || from === 'Billing') {
       // Função para ordenar os resultados
       query.orderBy('orders.approved_at', 'DESC');
     }

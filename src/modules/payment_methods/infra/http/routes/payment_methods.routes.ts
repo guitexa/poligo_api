@@ -7,18 +7,18 @@ import PaymentMethodsController from '../controllers/PaymentMethodsController';
 import PaymentMethodController from '../controllers/PaymentMethodController';
 
 const paymentMethodsRouter = Router();
-const paymentMethodController = new PaymentMethodsController();
-const bankAccountController = new PaymentMethodController();
+const paymentMethodsController = new PaymentMethodsController();
+const paymentMethodController = new PaymentMethodController();
 
 paymentMethodsRouter.use(ensureAuth);
 
 // Rota para criar um método de pagamento
-paymentMethodsRouter.post('/', paymentMethodController.create);
+paymentMethodsRouter.post('/', paymentMethodsController.create);
 
 // Rota para mostrar os métodos de pagamentos cadastrados
-paymentMethodsRouter.get('/', paymentMethodController.show);
+paymentMethodsRouter.get('/', paymentMethodsController.show);
 
 // Rota para mostrar um método de pagamento específico
-paymentMethodsRouter.get('/:payment_method_id', bankAccountController.show);
+paymentMethodsRouter.get('/:payment_method_id', paymentMethodController.show);
 
 export default paymentMethodsRouter;

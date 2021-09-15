@@ -40,6 +40,7 @@ export default class UpdateOrderService {
     status_billing,
     status_payment,
     technical_id,
+    total_value,
   }: IUpdateOrderDTO): Promise<Order | undefined> {
     const order = await this.ordersRepository.findByIdWithoutRelations(
       order_id,
@@ -86,7 +87,11 @@ export default class UpdateOrderService {
     }
 
     if (due_date || due_date === null) {
-      if (due_date != null && isBefore(endOfDay(due_date), Date.now())) {
+      if (
+        due_date !== null &&
+        isBefore(endOfDay(due_date), Date.now()) &&
+        status_order === 'Aprovado'
+      ) {
         throw new AppError('You cannot set a past due date');
       }
       order.due_date = due_date;
@@ -106,6 +111,10 @@ export default class UpdateOrderService {
 
     if (payment_method_id === null) {
       order.payment_method_id = payment_method_id;
+    }
+
+    if (total_value || total_value === '') {
+      order.total_value = total_value;
     }
 
     if (status_billing || status_billing === '') {

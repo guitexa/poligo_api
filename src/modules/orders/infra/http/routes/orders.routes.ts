@@ -64,6 +64,7 @@ ordersRouter.patch(
       status_billing: Joi.string().allow(''),
       status_payment: Joi.string().allow(''),
       technical_id: Joi.string().uuid().allow(null),
+      total_value: Joi.string().allow(''),
     },
   }),
   orderController.update,

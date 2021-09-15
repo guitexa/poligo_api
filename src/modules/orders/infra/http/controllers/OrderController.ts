@@ -38,6 +38,7 @@ export default class OrderController {
       status_billing,
       status_payment,
       technical_id,
+      total_value,
     } = req.body;
 
     // Realiza injeção de dependência para utilizar o service
@@ -59,6 +60,7 @@ export default class OrderController {
       status_billing,
       status_payment,
       technical_id,
+      total_value,
     });
 
     // Responde a requisição com o retorno do service
